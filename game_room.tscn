@@ -1,0 +1,117 @@
+[gd_scene load_steps=3 format=3 uid="uid://duvnm3asxykhb"]
+
+[ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://card.tscn" id="1_ayhm6"]
+[ext_resource type="Script" path="res://game_room.gd" id="1_fgygk"]
+
+[node name="GameRoom" type="Node2D"]
+script = ExtResource("1_fgygk")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="Table" type="ColorRect" parent="."]
+offset_right = 1152.0
+offset_bottom = 650.0
+color = Color(0.00392157, 0.427451, 0.160784, 1)
+
+[node name="Deck" type="Node2D" parent="."]
+position = Vector2(185, 562)
+
+[node name="1" parent="Deck" instance=ExtResource("1_ayhm6")]
+position = Vector2(319, -400)
+
+[node name="2" parent="Deck" instance=ExtResource("1_ayhm6")]
+position = Vector2(317, -402)
+
+[node name="3" parent="Deck" instance=ExtResource("1_ayhm6")]
+position = Vector2(316, -403)
+
+[node name="4" parent="Deck" instance=ExtResource("1_ayhm6")]
+position = Vector2(316, -405)
+
+[node name="Player1" type="Node2D" parent="."]
+
+[node name="A" parent="Player1" instance=ExtResource("1_ayhm6")]
+position = Vector2(539, 557)
+
+[node name="B" parent="Player1" instance=ExtResource("1_ayhm6")]
+position = Vector2(621, 557)
+
+[node name="Player2" type="Node2D" parent="."]
+
+[node name="A" parent="Player2" instance=ExtResource("1_ayhm6")]
+position = Vector2(947, 371)
+
+[node name="B" parent="Player2" instance=ExtResource("1_ayhm6")]
+position = Vector2(1026, 370)
+
+[node name="Player3" type="Node2D" parent="."]
+visible = false
+position = Vector2(1014, 307)
+
+[node name="A" parent="Player3" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player3" instance=ExtResource("1_ayhm6")]
+position = Vector2(36, 0)
+
+[node name="Player4" type="Node2D" parent="."]
+visible = false
+position = Vector2(996, 134)
+
+[node name="A" parent="Player4" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player4" instance=ExtResource("1_ayhm6")]
+position = Vector2(64, 5)
+
+[node name="Player5" type="Node2D" parent="."]
+visible = false
+position = Vector2(716, 82)
+
+[node name="A" parent="Player5" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player5" instance=ExtResource("1_ayhm6")]
+position = Vector2(21, -4)
+
+[node name="Player6" type="Node2D" parent="."]
+visible = false
+position = Vector2(162, 93)
+
+[node name="A" parent="Player6" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player6" instance=ExtResource("1_ayhm6")]
+position = Vector2(43, -1)
+
+[node name="Player7" type="Node2D" parent="."]
+visible = false
+position = Vector2(144, 349)
+
+[node name="A" parent="Player7" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player7" instance=ExtResource("1_ayhm6")]
+position = Vector2(51, -7)
+
+[node name="Player8" type="Node2D" parent="."]
+visible = false
+position = Vector2(185, 562)
+
+[node name="A" parent="Player8" instance=ExtResource("1_ayhm6")]
+
+[node name="B" parent="Player8" instance=ExtResource("1_ayhm6")]
+position = Vector2(51, 0)
+
+[node name="River" type="Node2D" parent="."]
+visible = false
+position = Vector2(430, 310)
+
+[node name="1" parent="River" instance=ExtResource("1_ayhm6")]
+
+[node name="2" parent="River" instance=ExtResource("1_ayhm6")]
+position = Vector2(88, 2)
+
+[node name="3" parent="River" instance=ExtResource("1_ayhm6")]
+position = Vector2(167, 4)
+
+[node name="4" parent="River" instance=ExtResource("1_ayhm6")]
+position = Vector2(258, 4)
+
+[node name="5" parent="River" instance=ExtResource("1_ayhm6")]
+position = Vector2(347, 1)

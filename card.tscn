@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://b25ew1dv5tplj"]
+
+[ext_resource type="Texture2D" uid="uid://bh1t3rbwbygvj" path="res://backs.png" id="1_8spll"]
+[ext_resource type="Texture2D" uid="uid://c1nk2b4mwqb5n" path="res://values.png" id="2_3urpx"]
+
+[node name="Card" type="Node2D"]
+
+[node name="back" type="Sprite2D" parent="."]
+texture = ExtResource("1_8spll")
+region_enabled = true
+region_rect = Rect2(0, 0, 71, 95)
+
+[node name="front" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_3urpx")
+region_enabled = true
+region_rect = Rect2(71, 95, 71, 95)
