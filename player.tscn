@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://ccbm2fm8ej331"]
+
+[ext_resource type="Script" path="res://player.gd" id="1_hy2mr"]
+[ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://card.tscn" id="1_tb6ci"]
+
+[node name="Player" type="Node2D"]
+script = ExtResource("1_hy2mr")
+
+[node name="Card_1" parent="." instance=ExtResource("1_tb6ci")]
+visible = false
+
+[node name="Card_2" parent="." instance=ExtResource("1_tb6ci")]
+visible = false
+position = Vector2(-53, -9.53674e-07)

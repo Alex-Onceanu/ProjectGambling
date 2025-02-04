@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://b25ew1dv5tplj"]
+[gd_scene load_steps=4 format=3 uid="uid://b25ew1dv5tplj"]
 
 [ext_resource type="Texture2D" uid="uid://bh1t3rbwbygvj" path="res://backs.png" id="1_8spll"]
+[ext_resource type="Script" path="res://card.gd" id="1_irl4d"]
 [ext_resource type="Texture2D" uid="uid://c1nk2b4mwqb5n" path="res://values.png" id="2_3urpx"]
 
 [node name="Card" type="Node2D"]
+script = ExtResource("1_irl4d")
 
 [node name="back" type="Sprite2D" parent="."]
 texture = ExtResource("1_8spll")
@@ -15,3 +17,9 @@ visible = false
 texture = ExtResource("2_3urpx")
 region_enabled = true
 region_rect = Rect2(71, 95, 71, 95)
+
+[node name="goto_anim" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+
+[connection signal="timeout" from="goto_anim" to="." method="_on_goto_anim_timeout"]

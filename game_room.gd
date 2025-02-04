@@ -7,6 +7,13 @@ func _ready():
 	var code = "" # demander à l'utilisateur d'entrer le code de la game
 	var url = "https://" + code + ".ngrok-free.app"
 	$HTTPRequest.request(str(url) + "/register/user?name=leGodot")
+	
+	
+	#print($Deck.position)
+	#$Player1.get_card_from($Deck.global_position, "D5")
+	#$Player1.get_card_from($Deck.global_position, "D6")
+	#$Player2.get_card_from($Deck.global_position, "D7")
+	#$Player2.get_card_from($Deck.global_position, "D8")
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_request_completed(result, response_code, headers, body):
