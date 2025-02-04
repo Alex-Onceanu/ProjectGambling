@@ -15,6 +15,12 @@ run/main_scene="res://game_room.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/viewport_width=2304
+window/size/viewport_height=1296
+window/stretch/scale=2.0
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

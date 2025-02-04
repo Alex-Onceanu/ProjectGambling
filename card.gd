@@ -1,10 +1,10 @@
 extends Node2D
 
-const WIDTH = 71
-const HEIGHT = 95
 var pos_before_goto
 var target
 
+@onready var WIDTH = $front.region_rect.size.x
+@onready var HEIGHT = $front.region_rect.size.y
 @onready var should_move = false
 
 func region_of_string(colval : String) -> Vector2i:
