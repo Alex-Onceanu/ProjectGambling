@@ -36,18 +36,26 @@ func flip_backface():
 	$back.region_rect.position.y = 0
 	$front.visible = false
 	
-func go_to(__target : Vector2, time = 0.6):
-	$goto_anim.wait_time = time
-	$goto_anim.start()
+func go_to(__target : Vector2, time = 0.4, wait = -1.0):
 	target = __target
-	pos_before_goto = global_position
-	should_move = true
+	$goto_anim.wait_time = time
+	if wait <= 0:
+		_on_goto_wait_timeout()
+	else:
+		$goto_wait.wait_time = wait
+		$goto_wait.start()
+	
 
 func _process(delta: float) -> void:
 	if should_move:
 		var t = $goto_anim.time_left / $goto_anim.wait_time
-		t **= 1.8
+		t **= 1.5
 		global_position = (1.0 - t) * target + t * pos_before_goto
 	
 func _on_goto_anim_timeout() -> void:
 	should_move = false
+
+func _on_goto_wait_timeout() -> void:
+	$goto_anim.start()
+	pos_before_goto = global_position
+	should_move = true

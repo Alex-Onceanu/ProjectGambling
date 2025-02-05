@@ -19,7 +19,12 @@ region_enabled = true
 region_rect = Rect2(71, 95, 71, 95)
 
 [node name="goto_anim" type="Timer" parent="."]
-wait_time = 0.5
+wait_time = 0.2
+one_shot = true
+
+[node name="goto_wait" type="Timer" parent="."]
+wait_time = 0.1
 one_shot = true
 
 [connection signal="timeout" from="goto_anim" to="." method="_on_goto_anim_timeout"]
+[connection signal="timeout" from="goto_wait" to="." method="_on_goto_wait_timeout"]

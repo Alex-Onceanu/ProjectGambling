@@ -53,23 +53,23 @@ position = Vector2(576, 324)
 [node name="Player1" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(0, 240)
 
-[node name="Player2" parent="Players" instance=ExtResource("3_qs578")]
-position = Vector2(0, -260)
+[node name="Player8" parent="Players" instance=ExtResource("3_qs578")]
+position = Vector2(275, 183)
 
 [node name="Player3" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(390, 0)
 
-[node name="Player4" parent="Players" instance=ExtResource("3_qs578")]
-position = Vector2(-390, 0)
-
 [node name="Player5" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(275, -183)
 
-[node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
-position = Vector2(-275, 183)
+[node name="Player2" parent="Players" instance=ExtResource("3_qs578")]
+position = Vector2(0, -260)
 
 [node name="Player7" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(-275, -183)
 
-[node name="Player8" parent="Players" instance=ExtResource("3_qs578")]
-position = Vector2(275, 183)
+[node name="Player4" parent="Players" instance=ExtResource("3_qs578")]
+position = Vector2(-390, 0)
+
+[node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
+position = Vector2(-275, 183)

@@ -8,7 +8,7 @@ func _ready():
 	var url = "https://" + code + ".ngrok-free.app"
 	$HTTPRequest.request(str(url) + "/register/user?name=leGodot")
 	
-	$Deck.deal_cards($Players/Player1, ["HA", "DA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8])
+	$Deck.deal_cards($Players/Player1, ["HA", "DA"], [$Players/Player6, $Players/Player4, $Players/Player7, $Players/Player2, $Players/Player5, $Players/Player3, $Players/Player8])
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_request_completed(result, response_code, headers, body):
