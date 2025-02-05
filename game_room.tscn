@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=6 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://card.tscn" id="1_ayhm6"]
 [ext_resource type="Script" path="res://game_room.gd" id="1_fgygk"]
 [ext_resource type="Script" path="res://deck.gd" id="2_mgxd7"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://player.tscn" id="3_qs578"]
+[ext_resource type="Texture2D" uid="uid://ddapr4j4223dn" path="res://menu.png" id="5_ihfpa"]
 
 [node name="GameRoom" type="Node2D"]
 script = ExtResource("1_fgygk")
@@ -31,6 +32,7 @@ position = Vector2(2, 2)
 [node name="4" parent="Deck" instance=ExtResource("1_ayhm6")]
 
 [node name="River" type="Node2D" parent="."]
+visible = false
 position = Vector2(576, 324)
 
 [node name="1" parent="River" instance=ExtResource("1_ayhm6")]
@@ -73,3 +75,29 @@ position = Vector2(-390, 0)
 
 [node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(-275, 183)
+
+[node name="enter_code" type="Node2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="img" type="Sprite2D" parent="enter_code"]
+position = Vector2(0, -100)
+scale = Vector2(1.89062, 1.89062)
+texture = ExtResource("5_ihfpa")
+
+[node name="welcome" type="Label" parent="enter_code"]
+offset_left = -245.0
+offset_top = -159.0
+offset_right = 261.0
+offset_bottom = -116.0
+text = "BIENVENUE AU CASINO"
+
+[node name="server_key" type="LineEdit" parent="enter_code"]
+offset_left = -256.0
+offset_top = -100.0
+offset_right = 261.0
+offset_bottom = -44.0
+placeholder_text = "Copie-colle ici la clé de la partie stp mon boeuf"
+alignment = 1
+max_length = 50
+
+[connection signal="text_submitted" from="enter_code/server_key" to="." method="_on_server_key_text_submitted"]
