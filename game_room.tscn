@@ -9,7 +9,14 @@
 [node name="GameRoom" type="Node2D"]
 script = ExtResource("1_fgygk")
 
-[node name="HTTPRequest" type="HTTPRequest" parent="."]
+[node name="Requests" type="Node2D" parent="."]
+
+[node name="Register" type="HTTPRequest" parent="Requests"]
+
+[node name="Cards" type="HTTPRequest" parent="Requests"]
+
+[node name="TryAgain" type="Timer" parent="Requests"]
+one_shot = true
 
 [node name="Table" type="ColorRect" parent="."]
 offset_right = 1152.0
@@ -76,22 +83,22 @@ position = Vector2(-390, 0)
 [node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
 position = Vector2(-275, 183)
 
-[node name="enter_code" type="Node2D" parent="."]
+[node name="EnterCode" type="Node2D" parent="."]
 position = Vector2(576, 324)
 
-[node name="img" type="Sprite2D" parent="enter_code"]
+[node name="Img" type="Sprite2D" parent="EnterCode"]
 position = Vector2(0, -100)
 scale = Vector2(1.89062, 1.89062)
 texture = ExtResource("5_ihfpa")
 
-[node name="welcome" type="Label" parent="enter_code"]
+[node name="Welcome" type="Label" parent="EnterCode"]
 offset_left = -245.0
 offset_top = -159.0
 offset_right = 261.0
 offset_bottom = -116.0
 text = "BIENVENUE AU CASINO"
 
-[node name="server_key" type="LineEdit" parent="enter_code"]
+[node name="ServerKey" type="LineEdit" parent="EnterCode"]
 offset_left = -256.0
 offset_top = -100.0
 offset_right = 261.0
@@ -100,4 +107,7 @@ placeholder_text = "Copie-colle ici la clé de la partie stp mon boeuf"
 alignment = 1
 max_length = 50
 
-[connection signal="text_submitted" from="enter_code/server_key" to="." method="_on_server_key_text_submitted"]
+[connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
+[connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
+[connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
+[connection signal="text_submitted" from="EnterCode/ServerKey" to="." method="_on_server_key_text_submitted"]

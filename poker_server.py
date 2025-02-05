@@ -54,7 +54,7 @@ class Game:
         self.preFlop()              # distribuer des cartes
 
         self.inGame = True
-        print("Les cartes ont été distribuées")
+        print(" << Les cartes ont été distribuées")
 
     # donne 2 cartes de self.deck à chaque joueur
     def preFlop(self):
@@ -108,10 +108,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
             self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
         # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
-        elif self.path.startswith('/ready') and self.gameInstance.shouldStart:
-            self.send_response(200, 'OK')
-            self.end_headers()
-            self.wfile.write("go!".encode())    # on lui répond "go!" ssi la variable shouldStart de game vaut True
+        # elif self.path.startswith('/ready') and self.gameInstance.shouldStart:
+        #     self.send_response(200, 'OK')
+        #     self.end_headers()
+        #     self.wfile.write("go!".encode())    # on lui répond "go!" ssi la variable shouldStart de game vaut True
 
         # si quelqu'un nous demande quel est le dernier message envoyé 
         elif self.path.startswith('/messenger') and len(self.msgs) >= 1:
@@ -123,15 +123,25 @@ class Server(http.server.SimpleHTTPRequestHandler):
             # Pourquoi le 8 ? en fait c'est un peu une technique de gros shlag mais c'est pour qu'ensuite le client puisse vérifier que la réponse du serveur commence bien par un 8
             # genre s'il y a un bug et qu'il reçoit "<DOCTYPE=HTML>" bah comme ça commence pas par un "8" il l'ignore mdr
 
-        elif self.gameInstance.inGame:
-            # si la partie a commencé et que qlq nous demande quelles sont ses cartes
-            if self.path.startswith('/cards'):
+        # si qlq nous demande quelles sont ses cartes
+        elif self.path.startswith('/cards'):
+            ans = "notready"
+
+            if self.gameInstance.inGame:
                 parsed_url = urlparse(self.path)
-                their_id = int(parse_qs(parsed_url.query)["id"][0])                     # on récupère son identifiant
-                
+
+                if "id" in parse_qs(parsed_url.query).keys():
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])   
+                    ans = self.gameInstance.cards_per_player[their_id]
+                    self.send_response(200, 'OK')
+                else:
+                    ans = "invalid"
+                    self.send_response(400, 'NOTOK')
+            else:
                 self.send_response(200, 'OK')
-                self.end_headers()
-                self.wfile.write(self.gameInstance.cards_per_player[their_id].encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id)
+
+            self.end_headers()
+            self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
 
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
