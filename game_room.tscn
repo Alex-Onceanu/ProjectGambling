@@ -18,6 +18,8 @@ script = ExtResource("1_fgygk")
 [node name="TryAgain" type="Timer" parent="Requests"]
 one_shot = true
 
+[node name="Ready" type="HTTPRequest" parent="Requests"]
+
 [node name="Table" type="ColorRect" parent="."]
 offset_right = 1152.0
 offset_bottom = 650.0
@@ -110,4 +112,5 @@ max_length = 50
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
 [connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
+[connection signal="request_completed" from="Requests/Ready" to="." method="_on_ready_completed"]
 [connection signal="text_submitted" from="EnterCode/ServerKey" to="." method="_on_server_key_text_submitted"]

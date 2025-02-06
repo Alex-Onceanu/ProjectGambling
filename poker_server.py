@@ -11,7 +11,7 @@ everyValue = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'J', 'Q', 'K', 'A']  
 
 # renvoie un deck (mélangé) de 52 cartes
 # une carte est un string de 2 chars (ex : H6 = 6 de coeur, SK = roi de pique)
-def shuffleDeck():
+def shuffle_deck():
     full_deck = []
 
     for c in everyColor:
@@ -25,11 +25,12 @@ def shuffleDeck():
 # à qui est le tour, distribue des cartes etc..
 class Game:
     def __init__(self):
-        self.players = {}           # associe à chaque nom de joueur un identifiant unique (int dans [1, 100])
+        self.id_to_name = {}        # associe à chaque identifiant unique (int dans [1, 100]) le nom du joueur
+        self.ids = []               # on retient l'ordre de jeu ici
         self.shouldStart = False    # vaut False tant que la partie n'est pas lancée
         self.inGame = False         # vaut True une fois que les cartes sont distribuées
         self.cards_per_player = {}  # associe à chaque id de joueur ses 2 cartes
-        self.deck = None            # deck de la partie en cours (cf shuffleDeck)
+        self.deck = None            # deck de la partie en cours (cf shuffle_deck)
 
         print(" << Classe Game initialisée.")
 
@@ -43,22 +44,21 @@ class Game:
             # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
             self.shouldStart = input(" << Tapez \"OK\" pour commencer la partie.\n >> ") == "OK"
 
-        # On affiche tous les joueurs de self.players
         # ce dictionnaire aura été rempli par Server via add_player()
         print(" << Go ! Joueurs actuels :", end=" ")
-        for p in self.players.keys():
-            print(p, end=" ")
+        for p in self.ids:
+            print(self.id_to_name[p], end=" ")
         print()
 
-        self.deck = shuffleDeck()   # créer le deck
-        self.preFlop()              # distribuer des cartes
+        self.deck = shuffle_deck()   # créer le deck
+        self.pre_flop()              # distribuer des cartes
 
         self.inGame = True
         print(" << Les cartes ont été distribuées")
 
     # donne 2 cartes de self.deck à chaque joueur
-    def preFlop(self):
-        for p in self.players.values():
+    def pre_flop(self):
+        for p in self.ids:
             self.cards_per_player[p] = self.deck.pop() + self.deck.pop()
 
     # ajoute un joueur à la partie (à partir de son nom), cette fonction sera appelée par Server
@@ -66,12 +66,19 @@ class Game:
         # comme 2 joueurs peuvent avoir le même nom, on attribue à chaque joueur un identifiant unique
         # on prend un entier de [1, 100], et s'il y est déja (parmi les id des joueurs) on reroll
         player_id = randint(1, 100)
-        while player_id in self.players.items():
+        while player_id in self.ids:
             player_id = randint(1, 100)
 
-        self.players[player] = player_id    # on associe à ce nom de joueur l'id qu'on vient de générer
+        self.ids.append(player_id)
+        self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
         print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
         return player_id
+    
+    def get_all_names(self):
+        ans = ""
+        for p in self.ids:
+            ans += self.id_to_name[p] + ","
+        return ans
 
 
 game = Game()                                   # on crée une instance globale de Game
@@ -108,10 +115,13 @@ class Server(http.server.SimpleHTTPRequestHandler):
             self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
         # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
-        # elif self.path.startswith('/ready') and self.gameInstance.shouldStart:
-        #     self.send_response(200, 'OK')
-        #     self.end_headers()
-        #     self.wfile.write("go!".encode())    # on lui répond "go!" ssi la variable shouldStart de game vaut True
+        elif self.path.startswith('/ready'):
+            self.send_response(200, 'OK')
+            self.end_headers()
+            ans = "notready"
+            if self.gameInstance.shouldStart:
+                ans = "go!" + self.gameInstance.get_all_names()
+            self.wfile.write(ans.encode())    # on lui répond "go!" ssi la variable shouldStart de game vaut True
 
         # si quelqu'un nous demande quel est le dernier message envoyé 
         elif self.path.startswith('/messenger') and len(self.msgs) >= 1:
@@ -167,7 +177,7 @@ PORT = 8080
 # il est de la forme "https://<CODE>.ngrok-free.app" où CODE est ce qu'on print pour que le client le copie-colle
 # pour le récupérer on fait url[8:-15] (donc on veut les charactères allant du 8ème au 15ème en partant de la fin)
 
-ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken_from_env=True)
+ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken="2sgDQwcgTEhjKCy8Zc0fENZUTxA_WttXEMohEf1P5iMZfkdQ")
 print(f" << Partie créée (donnez ce code aux joueurs) : \n << {ngrok_listener.url()[8:-15]}")
 
 # Pour dire à notre Server de s'éxécuter et de gérer les requêtes en continu, on l'envoie à la fonction magique
@@ -178,7 +188,3 @@ handler_object = Server
 httpd = http.server.HTTPServer(("localhost", PORT), handler_object)
 httpd.serve_forever()
 
-# pour lancer ce programme, il faut que ngrok puisse vérifier qu'on a un compte sur leur site
-# donc on peut pas juste faire "python poker_server.py", il faut lui envoyer un "auth token" 
-# donc il faut plutôt lancer NGROK_AUTHTOKEN=... python poker_server.py
-# (en remplaçant "..." par le auth token qu'on peut trouver sur le site de ngrok après s'être créé un compte)

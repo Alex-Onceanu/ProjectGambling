@@ -6,6 +6,7 @@ var target
 @onready var WIDTH = $front.region_rect.size.x
 @onready var HEIGHT = $front.region_rect.size.y
 @onready var should_move = false
+@onready var is_anim_before_halfway = false
 
 func region_of_string(colval : String) -> Vector2i:
 	assert(len(colval) == 2)
@@ -36,7 +37,7 @@ func flip_backface():
 	$back.region_rect.position.y = 0
 	$front.visible = false
 	
-func go_to(__target : Vector2, time = 0.4, wait = -1.0):
+func go_to(__target : Vector2, time = 0.4, wait = 0):
 	target = __target
 	$goto_anim.wait_time = time
 	if wait <= 0:
@@ -44,18 +45,47 @@ func go_to(__target : Vector2, time = 0.4, wait = -1.0):
 	else:
 		$goto_wait.wait_time = wait
 		$goto_wait.start()
-	
+
+func reveal(wait = 0):
+	if $front.visible:
+		return
+	if wait <= 0:
+		_on_reveal_wait_timeout()
+	else:
+		$reveal_wait.wait_time = wait
+		$reveal_wait.start()
 
 func _process(delta: float) -> void:
 	if should_move:
 		var t = $goto_anim.time_left / $goto_anim.wait_time
 		t **= 1.5
 		global_position = (1.0 - t) * target + t * pos_before_goto
-	
+	if not $reveal_anim.is_stopped():
+		var t = 0.5 - $reveal_anim.time_left / ($reveal_anim.wait_time * 2.0)
+		
+		if not is_anim_before_halfway:
+			t += 0.5
+			
+		scale.x = abs(2.0 * t - 1.0)
+
 func _on_goto_anim_timeout() -> void:
 	should_move = false
+	global_position = target
 
 func _on_goto_wait_timeout() -> void:
 	$goto_anim.start()
 	pos_before_goto = global_position
 	should_move = true
+
+func _on_reveal_wait_timeout() -> void:
+	$reveal_anim.start()
+	is_anim_before_halfway = true
+
+func _on_reveal_anim_timeout() -> void:
+	if is_anim_before_halfway:
+		flip_frontface()
+		is_anim_before_halfway = false
+		$reveal_anim.start()
+	else:
+		scale.x = 1.0
+	
