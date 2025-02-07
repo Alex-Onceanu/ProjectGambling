@@ -6,6 +6,7 @@ import time
 from random import randint, shuffle
 import ngrok                        # pour envoyer localhost ailleurs (tunneling)
 import pyperclip
+import json
 
 INITIAL_MONEY = 100
 SMALL_BLIND = 5
@@ -129,6 +130,7 @@ class Game:
         for idp in self.id_to_update.keys():
             self.id_to_update[idp].append((self.who_is_playing, FOLD))
 
+        print(f"{self.id_to_name[who]} folded")
         self.next_player()
 
     def play_round(self, nb_cards_to_add_to_board : int):
@@ -251,11 +253,28 @@ class Server(http.server.SimpleHTTPRequestHandler):
             elif self.path.startswith('/update'):
                 parsed_url = urlparse(self.path)
                 their_id = parse_qs(parsed_url.query)["id"][0]
-                # TODO !!!!!!!!!
-                pass
+
+                if not their_id in self.gameInstance.ids:
+                    raise RuntimeError("C'est qui " + str(their_id) + " ?")
+                
+                ans = {
+                    "round" : self.gameInstance.round,
+                    "update" : self.gameInstance.id_to_update[their_id], 
+                    "money_left" : self.gameInstance.money_left, 
+                    "total_bet" : self.gameInstance.total_bet,
+                    "current_blind" : self.gameInstance.current_blind,
+                    "who_is_playing" : self.gameInstance.who_is_playing
+                }
+
+                self.send_response(200, 'OK')
+                self.end_headers()
+                self.wfile.write(json.dumps(ans).encode())
 
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
+            self.send_response(400, 'NOTOK')
+            self.end_headers()
+            self.wfile.write("error".encode())
 
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
