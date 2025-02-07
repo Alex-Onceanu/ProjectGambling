@@ -62,27 +62,51 @@ position = Vector2(150, 0)
 position = Vector2(576, 324)
 
 [node name="Player1" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(0, 240)
 
 [node name="Player8" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(275, 183)
 
 [node name="Player3" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(390, 0)
 
 [node name="Player5" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(275, -183)
 
 [node name="Player2" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(0, -260)
 
 [node name="Player7" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(-275, -183)
 
 [node name="Player4" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(-390, 0)
 
 [node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
+position = Vector2(-275, 183)
+
+[node name="Player9" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
+position = Vector2(0, -260)
+
+[node name="Player10" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
+position = Vector2(-275, -183)
+
+[node name="Player11" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
+position = Vector2(-390, 0)
+
+[node name="Player12" parent="Players" instance=ExtResource("3_qs578")]
+visible = false
 position = Vector2(-275, 183)
 
 [node name="EnterCode" type="Node2D" parent="."]
@@ -101,6 +125,7 @@ offset_bottom = -116.0
 text = "BIENVENUE AU CASINO"
 
 [node name="ServerKey" type="LineEdit" parent="EnterCode"]
+visible = false
 offset_left = -256.0
 offset_top = -100.0
 offset_right = 261.0
@@ -109,8 +134,18 @@ placeholder_text = "Copie-colle ici la clé de la partie stp mon boeuf"
 alignment = 1
 max_length = 50
 
+[node name="Name" type="LineEdit" parent="EnterCode"]
+offset_left = -256.0
+offset_top = -100.0
+offset_right = 261.0
+offset_bottom = -44.0
+placeholder_text = "Ton pseudo :"
+alignment = 1
+max_length = 50
+
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
 [connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
 [connection signal="request_completed" from="Requests/Ready" to="." method="_on_ready_completed"]
 [connection signal="text_submitted" from="EnterCode/ServerKey" to="." method="_on_server_key_text_submitted"]
+[connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]

@@ -2,6 +2,7 @@ extends Node2D
 
 var pos_before_goto
 var target
+var initial_scale_x
 
 @onready var WIDTH = $front.region_rect.size.x
 @onready var HEIGHT = $front.region_rect.size.y
@@ -80,6 +81,7 @@ func _on_goto_wait_timeout() -> void:
 func _on_reveal_wait_timeout() -> void:
 	$reveal_anim.start()
 	is_anim_before_halfway = true
+	initial_scale_x = scale.x
 
 func _on_reveal_anim_timeout() -> void:
 	if is_anim_before_halfway:
@@ -87,5 +89,5 @@ func _on_reveal_anim_timeout() -> void:
 		is_anim_before_halfway = false
 		$reveal_anim.start()
 	else:
-		scale.x = 1.0
+		scale.x = initial_scale_x
 	

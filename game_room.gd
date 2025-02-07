@@ -1,42 +1,52 @@
 extends Node2D
 
 var user_id
-var user_name
 var url
 var tryagain_node
 var tryagain_url
+var nb_players
 
-func compute_player_pos(player_i, nb_players):
-	pass
+@onready var user_name = "debug"
+
+# met les joueurs sur un polygone régulier à nb_players faces
+# cf racines nb_players-ièmes de l'unité (merci à Martial)
+func compute_player_pos(player_i):
+	const pi = 3.1416
+	var theta = 2.0 * pi * player_i / nb_players
+	theta += pi / 2		# pour que le joueur 0 soit en bas
+	const module = 240.0
+	return Vector2(1.4 * module * cos(theta), module * sin(theta)) + $Players.global_position
 
 func rearrange_players(names, anim = false):
-	print(names)
-	return
-	#var nb_players = len(names)
-	#var offset = names.find(user_name)
-	#if offset == -1:
-		#pass
-	#
-	#var true_i
-	#for i in range(0, nb_players - 1):
-		#true_i = 1 + posmod(i - offset, nb_players)
-		#if not anim:
-			#get_node("Players/Player" + str(true_i)).global_position = compute_player_pos(true_i, nb_players)
+	nb_players = len(names)
+	var offset = names.find(user_name)
+	if offset == -1:
+		print("Me suis pas trouvé moi-même parmi les joueurs ??")
+		pass
+	
+	var true_i
+	for i in range(0, nb_players):
+		true_i = 1 + posmod(i - offset, nb_players)
+		get_node("Players/Player" + str(true_i) + "/name_label").text = names[i]
+		if not anim:
+			get_node("Players/Player" + str(true_i)).global_position = compute_player_pos(true_i - 1)
+			get_node("Players/Player" + str(true_i)).visible = true
 
 # demander à l'utilisateur d'entrer le code de la game
 func _on_server_key_text_submitted(new_text: String) -> void:
-	if $EnterCode/ServerKey.text == "debug":
+	if new_text == "debug":
 		$EnterCode.visible = false
-		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player6, $Players/Player4, $Players/Player7, $Players/Player2, $Players/Player5, $Players/Player3, $Players/Player8])
+		rearrange_players(["moi", "toi", "lui", "soi", "n", "v", "j", "soi", "n", "v", "j", "j"])
+		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
 		return
 	
-	if len($EnterCode/ServerKey.text) <= 30:
+	if len(new_text) <= 30:
 		return
 		
 	$EnterCode/Welcome.text = "En train de télécommuniquer..."
 	
-	url = "https://" + $EnterCode/ServerKey.text + ".ngrok-free.app"
-	$Requests/Register.request(str(url) + "/register/user?name=leGodot")
+	url = "https://" + new_text + ".ngrok-free.app"
+	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_register_completed(result, response_code, headers, body):
@@ -80,9 +90,13 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		tryagain_url = str(url) + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
+		
+	var other_players = []
+	for i in range(2, nb_players + 1):
+		other_players.append(get_node("Players/Player" + str(i)))
 	
 	$EnterCode.visible = false
-	$Deck.deal_cards($Players/Player1, [ans[0] + ans[1], ans[2] + ans[3]], [$Players/Player6, $Players/Player4, $Players/Player7, $Players/Player2, $Players/Player5, $Players/Player3, $Players/Player8])
+	$Deck.deal_cards($Players/Player1, [ans[0] + ans[1], ans[2] + ans[3]], other_players)
 
 
 func _on_try_again_timeout() -> void:
@@ -90,3 +104,9 @@ func _on_try_again_timeout() -> void:
 		tryagain_node.request(tryagain_url)
 		tryagain_url = ""
 		tryagain_node = null
+
+
+func _on_name_text_submitted(new_text: String) -> void:
+	user_name = new_text
+	$EnterCode/Name.visible = false
+	$EnterCode/ServerKey.visible = true

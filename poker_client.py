@@ -71,7 +71,7 @@ class Client:
     def run(self):
         shouldStart = ""
         print(" << On attend le feu vert du serveur")
-        while shouldStart != "go!":
+        while not shouldStart.startswith("go!"):
             # la partie commence lorsque le serveur nous répond "go!"
             time.sleep(1)
             # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
