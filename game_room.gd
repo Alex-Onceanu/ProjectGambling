@@ -83,7 +83,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		tryagain_url = url + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
-	if ans == "invalid" or len(ans) != 4:
+	if ans == "invalid" or len(ans) > 20:
 		$EnterCode/Welcome.text = "No way ?? Un bug rare sauvage apparait : ID invalide"
 		print("Error : ", ans)
 		tryagain_node = $Requests/Cards
@@ -95,8 +95,14 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
 	
+	var cards = ans.split(",")
+	
+	if len(cards) <= 1 or len(cards) > 7:
+		print("TODO ??")
+		pass
+	
 	$EnterCode.visible = false
-	$Deck.deal_cards($Players/Player1, [ans[0] + ans[1], ans[2] + ans[3]], other_players)
+	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
 
 
 func _on_try_again_timeout() -> void:

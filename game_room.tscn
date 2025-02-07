@@ -40,26 +40,26 @@ position = Vector2(2, 2)
 
 [node name="4" parent="Deck" instance=ExtResource("1_ayhm6")]
 
-[node name="River" type="Node2D" parent="."]
+[node name="Board" type="Node2D" parent="."]
 visible = false
 position = Vector2(576, 324)
 
-[node name="1" parent="River" instance=ExtResource("1_ayhm6")]
+[node name="1" parent="Board" instance=ExtResource("1_ayhm6")]
 position = Vector2(-150, 0)
 
-[node name="2" parent="River" instance=ExtResource("1_ayhm6")]
+[node name="2" parent="Board" instance=ExtResource("1_ayhm6")]
 position = Vector2(-75, 0)
 
-[node name="3" parent="River" instance=ExtResource("1_ayhm6")]
+[node name="3" parent="Board" instance=ExtResource("1_ayhm6")]
 
-[node name="4" parent="River" instance=ExtResource("1_ayhm6")]
+[node name="4" parent="Board" instance=ExtResource("1_ayhm6")]
 position = Vector2(75, 0)
 
-[node name="5" parent="River" instance=ExtResource("1_ayhm6")]
+[node name="5" parent="Board" instance=ExtResource("1_ayhm6")]
 position = Vector2(150, 0)
 
 [node name="Players" type="Node2D" parent="."]
-position = Vector2(576, 324)
+position = Vector2(576, 300)
 
 [node name="Player1" parent="Players" instance=ExtResource("3_qs578")]
 visible = false

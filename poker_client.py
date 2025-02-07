@@ -26,8 +26,8 @@ class Card:
 
 # passer de "HQSJ" à ((3, 12), (1, 11)) par exemple
 def parseCards(s : str) -> tuple[Card, Card]:
-    assert(len(s) == 4)
-    return (Card(s[0], s[1]), Card(s[2], s[3]))
+    assert(len(s) == 5)
+    return (Card(s[0], s[1]), Card(s[3], s[4]))
 
 # Le client. Pour le projet final ce sera le jeu godot entier qui représentera cette classe
 class Client:
@@ -39,6 +39,7 @@ class Client:
         self.card1 = None
         self.card2 = None
         self.alreadySeen = []   # et la liste des messages déjà reçus
+        self.players = []
 
         while True:
             try:
@@ -50,22 +51,6 @@ class Client:
                 time.sleep(1)
 
         print(" << Mon id est " + str(self.client_id))
-
-    # Le mode "messagerie". j'ai implémenté ça à la va-vite donc le code est moche
-    # cette fonction va s'exécuter en parallèle de celle pour envoyer des messages, celle-ci les reçoit et les affiche
-    def messenger(self):
-        while True:
-            # toutes les 0.5s, demande au serveur s'il y a du nouveau
-            time.sleep(0.5)
-            # récupère le dernier message reçu par le serveur
-            namemsg = (requests.get(self.serverURL + "/messenger").text).split()
-            if namemsg[0][0] == '8':
-                name, msg = namemsg[0][1:], namemsg[1]
-                # s'il commence par "8" (donc s'il est pas buggé en gros) et qu'il est nouveau
-                if not msg in self.alreadySeen:
-                    # on l'affiche et on l'ajoute aux messages déjà affichés (pour pas afficher en boucle le même message 500 fois)
-                    print("\n >> " + name + " a dit : " + msg + "\n >> ", end="")
-                    self.alreadySeen.append(msg)
 
     # fonction "main" un peu
     def run(self):
@@ -91,18 +76,12 @@ class Client:
                 print(" << Erreur dans la distribution de cartes : ", str(e))
                 time.sleep(1)
 
+        self.players = shouldStart[3:].split(",")
+
         print(f" << Vos cartes : {self.card1}, {self.card2}")
-        print(" << Vous pouvez envoyer des messages désormais")
+        print(f" << Joueurs : {self.players}")
 
-        # on passe au mode messagerie. on lance en parallèle la fonction qui reçoit et affiche les messages
-        msgThread = threading.Thread(target=self.messenger)
-        msgThread.start()
-
-        # puis on demande en boucle à l'utilisateur d'entrer un message
-        while True:
-            msg = input(" >> ")
-            # et on l'envoie au serveur en y joignant notre nom, via un POST
-            requests.post(self.serverURL + "/messenger?name=" + str(self.userName) + "&msg=" + msg)
+        
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
 name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne avant et après un string
