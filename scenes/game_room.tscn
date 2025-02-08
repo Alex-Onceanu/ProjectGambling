@@ -1,13 +1,13 @@
 [gd_scene load_steps=6 format=3 uid="uid://duvnm3asxykhb"]
 
-[ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://card.tscn" id="1_ayhm6"]
-[ext_resource type="Script" path="res://game_room.gd" id="1_fgygk"]
-[ext_resource type="Script" path="res://deck.gd" id="2_mgxd7"]
-[ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://player.tscn" id="3_qs578"]
-[ext_resource type="Texture2D" uid="uid://ddapr4j4223dn" path="res://menu.png" id="5_ihfpa"]
+[ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
+[ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
+[ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
+[ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
+[ext_resource type="Texture2D" uid="uid://ddapr4j4223dn" path="res://assets/menu.png" id="5_mqtdi"]
 
 [node name="GameRoom" type="Node2D"]
-script = ExtResource("1_fgygk")
+script = ExtResource("1_2qplw")
 
 [node name="Requests" type="Node2D" parent="."]
 
@@ -27,85 +27,85 @@ color = Color(0.00392157, 0.427451, 0.160784, 1)
 
 [node name="Deck" type="Node2D" parent="."]
 position = Vector2(1060.33, 550)
-script = ExtResource("2_mgxd7")
+script = ExtResource("2_6g2tb")
 
-[node name="1" parent="Deck" instance=ExtResource("1_ayhm6")]
+[node name="1" parent="Deck" instance=ExtResource("3_r7l47")]
 position = Vector2(6, 6)
 
-[node name="2" parent="Deck" instance=ExtResource("1_ayhm6")]
+[node name="2" parent="Deck" instance=ExtResource("3_r7l47")]
 position = Vector2(4, 4)
 
-[node name="3" parent="Deck" instance=ExtResource("1_ayhm6")]
+[node name="3" parent="Deck" instance=ExtResource("3_r7l47")]
 position = Vector2(2, 2)
 
-[node name="4" parent="Deck" instance=ExtResource("1_ayhm6")]
+[node name="4" parent="Deck" instance=ExtResource("3_r7l47")]
 
 [node name="Board" type="Node2D" parent="."]
 visible = false
 position = Vector2(576, 324)
 
-[node name="1" parent="Board" instance=ExtResource("1_ayhm6")]
+[node name="1" parent="Board" instance=ExtResource("3_r7l47")]
 position = Vector2(-150, 0)
 
-[node name="2" parent="Board" instance=ExtResource("1_ayhm6")]
+[node name="2" parent="Board" instance=ExtResource("3_r7l47")]
 position = Vector2(-75, 0)
 
-[node name="3" parent="Board" instance=ExtResource("1_ayhm6")]
+[node name="3" parent="Board" instance=ExtResource("3_r7l47")]
 
-[node name="4" parent="Board" instance=ExtResource("1_ayhm6")]
+[node name="4" parent="Board" instance=ExtResource("3_r7l47")]
 position = Vector2(75, 0)
 
-[node name="5" parent="Board" instance=ExtResource("1_ayhm6")]
+[node name="5" parent="Board" instance=ExtResource("3_r7l47")]
 position = Vector2(150, 0)
 
 [node name="Players" type="Node2D" parent="."]
 position = Vector2(576, 300)
 
-[node name="Player1" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player1" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(0, 240)
 
-[node name="Player8" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player8" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(275, 183)
 
-[node name="Player3" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player3" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(390, 0)
 
-[node name="Player5" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player5" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(275, -183)
 
-[node name="Player2" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player2" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(0, -260)
 
-[node name="Player7" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player7" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-275, -183)
 
-[node name="Player4" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player4" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-390, 0)
 
-[node name="Player6" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player6" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-275, 183)
 
-[node name="Player9" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player9" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(0, -260)
 
-[node name="Player10" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player10" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-275, -183)
 
-[node name="Player11" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player11" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-390, 0)
 
-[node name="Player12" parent="Players" instance=ExtResource("3_qs578")]
+[node name="Player12" parent="Players" instance=ExtResource("4_8otjw")]
 visible = false
 position = Vector2(-275, 183)
 
@@ -115,7 +115,7 @@ position = Vector2(576, 324)
 [node name="Img" type="Sprite2D" parent="EnterCode"]
 position = Vector2(0, -100)
 scale = Vector2(1.89062, 1.89062)
-texture = ExtResource("5_ihfpa")
+texture = ExtResource("5_mqtdi")
 
 [node name="Welcome" type="Label" parent="EnterCode"]
 offset_left = -245.0

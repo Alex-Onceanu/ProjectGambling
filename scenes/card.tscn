@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://b25ew1dv5tplj"]
 
-[ext_resource type="Texture2D" uid="uid://bh1t3rbwbygvj" path="res://backs.png" id="1_8spll"]
-[ext_resource type="Script" path="res://card.gd" id="1_irl4d"]
-[ext_resource type="Texture2D" uid="uid://c1nk2b4mwqb5n" path="res://values.png" id="2_3urpx"]
+[ext_resource type="Texture2D" uid="uid://bh1t3rbwbygvj" path="res://assets/backs.png" id="1_8spll"]
+[ext_resource type="Script" path="res://gdscript/card.gd" id="1_irl4d"]
+[ext_resource type="Texture2D" uid="uid://c1nk2b4mwqb5n" path="res://assets/values.png" id="2_3urpx"]
 
 [node name="Card" type="Node2D"]
 scale = Vector2(0.85, 0.85)
