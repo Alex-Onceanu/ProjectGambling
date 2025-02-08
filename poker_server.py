@@ -47,7 +47,7 @@ class Game:
         self.total_bet = 0              # argent au centre de la table
         self.current_blind = SMALL_BLIND# mise minimale pour suivre
         self.folded_ones = []           # liste des joueurs ayant foldé
-        self.bet_per_player = []        # liste de l'argent misé par chaque joueur pdt ce tour dans le bon ordre
+        self.id_to_bet = {}             # associe à chaque id la mise de ce joueur pour ce tour
         self.round_transition = False   # vaut True tant que Game est en train de passer d'un round à un autre 
 
         print(" << Classe Game initialisée.")
@@ -68,15 +68,16 @@ class Game:
         while not self.shouldStart:
             # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
             self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
-
+        
         # ce dictionnaire aura été rempli par Server via add_player()
-        print(" << Go ! Joueurs actuels :", end=" ")
-        for p in self.ids:
-            print(self.id_to_name[p], end=" ")
-        print()
+        print(" << Go ! Joueurs actuels : ", self.ids)
 
         self.deck = shuffle_deck()              # créer le deck
         self.give_personal_cards()              # distribuer des cartes
+
+        for idp in self.ids:
+            self.id_to_update[idp] = []
+        self.money_left = [INITIAL_MONEY] * len(self.ids)
 
         self.inGame = True
         print(" << Les cartes ont été distribuées")
@@ -88,7 +89,8 @@ class Game:
         self.play_round(1)
         print(" << Turn fini")
         self.play_round(1)
-        print(" << River fini")
+        print(" << River fini, FIN")
+        self.round_transition = False
 
     # donne 2 cartes de self.deck à chaque joueur
     def give_personal_cards(self):
@@ -99,14 +101,14 @@ class Game:
         self.who_is_playing = (1 + self.who_is_playing) % len(self.ids)
 
     def bet(self, who : int, how_much : int):
-        if how_much < self.current_blind:
-            print(f" << Non {self.id_to_name[who]}, tu peux pas miser car la blinde actuelle c'est {self.current_blind} gros naze")
-            return
         if not who in self.ids:
-            print(f" << Qui a invité {who} ?")
+            print(f" << Qui a invité {who} ? il est pas dans {self.ids}")
             return
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas miser car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
+            return
+        if how_much + self.id_to_bet[who] < self.current_blind:
+            print(f" << Non {self.id_to_name[who]}, tu peux pas miser car la blinde actuelle c'est {self.current_blind} gros naze")
             return
         if self.money_left[self.who_is_playing] < how_much:
             print(f" << Non {self.id_to_name[who]}, tu peux pas miser car t'as pas assez d'argent mdr cheh")
@@ -117,13 +119,13 @@ class Game:
         
         self.money_left[self.who_is_playing] -= how_much
         self.total_bet += how_much
-        self.bet_per_player[self.who_is_playing] += how_much
+        self.id_to_bet[who] += how_much
 
         self.last_player_to_bet = self.who_is_playing
-        if self.bet_per_player[self.who_is_playing] > self.current_blind:
+        if self.id_to_bet[who] > self.current_blind:
             # donc c'est un raise
             self.stable_since = 1
-            self.current_blind = self.bet_per_player[self.who_is_playing]
+            self.current_blind = self.id_to_bet[who]
             print(f" << {self.id_to_name[who]} a raise jusqu'à {self.current_blind}")
         else:
             # donc c'est un call
@@ -157,9 +159,8 @@ class Game:
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas check car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
             return
-        if self.bet_per_player[who] != self.current_blind:
-            # TODO : bet per player devrait etre un id_to_bet !!! melnge chelou actuellement
-            print(f" << Non {self.id_to_name[who]}, tu peux pas check car t'as misé que {self.bet_per_player[who]} au lieu de {self.current_blind}")
+        if self.id_to_bet[who] != self.current_blind:
+            print(f" << Non {self.id_to_name[who]}, tu peux pas check car t'as misé que {self.id_to_bet[who]} au lieu de {self.current_blind}")
             return
 
         for idp in self.id_to_update.keys():
@@ -169,12 +170,18 @@ class Game:
         print(f" << {self.id_to_name[who]} a checké")
         self.next_player()
 
+    def reset_id_to_bet(self):
+        self.id_to_bet = {}
+        for i in self.ids:
+            self.id_to_bet[i] = 0
+
     def play_round(self, nb_cards_to_add_to_board : int):
         NB_PLAYERS = len(self.ids)
         CD = 0.1
-        DURATION_PER_PLAYER = 10
-        self.bet_per_player = [0] * NB_PLAYERS
+        DURATION_PER_PLAYER = 30
+        self.reset_id_to_bet()
         self.current_blind = 0
+        self.who_is_playing = 0
 
         for _ in range(nb_cards_to_add_to_board):
             self.board.append(self.deck.pop())
@@ -184,10 +191,12 @@ class Game:
             self.bet(self.ids[0], SMALL_BLIND)
             print(f" << {self.id_to_name[self.ids[1]]} mise la grosse blinde de {2 * SMALL_BLIND}")
             self.bet(self.ids[1], 2 * SMALL_BLIND)
+        
+        self.stable_since = 0
         self.round_transition = False
-        self.who_is_playing = 0
 
-        while self.stable < NB_PLAYERS:
+        while self.stable_since < NB_PLAYERS:
+            print(f" << stable since : {self.stable_since} / {NB_PLAYERS}")
             if self.who_is_playing in self.folded_ones:
                 self.stable_since += 1
                 self.next_player()
@@ -232,7 +241,7 @@ PORT = 8080
 # ngrok est l'API de "tunneling" qui nous permet d'envoyer localhost sur un url un peu random mais en ligne
 # pour faire ça on appelle ngrok.forward avec comme source "localhost:8080" (parce que c'est ce qu'on veut transférer)
 # ça nous renvoie dans ngrok_listener.url() l'url sus où a été envoyé notre localhost
-# il est de la forme "https://<CODE>.ngrok-free.app" où CODE est ce qu'on print pour que le client le copie-colle
+# il est de la forme "http://<CODE>.ngrok-free.app" où CODE est ce qu'on print pour que le client le copie-colle
 # pour le récupérer on fait url[8:-15] (donc on veut les charactères allant du 8ème au 15ème en partant de la fin)
 
 ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken="2sgDQwcgTEhjKCy8Zc0fENZUTxA_WttXEMohEf1P5iMZfkdQ")
@@ -319,10 +328,15 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     print(f" << attend 2s stp {self.path}, y'a Game qui change de round")
                     time.sleep(0.1)
                 parsed_url = urlparse(self.path)
-                their_id = parse_qs(parsed_url.query)["id"][0]
+                their_id = int(parse_qs(parsed_url.query)["id"][0])
 
                 if not their_id in self.gameInstance.ids:
                     raise RuntimeError("C'est qui " + str(their_id) + " ?")
+                if not their_id in self.gameInstance.id_to_update.keys():
+                    raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_update.keys()}")
+                if not their_id in self.gameInstance.id_to_bet.keys():
+                    raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_bet.keys()}")
+                
                 
                 ans = {
                     "round" : self.gameInstance.round,
@@ -331,12 +345,14 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     "total_bet" : self.gameInstance.total_bet,
                     "current_blind" : self.gameInstance.current_blind,
                     "who_is_playing" : self.gameInstance.who_is_playing,
-                    "minimal_bet" : self.gameInstance.current_blind - self.gameInstance.bet_per_player[their_id]
+                    "your_bet" : self.gameInstance.id_to_bet[their_id]
                 }
 
                 self.send_response(200, 'OK')
                 self.end_headers()
                 self.wfile.write(json.dumps(ans).encode())
+
+                self.gameInstance.id_to_update[their_id] = []
 
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
@@ -350,18 +366,18 @@ class Server(http.server.SimpleHTTPRequestHandler):
             if not self.gameInstance.round_transition:
                 if self.path.startswith('/bet'):
                     parsed_url = urlparse(self.path)
-                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
                     how_much = int(parse_qs(parsed_url.query)["how_much"][0])
                     self.gameInstance.bet(their_id, how_much)
 
                 elif self.path.startswith('/fold'):
                     parsed_url = urlparse(self.path)
-                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
                     self.gameInstance.folded(their_id)
 
                 elif self.path.startswith('/check'):
                     parsed_url = urlparse(self.path)
-                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
                     self.gameInstance.checked(their_id)
             else:
                 print(f" << Je skip la requête {self.path} car Game est en pleine transition")

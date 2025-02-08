@@ -2,6 +2,9 @@ import requests     # pour ENVOYER des requêtes HTTP
 import time
 import threading    # pour le multithreading
 import json
+# import urllib3
+
+# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # on représentera les couleurs des cartes par des entiers entre 1 et 4 ici
 SPADES = 1
@@ -26,13 +29,15 @@ class Card:
         return (str(self.value) if self.value <= 10 else str_of_value[self.value - 11]) + " de " + str_of_color[self.color - 1]
 
 # passer de "HQSJ" à ((3, 12), (1, 11)) par exemple
-def parseCards(s : str) -> tuple[Card, Card]:
+def parseCards(s : str) -> tuple:
     assert(len(s) == 5)
     return (Card(s[0], s[1]), Card(s[3], s[4]))
 
-def parseUpdate(json_str : str) -> tuple[int, list, list, int, int, int]:
+def parseUpdate(json_str : str) -> tuple:
+    if json_str == "error":
+        raise ValueError("/update/ nous renvoie \"error\"")
     ans = json.loads(json_str)
-    return ans["round"], ans["update"], ans["money_left"], ans["total_bet"], ans["current_blind"], ans["who_is_playing"]
+    return ans["round"], ans["update"], ans["money_left"], ans["total_bet"], ans["current_blind"], ans["who_is_playing"], ans["your_bet"]
 
 # Le client. Pour le projet final ce sera le jeu godot entier qui représentera cette classe
 class Client:
@@ -50,6 +55,7 @@ class Client:
         self.current_blind = 0
         self.who_is_playing = 0
         self.user_index = None
+        self.user_bet = 0
 
         while True:
             try:
@@ -91,27 +97,55 @@ class Client:
             # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
             shouldStart = requests.get(self.serverURL + "/ready/").text
 
-        self.players = shouldStart[3:].split(",")
+        self.players = list(filter(None, shouldStart[3:].split(",")))
         print(f" << Partie lancée ! Joueurs : {self.players}")
         self.user_index = self.players.index(self.userName)         # correspond à true_i en Godot
+        print(f" << mon user index vaut {self.user_index}")
 
         self.card1, self.card2 = self.try_GET(parseCards, f"/cards?id={self.client_id}", "Erreur dans la distribution de cartes")
         print(f" << Vos cartes : {self.card1}, {self.card2}")
 
         while True:
-            self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
+            self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing, self.user_bet = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
             for action in update:
                 who, what = action
-                print(f" << Insérer super animation pour montrer que {who} a misé {what} !")
-            print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
+                print(f" << Insérer super animation pour montrer que {self.players[who]} a misé {what} !")
+
             if self.who_is_playing == self.user_index:
-                user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins ...????")
-            else
+                print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
+                minimal_bet = self.current_blind - self.user_bet
+                while True:
+                    try:
+                        user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins {minimal_bet}. \n << Répondez par votre mise (ou 0 pour Check, -1 pour Fold, \"quitter\" pour arrêter de jouer)\n >> ")
+                        if user_action.startswith("quitter"):
+                            # TODO : gérer quelqu'un qui se casse mid-game ?
+                            break
+                        user_action = int(user_action)
+                        if user_action < -1:
+                            user_action = -1
+                        break
+                    except:
+                        print(" << C'est pas une mise ça, fais un effort stp")
+                        continue
+
+                if str(user_action).startswith("quitter"):
+                    exit(0)     # TODO : faire ça proprement
+
+                if user_action == -1:
+                    self.try_POST(f"/fold?id={self.client_id}", "Impossible de fold wtf")
+                elif user_action == 0:
+                    self.try_POST(f"/check?id={self.client_id}", "Impossible de check wtf")
+                else:
+                    self.try_POST(f"/bet?id={self.client_id}&how_much={user_action}", f"Impossible de bet {user_action} ?")
+                print(" << Fin de tour pour moi")
+            else:
                 print(f" << On attend {self.players[self.who_is_playing]}")
+            
+            time.sleep(1)
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
 name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne avant et après un string
-url = "https://" + input(" << Veuillez entrer le code de la partie que vous souhaitez rejoindre :\n >> ").strip() + ".ngrok-free.app" # on complète l'url de ngrok-free.app par le code qui a été généré par le serveur lorsque le tunneling a commencé
+url = "http://" + input(" << Veuillez entrer le code de la partie que vous souhaitez rejoindre :\n >> ").strip() + ".ngrok-free.app" # on complète l'url de ngrok-free.app par le code qui a été généré par le serveur lorsque le tunneling a commencé
 
 cl = Client(url, name)
 cl.run()
