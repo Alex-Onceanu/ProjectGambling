@@ -41,12 +41,14 @@ class Game:
         self.who_is_playing = 0         # à qui est le tour ? 
         # (!! c'est un index de self.ids : pour accéder au nom, faire self.id_to_name[self.ids[self.who_is_playing]])
         self.round = 0                  # pré-flop, flop, turn, river
-        self.stable = False             # quand stable vaut True, le tour de table s'arrête et on passe à l'étape suivante
+        self.stable_since = 0           # quand stable vaut len(self.ids), le tour de table s'arrête eft on passe à l'étape suivante
         self.id_to_update = {}          # un update est de la forme [(1, 80), (2, CHECK), (3, 90), (4, FOLD)]
         self.money_left = []            # argent de chaque joueur dans le bon ordre
         self.total_bet = 0              # argent au centre de la table
         self.current_blind = SMALL_BLIND# mise minimale pour suivre
         self.folded_ones = []           # liste des joueurs ayant foldé
+        self.bet_per_player = []        # liste de l'argent misé par chaque joueur pdt ce tour dans le bon ordre
+        self.round_transition = False   # vaut True tant que Game est en train de passer d'un round à un autre 
 
         print(" << Classe Game initialisée.")
 
@@ -115,6 +117,19 @@ class Game:
         
         self.money_left[self.who_is_playing] -= how_much
         self.total_bet += how_much
+        self.bet_per_player[self.who_is_playing] += how_much
+
+        self.last_player_to_bet = self.who_is_playing
+        if self.bet_per_player[self.who_is_playing] > self.current_blind:
+            # donc c'est un raise
+            self.stable_since = 1
+            self.current_blind = self.bet_per_player[self.who_is_playing]
+            print(f" << {self.id_to_name[who]} a raise jusqu'à {self.current_blind}")
+        else:
+            # donc c'est un call
+            self.stable_since += 1
+            print(f" << {self.id_to_name[who]} a call jusqu'à {self.current_blind}")
+
 
         self.next_player()
 
@@ -125,18 +140,58 @@ class Game:
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas fold car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
             return
+        
         self.folded_ones.append(self.who_is_playing)
 
         for idp in self.id_to_update.keys():
             self.id_to_update[idp].append((self.who_is_playing, FOLD))
 
-        print(f"{self.id_to_name[who]} folded")
+        print(f" << {self.id_to_name[who]} s'est couché")
+        self.stable_since += 1
+        self.next_player()
+
+    def checked(self, who):
+        if not who in self.ids:
+            print(f" << Qui a invité {who} ?")
+            return
+        if self.ids[self.who_is_playing] != who:
+            print(f" << Non {self.id_to_name[who]}, tu peux pas check car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
+            return
+        if self.bet_per_player[who] != self.current_blind:
+            # TODO : bet per player devrait etre un id_to_bet !!! melnge chelou actuellement
+            print(f" << Non {self.id_to_name[who]}, tu peux pas check car t'as misé que {self.bet_per_player[who]} au lieu de {self.current_blind}")
+            return
+
+        for idp in self.id_to_update.keys():
+            self.id_to_update[idp].append((self.who_is_playing, CHECK))
+        
+        self.stable_since += 1
+        print(f" << {self.id_to_name[who]} a checké")
         self.next_player()
 
     def play_round(self, nb_cards_to_add_to_board : int):
+        NB_PLAYERS = len(self.ids)
         CD = 0.1
         DURATION_PER_PLAYER = 10
-        while not self.stable:
+        self.bet_per_player = [0] * NB_PLAYERS
+        self.current_blind = 0
+
+        for _ in range(nb_cards_to_add_to_board):
+            self.board.append(self.deck.pop())
+
+        if nb_cards_to_add_to_board == 0:
+            print(f" << {self.id_to_name[self.ids[0]]} mise la petite blinde de {SMALL_BLIND}")
+            self.bet(self.ids[0], SMALL_BLIND)
+            print(f" << {self.id_to_name[self.ids[1]]} mise la grosse blinde de {2 * SMALL_BLIND}")
+            self.bet(self.ids[1], 2 * SMALL_BLIND)
+        self.round_transition = False
+        self.who_is_playing = 0
+
+        while self.stable < NB_PLAYERS:
+            if self.who_is_playing in self.folded_ones:
+                self.stable_since += 1
+                self.next_player()
+                continue
             old_who = self.who_is_playing
             print(f" << On attend {self.id_to_name[self.ids[old_who]]}")
             waited = 0.0
@@ -146,6 +201,9 @@ class Game:
                 if waited >= DURATION_PER_PLAYER:
                     self.folded(self.ids[self.who_is_playing])
                     break
+        self.round_transition = True
+        print(f" << On est revenus au tour de {self.id_to_name[self.ids[self.who_is_playing]]}, fin du round !")
+        self.round += 1
 
     # ajoute un joueur à la partie (à partir de son nom), cette fonction sera appelée par Server
     def add_player(self, player : str) -> int:
@@ -227,6 +285,11 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
             # si qlq nous demande quelles sont ses cartes
             elif self.path.startswith('/cards'):
+                # On attend que Game passe au round suivant
+                while self.gameInstance.round_transition:
+                    print(f" << attend 2s stp {self.path}, y'a Game qui change de round")
+                    time.sleep(0.1)
+
                 ans = "notready"
 
                 if self.gameInstance.inGame:
@@ -251,6 +314,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
             
             elif self.path.startswith('/update'):
+                # On attend que game finisse de passer au round suivant quand même
+                while self.gameInstance.round_transition:
+                    print(f" << attend 2s stp {self.path}, y'a Game qui change de round")
+                    time.sleep(0.1)
                 parsed_url = urlparse(self.path)
                 their_id = parse_qs(parsed_url.query)["id"][0]
 
@@ -263,7 +330,8 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     "money_left" : self.gameInstance.money_left, 
                     "total_bet" : self.gameInstance.total_bet,
                     "current_blind" : self.gameInstance.current_blind,
-                    "who_is_playing" : self.gameInstance.who_is_playing
+                    "who_is_playing" : self.gameInstance.who_is_playing,
+                    "minimal_bet" : self.gameInstance.current_blind - self.gameInstance.bet_per_player[their_id]
                 }
 
                 self.send_response(200, 'OK')
@@ -279,16 +347,24 @@ class Server(http.server.SimpleHTTPRequestHandler):
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
         try:
-            if self.path.startswith('/bet'):
-                parsed_url = urlparse(self.path)
-                their_id = parse_qs(parsed_url.query)["id"][0]
-                how_much = int(parse_qs(parsed_url.query)["how_much"][0])
-                self.gameInstance.bet(their_id, how_much)
+            if not self.gameInstance.round_transition:
+                if self.path.startswith('/bet'):
+                    parsed_url = urlparse(self.path)
+                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    how_much = int(parse_qs(parsed_url.query)["how_much"][0])
+                    self.gameInstance.bet(their_id, how_much)
 
-            elif self.path.startswith('/fold'):
-                parsed_url = urlparse(self.path)
-                their_id = parse_qs(parsed_url.query)["id"][0]
-                self.gameInstance.folded(their_id)
+                elif self.path.startswith('/fold'):
+                    parsed_url = urlparse(self.path)
+                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    self.gameInstance.folded(their_id)
+
+                elif self.path.startswith('/check'):
+                    parsed_url = urlparse(self.path)
+                    their_id = parse_qs(parsed_url.query)["id"][0]
+                    self.gameInstance.checked(their_id)
+            else:
+                print(f" << Je skip la requête {self.path} car Game est en pleine transition")
         
         except Exception as e:
             print(f" << Erreur dans do_POST pour la requête reçue {self.path} : {e}")

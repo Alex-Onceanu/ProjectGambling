@@ -40,13 +40,14 @@ func _on_server_key_text_submitted(new_text: String) -> void:
 		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
 		return
 	
-	if len(new_text) <= 30:
+	if len(new_text) <= 10:
 		return
 		
 	$EnterCode/Welcome.text = "En train de télécommuniquer..."
 	
 	url = "https://" + new_text + ".ngrok-free.app"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
+	$EnterCode/ServerKey.text = ""
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_register_completed(result, response_code, headers, body):

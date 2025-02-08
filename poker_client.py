@@ -1,6 +1,7 @@
 import requests     # pour ENVOYER des requêtes HTTP
 import time
 import threading    # pour le multithreading
+import json
 
 # on représentera les couleurs des cartes par des entiers entre 1 et 4 ici
 SPADES = 1
@@ -29,6 +30,10 @@ def parseCards(s : str) -> tuple[Card, Card]:
     assert(len(s) == 5)
     return (Card(s[0], s[1]), Card(s[3], s[4]))
 
+def parseUpdate(json_str : str) -> tuple[int, list, list, int, int, int]:
+    ans = json.loads(json_str)
+    return ans["round"], ans["update"], ans["money_left"], ans["total_bet"], ans["current_blind"], ans["who_is_playing"]
+
 # Le client. Pour le projet final ce sera le jeu godot entier qui représentera cette classe
 class Client:
     def __init__(self, __serverURL, __userName):
@@ -38,8 +43,13 @@ class Client:
         self.client_id = -1
         self.card1 = None
         self.card2 = None
-        self.alreadySeen = []   # et la liste des messages déjà reçus
         self.players = []
+        self.round = 0
+        self.money_left = []
+        self.total_bet = 0
+        self.current_blind = 0
+        self.who_is_playing = 0
+        self.user_index = None
 
         while True:
             try:
@@ -52,7 +62,25 @@ class Client:
 
         print(" << Mon id est " + str(self.client_id))
 
-    # fonction "main" un peu
+    def try_GET(self, parsing, req, error_msg):
+        while True:
+            try:
+                ans = parsing(requests.get(self.serverURL + req).text)
+                return ans
+            except Exception as e:
+                print(f" << {error_msg} : ", str(e))
+                time.sleep(1)
+
+    def try_POST(self, req, error_msg):
+        while True:
+            try:
+                requests.post(self.serverURL + req).text
+                break
+            except Exception as e:
+                print(f" << {error_msg} : ", str(e))
+                time.sleep(1)
+
+    # fonction "main" du client un peu
     def run(self):
         shouldStart = ""
         print(" << On attend le feu vert du serveur")
@@ -63,25 +91,23 @@ class Client:
             # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
             shouldStart = requests.get(self.serverURL + "/ready/").text
 
-        print(" << Partie lancée !")
+        self.players = shouldStart[3:].split(",")
+        print(f" << Partie lancée ! Joueurs : {self.players}")
+        self.user_index = self.players.index(self.userName)         # correspond à true_i en Godot
+
+        self.card1, self.card2 = self.try_GET(parseCards, f"/cards?id={self.client_id}", "Erreur dans la distribution de cartes")
+        print(f" << Vos cartes : {self.card1}, {self.card2}")
 
         while True:
-            try:
-                # on demande au serveur nos 2 cartes. 
-                # Il nous répond un string de la forme "HQSJ" par exemple (pour vouloir dire reine de coeur & valet de pique)
-                # on transforme ce string en 2 cartes grâce à parseCards
-                self.card1, self.card2 = parseCards(requests.get(self.serverURL + f"/cards?id={self.client_id}").text)
-                break
-            except Exception as e:
-                print(" << Erreur dans la distribution de cartes : ", str(e))
-                time.sleep(1)
-
-        self.players = shouldStart[3:].split(",")
-
-        print(f" << Vos cartes : {self.card1}, {self.card2}")
-        print(f" << Joueurs : {self.players}")
-
-        
+            self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
+            for action in update:
+                who, what = action
+                print(f" << Insérer super animation pour montrer que {who} a misé {what} !")
+            print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
+            if self.who_is_playing == self.user_index:
+                user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins ...????")
+            else
+                print(f" << On attend {self.players[self.who_is_playing]}")
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
 name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne avant et après un string
