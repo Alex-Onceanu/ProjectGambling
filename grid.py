@@ -2,10 +2,12 @@
 
 from PIL import Image, ImageDraw, ImageFilter
 
-CARD_WIDTH = 71
-CARD_HEIGHT = 95
+CARD_WIDTH = 61
+CARD_HEIGHT = 81
+offset_w = 5
+offset_h = 7
 
-base = Image.new(mode="RGBA", size=(CARD_WIDTH * 13, CARD_HEIGHT * 4))
+base = Image.new(mode="RGBA", size=(offset_w + (2 * offset_w + CARD_WIDTH) * 13, offset_h + (2 * offset_h + CARD_HEIGHT) * 4))
 
 def get_val(x):
     if x <= 8:
@@ -16,10 +18,25 @@ def get_val(x):
 cols = ['hearts', 'clubs', 'diamonds', 'spades']
 sep = "_of_"
 
+def dist(t1, t2):
+    (a1, b1, c1, d1) = t1
+    (a2, b2, c2, d2) = t2
+    return abs(d1 - d2)
+
 for line in range(4):
     for col in range(13):
-        im = Image.open('cards/' + get_val(col) + sep + cols[line] + ".png")
+        im = Image.open('cards/' + get_val(col) + sep + cols[line] + ("" if col <= 8 or get_val(col) == "ace" else "2") + ".png")
+        w, h = im.size
+        im = im.crop((6, 9, w - 6, h - 9))
         im2 = im.resize((CARD_WIDTH, CARD_HEIGHT))
-        base.paste(im2, (col * CARD_WIDTH, line * CARD_HEIGHT))
+        
+        base.paste(im2, (offset_w + col * (CARD_WIDTH + 2 * offset_w), offset_h + line * (CARD_HEIGHT + 2 * offset_h)))
+
+width, height = base.size
+pixdata = base.load()
+for y in range(height):
+    for x in range(width):
+        if dist(pixdata[x, y], (255, 255, 255, 0)) <= 174:
+            pixdata[x, y] = (255, 255, 255, 255)
 
 base.save("output.png")
