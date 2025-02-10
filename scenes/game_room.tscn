@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=7 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
+[ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
 [ext_resource type="Texture2D" uid="uid://ddapr4j4223dn" path="res://assets/menu.png" id="5_mqtdi"]
@@ -20,10 +21,18 @@ one_shot = true
 
 [node name="Ready" type="HTTPRequest" parent="Requests"]
 
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(573, 323.036)
+scale = Vector2(0.842647, 0.841052)
+texture = ExtResource("2_ctk2m")
+
 [node name="Table" type="ColorRect" parent="."]
-offset_right = 1152.0
-offset_bottom = 650.0
-color = Color(0.00392157, 0.427451, 0.160784, 1)
+visible = false
+offset_left = 224.0
+offset_top = 84.0
+offset_right = 933.0
+offset_bottom = 573.0
+color = Color(0, 0.6, 0, 1)
 
 [node name="Deck" type="Node2D" parent="."]
 position = Vector2(1060.33, 550)

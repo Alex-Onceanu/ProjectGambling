@@ -4,8 +4,9 @@ var pos_before_goto
 var target
 var initial_scale_x
 
-@onready var WIDTH = $front.region_rect.size.x
-@onready var HEIGHT = $front.region_rect.size.y
+@onready var is_frontface = false
+@onready var WIDTH = $rect.size.x
+@onready var HEIGHT = $rect.size.y
 @onready var should_move = false
 @onready var is_anim_before_halfway = false
 
@@ -21,22 +22,19 @@ func region_of_string(colval : String) -> Vector2i:
 	else:
 		column = column_of_val[colval[1]]
 	
-	return Vector2i(column * WIDTH, line * HEIGHT)
+	return Vector2i(column, line)
 
 func set_card_type(colval : String):
 	var region = region_of_string(colval)
-	$front.region_rect.position.x = region.x
-	$front.region_rect.position.y = region.y
+	$rect.material.set_shader_parameter("which_card", region);
 
 func flip_frontface():
-	$back.region_rect.position.x = 71
-	$back.region_rect.position.y = 0
-	$front.visible = true
+	is_frontface = true
+	$rect.material.set_shader_parameter("is_frontface", 1.0);
 	
 func flip_backface():
-	$back.region_rect.position.x = 0
-	$back.region_rect.position.y = 0
-	$front.visible = false
+	is_frontface = false
+	$rect.material.set_shader_parameter("is_frontface", 0.0);
 	
 func go_to(__target : Vector2, time = 0.4, wait = 0):
 	target = __target
@@ -48,7 +46,7 @@ func go_to(__target : Vector2, time = 0.4, wait = 0):
 		$goto_wait.start()
 
 func reveal(wait = 0):
-	if $front.visible:
+	if is_frontface:
 		return
 	if wait <= 0:
 		_on_reveal_wait_timeout()

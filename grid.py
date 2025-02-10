@@ -2,10 +2,11 @@
 
 from PIL import Image, ImageDraw, ImageFilter
 
-CARD_WIDTH = 61
-CARD_HEIGHT = 81
-offset_w = 5
-offset_h = 7
+UPSCALE = 2
+CARD_WIDTH = UPSCALE * 61
+CARD_HEIGHT = UPSCALE * 81
+offset_w = UPSCALE * 5
+offset_h = UPSCALE * 7
 
 base = Image.new(mode="RGBA", size=(offset_w + (2 * offset_w + CARD_WIDTH) * 13, offset_h + (2 * offset_h + CARD_HEIGHT) * 4))
 
