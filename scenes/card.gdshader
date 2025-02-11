@@ -21,7 +21,7 @@ void fragment() {
 	float n = 20.0;
 	float border = pow(pow(uv.x, n) + pow(uv.y, n), 1.0 / n);
 
-	COLOR = vec4(mix(back, front, is_frontface).xyz, 1.0 - smoothstep(0.94, 0.98, border));
+	COLOR = vec4(mix(back, front, is_frontface).xyz, 1.0 - smoothstep(0.96, 0.98, border));
 }
 
 //void light() {
