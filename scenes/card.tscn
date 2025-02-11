@@ -1,27 +1,18 @@
-[gd_scene load_steps=8 format=3 uid="uid://b25ew1dv5tplj"]
+[gd_scene load_steps=6 format=3 uid="uid://b25ew1dv5tplj"]
 
 [ext_resource type="Script" path="res://gdscript/card.gd" id="1_irl4d"]
 [ext_resource type="Shader" path="res://scenes/card.gdshader" id="3_iomqw"]
-[ext_resource type="Texture2D" uid="uid://q0r3b6qba4h0" path="res://assets/values2.png" id="3_nvumf"]
+[ext_resource type="Texture2D" uid="uid://duqcygem44iwt" path="res://assets/values2.png" id="3_nvumf"]
 [ext_resource type="Texture2D" uid="uid://0bibcpedttmn" path="res://assets/back.png" id="4_r1tc5"]
-[ext_resource type="Shader" path="res://scenes/blur.gdshader" id="5_xlsd0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hmlok"]
 resource_local_to_scene = true
 shader = ExtResource("3_iomqw")
-shader_parameter/is_frontface = 1.0
+shader_parameter/is_frontface = 0.0
 shader_parameter/which_card = Vector2(8, 1)
 shader_parameter/size = Vector2(0.039, 0.123)
 shader_parameter/front_tex = ExtResource("3_nvumf")
 shader_parameter/back_tex = ExtResource("4_r1tc5")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_31lfs"]
-resource_local_to_scene = true
-shader = ExtResource("5_xlsd0")
-shader_parameter/is_frontface = 1.0
-shader_parameter/which_card = Vector2(8, 1)
-shader_parameter/size = Vector2(0.039, 0.123)
-shader_parameter/card_texture = ExtResource("3_nvumf")
 
 [node name="Card" type="Node2D"]
 scale = Vector2(0.85, 0.85)
@@ -30,13 +21,6 @@ script = ExtResource("1_irl4d")
 [node name="rect" type="ColorRect" parent="."]
 texture_filter = 4
 material = SubResource("ShaderMaterial_hmlok")
-offset_left = -35.0
-offset_top = -47.0
-offset_right = 35.0
-offset_bottom = 47.0
-
-[node name="blur" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_31lfs")
 offset_left = -35.0
 offset_top = -47.0
 offset_right = 35.0

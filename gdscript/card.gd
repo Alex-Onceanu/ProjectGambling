@@ -27,17 +27,14 @@ func region_of_string(colval : String) -> Vector2i:
 func set_card_type(colval : String):
 	var region = region_of_string(colval)
 	$rect.material.set_shader_parameter("which_card", region);
-	$blur.material.set_shader_parameter("which_card", region);
 
 func flip_frontface():
 	is_frontface = true
 	$rect.material.set_shader_parameter("is_frontface", 1.0);
-	$blur.material.set_shader_parameter("is_frontface", 1.0);
 	
 func flip_backface():
 	is_frontface = false
 	$rect.material.set_shader_parameter("is_frontface", 0.0);
-	$blur.material.set_shader_parameter("is_frontface", 0.0);
 	
 func go_to(__target : Vector2, time = 0.4, wait = 0):
 	target = __target
