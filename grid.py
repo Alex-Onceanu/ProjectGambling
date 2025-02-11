@@ -1,6 +1,7 @@
 # pour mettre un set de cartes dans un tableau 13x4 (sera plus pratique à charger en godot)
 
 from PIL import Image, ImageDraw, ImageFilter
+from math import sqrt
 
 UPSCALE = 2
 CARD_WIDTH = UPSCALE * 61
@@ -22,7 +23,11 @@ sep = "_of_"
 def dist(t1, t2):
     (a1, b1, c1, d1) = t1
     (a2, b2, c2, d2) = t2
-    return abs(d1 - d2)
+    return sqrt((a1 - a2) ** 2 + (b1 - b2) ** 2 + (c1 - c2) ** 2)
+
+def grey(c):
+    (r, g, b, a) = c
+    return abs(r - g) + abs(g - b) + abs(b - r)
 
 for line in range(4):
     for col in range(13):
@@ -37,7 +42,7 @@ width, height = base.size
 pixdata = base.load()
 for y in range(height):
     for x in range(width):
-        if dist(pixdata[x, y], (255, 255, 255, 0)) <= 174:
-            pixdata[x, y] = (255, 255, 255, 255)
+        if grey(pixdata[x, y]) <= 2 and dist(pixdata[x, y], (0, 0, 0, 255)) >= 250:
+            pixdata[x, y] = (0, 0, 0, 0)
 
 base.save("output.png")
