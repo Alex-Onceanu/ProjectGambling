@@ -6,10 +6,6 @@ uniform float is_frontface;
 uniform vec2 which_card;
 uniform vec2 size;
 
-void vertex() {
-	// Called for every vertex the material is visible on.
-}
-
 void fragment() {
 	vec2 uv = UV * 2.0 - vec2(1.0, 1.0);
 	
@@ -23,8 +19,3 @@ void fragment() {
 
 	COLOR = vec4(mix(back, front, is_frontface).xyz, 1.0 - smoothstep(0.96, 0.98, border));
 }
-
-//void light() {
-	// Called for every pixel for every light affecting the CanvasItem.
-	// Uncomment to replace the default light processing function with this one.
-//}

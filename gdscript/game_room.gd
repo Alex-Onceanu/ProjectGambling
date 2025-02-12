@@ -36,6 +36,7 @@ func rearrange_players(names, anim = false):
 func _on_server_key_text_submitted(new_text: String) -> void:
 	if new_text == "debug":
 		$EnterCode.visible = false
+		$Table.visible = true
 		rearrange_players(["moi", "toi", "lui", "soi", "n", "v", "j", "soi", "n", "v", "j", "j"])
 		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
 		return

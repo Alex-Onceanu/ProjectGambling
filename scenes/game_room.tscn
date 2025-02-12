@@ -1,11 +1,19 @@
-[gd_scene load_steps=7 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=11 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
 [ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
+[ext_resource type="Shader" path="res://scenes/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
-[ext_resource type="Texture2D" uid="uid://ddapr4j4223dn" path="res://assets/menu.png" id="5_mqtdi"]
+[ext_resource type="Texture2D" uid="uid://byiq8p6t73kww" path="res://assets/velvet.png" id="4_qfild"]
+[ext_resource type="Texture2D" uid="uid://b5d7emb5ek7e" path="res://assets/wood.png" id="5_i1xx5"]
+[ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://pop_up.tscn" id="9_qktb6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qblcs"]
+shader = ExtResource("3_7c0aq")
+shader_parameter/noise = ExtResource("4_qfild")
+shader_parameter/wood = ExtResource("5_i1xx5")
 
 [node name="GameRoom" type="Node2D"]
 script = ExtResource("1_2qplw")
@@ -28,10 +36,11 @@ texture = ExtResource("2_ctk2m")
 
 [node name="Table" type="ColorRect" parent="."]
 visible = false
-offset_left = 224.0
-offset_top = 84.0
-offset_right = 933.0
-offset_bottom = 573.0
+material = SubResource("ShaderMaterial_qblcs")
+offset_left = 165.0
+offset_top = 21.0
+offset_right = 984.0
+offset_bottom = 624.0
 color = Color(0, 0.6, 0, 1)
 
 [node name="Deck" type="Node2D" parent="."]
@@ -121,10 +130,8 @@ position = Vector2(-275, 183)
 [node name="EnterCode" type="Node2D" parent="."]
 position = Vector2(576, 324)
 
-[node name="Img" type="Sprite2D" parent="EnterCode"]
-position = Vector2(0, -100)
-scale = Vector2(1.89062, 1.89062)
-texture = ExtResource("5_mqtdi")
+[node name="PopUp" parent="EnterCode" instance=ExtResource("9_qktb6")]
+visible = false
 
 [node name="Welcome" type="Label" parent="EnterCode"]
 offset_left = -245.0

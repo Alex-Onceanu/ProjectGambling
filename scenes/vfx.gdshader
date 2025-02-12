@@ -1,8 +1,5 @@
 shader_type canvas_item;
 
-void vertex() {
-	// Called for every vertex the material is visible on.
-}
 
 vec3 palette( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 {
@@ -23,8 +20,3 @@ void fragment() {
 	
 	COLOR = 1.5 * smoothstep(0.99, 0.75, norm_n) * smoothstep(0.65, 0.85, norm_n) * vec4(gradient, 1.0);
 }
-
-//void light() {
-	// Called for every pixel for every light affecting the CanvasItem.
-	// Uncomment to replace the default light processing function with this one.
-//}
