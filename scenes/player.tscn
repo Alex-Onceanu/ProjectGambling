@@ -22,3 +22,12 @@ offset_bottom = 68.0
 theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="money_left" type="Label" parent="."]
+offset_left = -87.0
+offset_top = 68.0
+offset_right = 88.0
+offset_bottom = 91.0
+theme = ExtResource("3_4nyiy")
+horizontal_alignment = 1
+vertical_alignment = 1

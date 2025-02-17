@@ -45,7 +45,7 @@ material = SubResource("ShaderMaterial_qblcs")
 offset_left = 123.0
 offset_top = 1.0
 offset_right = 1030.0
-offset_bottom = 643.0
+offset_bottom = 657.0
 color = Color(0, 0.6, 0, 1)
 
 [node name="Deck" type="Node2D" parent="."]
@@ -158,6 +158,11 @@ theme = ExtResource("10_p7uy6")
 placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50
+
+[node name="Round" type="Label" parent="."]
+offset_right = 132.0
+offset_bottom = 41.0
+theme = ExtResource("10_p7uy6")
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]

@@ -5,14 +5,19 @@ var url
 var tryagain_node
 var tryagain_url
 var nb_players
+var my_player_offset
 var round
 var money_left
 var total_bet
 var current_blind
 var who_is_playing
 var your_bet
+var other_players
 
 @onready var user_name = "debug"
+
+func true_i_of_i(i: int) -> int:
+	return 1 + posmod(i - my_player_offset, nb_players)
 
 # met les joueurs sur un polygone régulier à nb_players faces
 # cf racines nb_players-ièmes de l'unité (merci à Martial)
@@ -25,14 +30,14 @@ func compute_player_pos(player_i):
 
 func rearrange_players(names, anim = false):
 	nb_players = len(names)
-	var offset = names.find(user_name)
-	if offset == -1:
+	my_player_offset = names.find(user_name)
+	if my_player_offset == -1:
 		print("Me suis pas trouvé moi-même parmi les joueurs ??")
 		pass
 	
 	var true_i
-	for i in range(0, nb_players):
-		true_i = 1 + posmod(i - offset, nb_players)
+	for i in range(nb_players):
+		true_i = true_i_of_i(i)
 		get_node("Players/Player" + str(true_i) + "/name_label").text = names[i]
 		if not anim:
 			get_node("Players/Player" + str(true_i)).global_position = compute_player_pos(true_i - 1)
@@ -90,6 +95,18 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 	$EnterCode/ServerKey.text = ""
 	$EnterCode/ServerKey.editable = false
 
+func start_game(cards):
+	var other_players = []
+	for i in range(2, nb_players + 1):
+		other_players.append(get_node("Players/Player" + str(i)))
+		
+	$EnterCode.visible = false
+	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
+	$Table.visible = true
+	$Deck.visible = true
+	$Round.visible = true
+	$Requests/UpdateTimer.start()
+
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if ans == "notready":
@@ -109,28 +126,19 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		$Requests/TryAgain.start()
 		return
 		
-	var other_players = []
-	for i in range(2, nb_players + 1):
-		other_players.append(get_node("Players/Player" + str(i)))
-	
 	var cards = ans.split(",")
 	
 	if len(cards) <= 1 or len(cards) > 7:
 		print("TODO ??")
 		pass
-	
-	$EnterCode.visible = false
-	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
-	$Table.visible = true
-	$Deck.visible = true
-
+		
+	start_game(cards)
 
 func _on_try_again_timeout() -> void:
 	if tryagain_url != "" and tryagain_node != null:
 		tryagain_node.request(tryagain_url)
 		tryagain_url = ""
 		tryagain_node = null
-
 
 func _on_name_text_submitted(new_text: String) -> void:
 	user_name = new_text
@@ -144,7 +152,7 @@ func animate_bets(bets):
 	for b in bets:
 		var who = b[0]
 		var what = b[1]
-		pass
+		print(str(who) + " a misé " + str(what) + " ..!")
 
 func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var data = JSON.parse_string(body.get_string_from_utf8())
@@ -152,8 +160,17 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		print("Erreur au moment de parser la réponse de /update/ !!")
 		return
 	
-	round = data["round"]
+	if round != data["round"]:
+		round = int(data["round"])
+		$Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River"][round]
+	
 	money_left = data["money_left"]
+	
+	for i in range(nb_players):
+		var true_i = true_i_of_i(i)
+		get_node("Players/Player" + str(true_i) + "/money_left").text = str(money_left[i]) + "€"
+		
+	
 	total_bet = data["total_bet"]
 	current_blind = data["current_blind"]
 	who_is_playing = data["who_is_playing"]
