@@ -9,7 +9,7 @@ void fragment() {
 	vec2 uv = UV * 2.0 - vec2(1.0, 1.0);
 
 	float n = 28.0;
-	float norm_n = 1.1 * pow(pow(uv.x * 1.01, n) + pow(uv.y * 0.95, n), 1.0 / n);
+	float norm_n = 1.1 * pow(pow(abs(uv.x) * 1.01, n) + pow(abs(uv.y) * 0.95, n), 1.0 / n);
 
 	float border_alpha = step(0.7, norm_n) * (1.0 - smoothstep(0.99, 1.0, norm_n));
 	vec4 border = (0.8 + 0.2 * uv.y + 0.2 * abs(sin(9.0 * uv.y + 9.0 * uv.x))) * vec4(0.49, 0.46, 0.202, border_alpha);

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://ccbm2fm8ej331"]
+[gd_scene load_steps=4 format=3 uid="uid://ccbm2fm8ej331"]
 
 [ext_resource type="Script" path="res://gdscript/player.gd" id="1_hy2mr"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="1_tb6ci"]
+[ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="3_4nyiy"]
 
 [node name="Player" type="Node2D"]
 script = ExtResource("1_hy2mr")
@@ -18,5 +19,6 @@ offset_left = -87.0
 offset_top = 45.0
 offset_right = 88.0
 offset_bottom = 68.0
+theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1

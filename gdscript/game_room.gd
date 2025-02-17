@@ -5,6 +5,12 @@ var url
 var tryagain_node
 var tryagain_url
 var nb_players
+var round
+var money_left
+var total_bet
+var current_blind
+var who_is_playing
+var your_bet
 
 @onready var user_name = "debug"
 
@@ -130,3 +136,27 @@ func _on_name_text_submitted(new_text: String) -> void:
 	user_name = new_text
 	$EnterCode/Name.visible = false
 	$EnterCode/ServerKey.visible = true
+
+func _on_update_timer_timeout() -> void:
+	$Requests/Update.request(url + "/update?id=" + str(user_id))
+	
+func animate_bets(bets):
+	for b in bets:
+		var who = b[0]
+		var what = b[1]
+		pass
+
+func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	var data = JSON.parse_string(body.get_string_from_utf8())
+	if data == null:
+		print("Erreur au moment de parser la réponse de /update/ !!")
+		return
+	
+	round = data["round"]
+	money_left = data["money_left"]
+	total_bet = data["total_bet"]
+	current_blind = data["current_blind"]
+	who_is_playing = data["who_is_playing"]
+	your_bet = data["your_bet"]
+	
+	animate_bets(data["update"])
