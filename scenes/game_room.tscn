@@ -3,12 +3,12 @@
 [ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
 [ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
-[ext_resource type="Shader" path="res://scenes/table.gdshader" id="3_7c0aq"]
+[ext_resource type="Shader" path="res://shaders/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
-[ext_resource type="Texture2D" uid="uid://byiq8p6t73kww" path="res://assets/velvet.png" id="4_qfild"]
-[ext_resource type="Texture2D" uid="uid://b5d7emb5ek7e" path="res://assets/wood.png" id="5_i1xx5"]
-[ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://pop_up.tscn" id="9_qktb6"]
+[ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
+[ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/wood.png" id="5_i1xx5"]
+[ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qblcs"]
 shader = ExtResource("3_7c0aq")
@@ -37,13 +37,14 @@ texture = ExtResource("2_ctk2m")
 [node name="Table" type="ColorRect" parent="."]
 visible = false
 material = SubResource("ShaderMaterial_qblcs")
-offset_left = 165.0
-offset_top = 21.0
-offset_right = 984.0
-offset_bottom = 624.0
+offset_left = 123.0
+offset_top = 1.0
+offset_right = 1030.0
+offset_bottom = 643.0
 color = Color(0, 0.6, 0, 1)
 
 [node name="Deck" type="Node2D" parent="."]
+visible = false
 position = Vector2(1060.33, 550)
 script = ExtResource("2_6g2tb")
 
@@ -131,30 +132,22 @@ position = Vector2(-275, 183)
 position = Vector2(576, 324)
 
 [node name="PopUp" parent="EnterCode" instance=ExtResource("9_qktb6")]
-visible = false
-
-[node name="Welcome" type="Label" parent="EnterCode"]
-offset_left = -245.0
-offset_top = -159.0
-offset_right = 261.0
-offset_bottom = -116.0
-text = "BIENVENUE AU CASINO"
 
 [node name="ServerKey" type="LineEdit" parent="EnterCode"]
 visible = false
-offset_left = -256.0
-offset_top = -100.0
-offset_right = 261.0
-offset_bottom = -44.0
+offset_left = -244.0
+offset_top = -95.0
+offset_right = 248.0
+offset_bottom = -39.0
 placeholder_text = "Copie-colle ici la clé de la partie stp mon boeuf"
 alignment = 1
 max_length = 50
 
 [node name="Name" type="LineEdit" parent="EnterCode"]
-offset_left = -256.0
-offset_top = -100.0
-offset_right = 261.0
-offset_bottom = -44.0
+offset_left = -244.0
+offset_top = -95.0
+offset_right = 248.0
+offset_bottom = -39.0
 placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50

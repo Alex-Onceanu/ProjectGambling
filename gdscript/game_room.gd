@@ -37,56 +37,66 @@ func _on_server_key_text_submitted(new_text: String) -> void:
 	if new_text == "debug":
 		$EnterCode.visible = false
 		$Table.visible = true
-		rearrange_players(["moi", "toi", "lui", "soi", "n", "v", "j", "soi", "n", "v", "j", "j"])
+		rearrange_players(["j2", "j3", "j4", "j5", "j6", "j7", "j8", "j9", "j10", "j11", "j12", "player"])
 		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
 		return
+		
+	$EnterCode/ServerKey.text = ""
 	
 	if len(new_text) <= 10:
+		$EnterCode/ServerKey.placeholder_text = "Mauvais code mdr cheh"
 		return
 		
-	$EnterCode/Welcome.text = "En train de télécommuniquer..."
+	$EnterCode/ServerKey.placeholder_text = "En train de télécommuniquer..."
+	$EnterCode/ServerKey.editable = false
 	
 	url = "https://" + new_text + ".ngrok-free.app"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
-	$EnterCode/ServerKey.text = ""
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_register_completed(result, response_code, headers, body):
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
 	
 	if len(ans) > 3 or len(ans) <= 0:
-		$EnterCode/Welcome.text = "Code invalide, fais un effort stp"
+		$EnterCode/ServerKey.text = ""
+		$EnterCode/ServerKey.placeholder_text = "Code invalide, fais un effort stp"
+		$EnterCode/ServerKey.editable = true
 		return
 		
 	user_id = int(ans)
 	print("ID : ", ans)
+	$EnterCode/ServerKey.placeholder_text = "Partie trouvée !"
 	$EnterCode/ServerKey.text = ""
-	$EnterCode/Welcome.text = "Partie trouvée !"
+	$EnterCode/ServerKey.editable = false
 	$Requests/Ready.request(str(url) + "/ready/")
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if ans == "notready":
-		$EnterCode/Welcome.text = "On attend que la partie se lance..."
+		$EnterCode/ServerKey.placeholder_text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
 		tryagain_url = str(url) + "/ready/"
 		$Requests/TryAgain.start()
-		return
 	elif ans.begins_with("go!"):
-		$EnterCode/Welcome.text = "Go go go go !!"
+		$EnterCode/ServerKey.placeholder_text = "Go go go go !!"
 		rearrange_players(ans.substr(3).split(",", false))
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
+	$EnterCode/ServerKey.text = ""
+	$EnterCode/ServerKey.editable = false
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if ans == "notready":
-		$EnterCode/Welcome.text = "On attend que la partie se lance..."
+		$EnterCode/ServerKey.placeholder_text = "On attend que la partie se lance..."
+		$EnterCode/ServerKey.text = ""
+		$EnterCode/ServerKey.editable = false
 		tryagain_node = $Requests/Cards
 		tryagain_url = url + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
 	if ans == "invalid" or len(ans) > 20:
-		$EnterCode/Welcome.text = "No way ?? Un bug rare sauvage apparait : ID invalide"
+		$EnterCode/ServerKey.placeholder_text = "No way ?? Un bug rare sauvage apparait : ID invalide"
+		$EnterCode/ServerKey.text = ""
 		print("Error : ", ans)
 		tryagain_node = $Requests/Cards
 		tryagain_url = str(url) + "/cards?id=" + str(user_id)
@@ -105,6 +115,8 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 	
 	$EnterCode.visible = false
 	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
+	$Table.visible = true
+	$Deck.visible = true
 
 
 func _on_try_again_timeout() -> void:
