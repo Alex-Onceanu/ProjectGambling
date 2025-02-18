@@ -5,9 +5,10 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tmu7m"]
 
 [resource]
+resource_local_to_scene = true
 default_font = ExtResource("1_jmamk")
 default_font_size = 23
-Label/colors/font_color = Color(1, 1, 1, 1)
+Label/colors/font_color = Color(0.996078, 0.835294, 0.45098, 1)
 Label/colors/font_outline_color = Color(0, 0, 0, 1)
 Label/colors/font_shadow_color = Color(0, 0, 0, 0)
 Label/constants/line_spacing = 3
@@ -15,5 +16,5 @@ Label/constants/outline_size = 0
 Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
 Label/constants/shadow_outline_size = 1
-Label/font_sizes/font_size = 16
+Label/font_sizes/font_size = 24
 Label/styles/normal = SubResource("StyleBoxEmpty_tmu7m")

@@ -13,6 +13,7 @@ var current_blind
 var who_is_playing
 var your_bet
 var other_players
+var every_name
 
 @onready var user_name = "debug"
 
@@ -90,7 +91,9 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		$Requests/TryAgain.start()
 	elif ans.begins_with("go!"):
 		$EnterCode/ServerKey.placeholder_text = "Go go go go !!"
-		rearrange_players(ans.substr(3).split(",", false))
+		every_name = ans.substr(3).split(",", false)
+		nb_players = len(every_name)
+		rearrange_players(every_name)
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 	$EnterCode/ServerKey.text = ""
 	$EnterCode/ServerKey.editable = false
@@ -106,6 +109,7 @@ func start_game(cards):
 	$Deck.visible = true
 	$Round.visible = true
 	$Requests/UpdateTimer.start()
+	$Money.visible = true
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
@@ -171,9 +175,19 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		get_node("Players/Player" + str(true_i) + "/money_left").text = str(money_left[i]) + "€"
 		
 	
-	total_bet = data["total_bet"]
+	if total_bet != data["total_bet"]:
+		total_bet = int(data["total_bet"])
+		$Money/TotalBet.text = "Mise : " + str(total_bet) + "€"
+		for m in range(20, total_bet, 20):
+			get_node("Money/MoneyBag" + str(min(m / 20, 10))).visible = true
+	
+	
+	
+	if who_is_playing != data["who_is_playing"]:
+		who_is_playing = int(data["who_is_playing"])
+		$WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
+		
 	current_blind = data["current_blind"]
-	who_is_playing = data["who_is_playing"]
 	your_bet = data["your_bet"]
 	
 	animate_bets(data["update"])

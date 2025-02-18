@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=13 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
 [ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
 [ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/wood.png" id="5_i1xx5"]
+[ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/money_bag.png" id="6_gpvgl"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 [ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
 
@@ -47,6 +48,80 @@ offset_top = 1.0
 offset_right = 1030.0
 offset_bottom = 657.0
 color = Color(0, 0.6, 0, 1)
+
+[node name="Money" type="Node2D" parent="."]
+visible = false
+position = Vector2(204, 97)
+scale = Vector2(0.71, 0.71)
+
+[node name="MoneyBag1" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(696, 341)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag2" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(663, 376)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag3" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(728, 378)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag4" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(764, 358)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag5" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(789, 375)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag6" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(724, 400)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag7" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(640, 417)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag8" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(685, 431)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag9" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(746, 430)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="MoneyBag10" type="Sprite2D" parent="Money"]
+visible = false
+position = Vector2(791, 429)
+scale = Vector2(0.715, 0.715)
+texture = ExtResource("6_gpvgl")
+
+[node name="TotalBet" type="Label" parent="Money"]
+offset_left = 427.0
+offset_top = 324.0
+offset_right = 652.0
+offset_bottom = 379.0
+theme = ExtResource("10_p7uy6")
+theme_override_font_sizes/font_size = 52
+text = "Mise : 0€"
 
 [node name="Deck" type="Node2D" parent="."]
 visible = false
@@ -162,6 +237,12 @@ max_length = 50
 [node name="Round" type="Label" parent="."]
 offset_right = 132.0
 offset_bottom = 41.0
+theme = ExtResource("10_p7uy6")
+
+[node name="WhoIsPlaying" type="Label" parent="."]
+offset_top = 40.0
+offset_right = 132.0
+offset_bottom = 86.0
 theme = ExtResource("10_p7uy6")
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
