@@ -107,7 +107,7 @@ func start_game(cards):
 	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
 	$Table.visible = true
 	$Deck.visible = true
-	$Round.visible = true
+	$UI.visible = true
 	$Requests/UpdateTimer.start()
 	$Money.visible = true
 
@@ -156,7 +156,18 @@ func animate_bets(bets):
 	for b in bets:
 		var who = b[0]
 		var what = b[1]
-		print(str(who) + " a misé " + str(what) + " ..!")
+		get_node("Players/Player" + str(true_i_of_i(who))).animate_bet(int(what))
+		
+
+func your_turn():
+	$UI/SeCoucher.disabled = false
+	$UI/Surencherir.disabled = false
+	$UI/Suivre.disabled = false
+	
+func end_turn():
+	$UI/SeCoucher.disabled = true
+	$UI/Surencherir.disabled = true
+	$UI/Suivre.disabled = true
 
 func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var data = JSON.parse_string(body.get_string_from_utf8())
@@ -166,7 +177,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 	
 	if round != data["round"]:
 		round = int(data["round"])
-		$Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River"][round]
+		$UI/Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River"][round]
 	
 	money_left = data["money_left"]
 	
@@ -174,20 +185,36 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		var true_i = true_i_of_i(i)
 		get_node("Players/Player" + str(true_i) + "/money_left").text = str(money_left[i]) + "€"
 		
-	
 	if total_bet != data["total_bet"]:
 		total_bet = int(data["total_bet"])
 		$Money/TotalBet.text = "Mise : " + str(total_bet) + "€"
 		for m in range(20, total_bet, 20):
 			get_node("Money/MoneyBag" + str(min(m / 20, 10))).visible = true
 	
-	
-	
-	if who_is_playing != data["who_is_playing"]:
-		who_is_playing = int(data["who_is_playing"])
-		$WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
-		
 	current_blind = data["current_blind"]
 	your_bet = data["your_bet"]
+	$UI/Suivre.text = "Suivre (" + str(current_blind - your_bet) + "€)"
+	$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 1
+	$UI/Surencherir/HowMuch.max_value = money_left[my_player_offset]
 	
 	animate_bets(data["update"])
+	
+	who_is_playing = int(data["who_is_playing"])
+	$UI/WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
+	if who_is_playing == my_player_offset:
+		your_turn()
+
+func _on_surencherir_pressed() -> void:
+	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + int($UI/Surencherir/HowMuch.value), [], HTTPClient.METHOD_POST)
+	end_turn()
+
+func _on_se_coucher_pressed() -> void:
+	$Requests/Fold.request(url + "/fold?id=" + str(user_id), [], HTTPClient.METHOD_POST)
+	end_turn()
+
+func _on_suivre_pressed() -> void:
+	if your_bet == current_blind:
+		$Requests/Check.request(url + "/check?id=" + str(user_id), [], HTTPClient.METHOD_POST)
+	else:
+		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet), [], HTTPClient.METHOD_POST)
+	end_turn()

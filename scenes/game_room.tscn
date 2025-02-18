@@ -32,8 +32,15 @@ one_shot = true
 [node name="Ready" type="HTTPRequest" parent="Requests"]
 
 [node name="UpdateTimer" type="Timer" parent="Requests"]
+wait_time = 0.8
 
 [node name="Update" type="HTTPRequest" parent="Requests"]
+
+[node name="Fold" type="HTTPRequest" parent="Requests"]
+
+[node name="Check" type="HTTPRequest" parent="Requests"]
+
+[node name="Bet" type="HTTPRequest" parent="Requests"]
 
 [node name="Background" type="Sprite2D" parent="."]
 position = Vector2(573, 323.036)
@@ -234,16 +241,51 @@ placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50
 
-[node name="Round" type="Label" parent="."]
+[node name="UI" type="Node2D" parent="."]
+visible = false
+
+[node name="Round" type="Label" parent="UI"]
 offset_right = 132.0
 offset_bottom = 41.0
 theme = ExtResource("10_p7uy6")
 
-[node name="WhoIsPlaying" type="Label" parent="."]
+[node name="WhoIsPlaying" type="Label" parent="UI"]
 offset_top = 40.0
 offset_right = 132.0
 offset_bottom = 86.0
 theme = ExtResource("10_p7uy6")
+
+[node name="SeCoucher" type="Button" parent="UI"]
+offset_left = 10.0
+offset_top = 511.0
+offset_right = 153.0
+offset_bottom = 568.0
+theme = ExtResource("10_p7uy6")
+text = "Se coucher"
+
+[node name="Surencherir" type="Button" parent="UI"]
+offset_left = 10.0
+offset_top = 577.0
+offset_right = 153.0
+offset_bottom = 634.0
+theme = ExtResource("10_p7uy6")
+text = "surenchérir"
+
+[node name="HowMuch" type="SpinBox" parent="UI/Surencherir"]
+layout_mode = 0
+offset_left = 150.0
+offset_right = 242.0
+offset_bottom = 58.0
+theme = ExtResource("10_p7uy6")
+step = 10.0
+
+[node name="Suivre" type="Button" parent="UI"]
+offset_left = 9.0
+offset_top = 451.0
+offset_right = 154.0
+offset_bottom = 501.0
+theme = ExtResource("10_p7uy6")
+text = "Suivre"
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
@@ -253,3 +295,6 @@ theme = ExtResource("10_p7uy6")
 [connection signal="request_completed" from="Requests/Update" to="." method="_on_update_completed"]
 [connection signal="text_submitted" from="EnterCode/ServerKey" to="." method="_on_server_key_text_submitted"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
+[connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
+[connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]
+[connection signal="pressed" from="UI/Suivre" to="." method="_on_suivre_pressed"]

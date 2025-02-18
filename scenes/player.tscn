@@ -9,6 +9,7 @@ script = ExtResource("1_hy2mr")
 
 [node name="Card_1" parent="." instance=ExtResource("1_tb6ci")]
 visible = false
+position = Vector2(7, 0)
 
 [node name="Card_2" parent="." instance=ExtResource("1_tb6ci")]
 visible = false
@@ -31,3 +32,20 @@ offset_bottom = 91.0
 theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="bet_anim" type="Label" parent="."]
+visible = false
+offset_left = 47.0
+offset_top = 46.0
+offset_right = 97.0
+offset_bottom = 79.0
+theme = ExtResource("3_4nyiy")
+theme_override_colors/font_color = Color(0.294118, 1, 0.0745098, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 30
+
+[node name="bet_anim_timer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[connection signal="timeout" from="bet_anim_timer" to="." method="_on_bet_anim_timer_timeout"]
