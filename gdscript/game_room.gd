@@ -62,7 +62,7 @@ func _on_server_key_text_submitted(new_text: String) -> void:
 	$EnterCode/ServerKey.placeholder_text = "En train de télécommuniquer..."
 	$EnterCode/ServerKey.editable = false
 	
-	url = "https://" + new_text + ".ngrok-free.app"
+	url = "http://gambling.share.zrok.io"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
@@ -73,6 +73,7 @@ func _on_register_completed(result, response_code, headers, body):
 		$EnterCode/ServerKey.text = ""
 		$EnterCode/ServerKey.placeholder_text = "Code invalide, fais un effort stp"
 		$EnterCode/ServerKey.editable = true
+		print(ans)
 		return
 		
 	user_id = int(ans)
@@ -205,7 +206,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		your_turn()
 
 func _on_surencherir_pressed() -> void:
-	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + int($UI/Surencherir/HowMuch.value), [], HTTPClient.METHOD_POST)
+	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(int($UI/Surencherir/HowMuch.value)), [], HTTPClient.METHOD_POST)
 	end_turn()
 
 func _on_se_coucher_pressed() -> void:

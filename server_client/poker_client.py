@@ -60,10 +60,14 @@ class Client:
         while True:
             try:
                 # on attend que le serveur soit joignable et qu'il nous donne un id
-                self.client_id = int(requests.get(self.serverURL + f"/register/user?name={self.userName}").text)
+                # print(requests.get(self.serverURL + f"/register/user?name={self.userName}", allow_redirects=True).text)
+                print(" << Go ans !")
+                ans = requests.get(self.serverURL + f"/register/user?name={self.userName}", allow_redirects=True).text
+                print(" << ans : ", ans)
+                self.client_id = int(ans)
                 break
-            except:
-                print(" << Le serveur est inacessible, alex ce gros shlag a sûrement oublié de le lancer mdr")
+            except Exception as e:
+                print(" << Le serveur est inacessible, alex ce gros shlag a sûrement oublié de le lancer mdr : ", str(e))
                 time.sleep(1)
 
         print(" << Mon id est " + str(self.client_id))
@@ -71,7 +75,7 @@ class Client:
     def try_GET(self, parsing, req, error_msg):
         while True:
             try:
-                ans = parsing(requests.get(self.serverURL + req).text)
+                ans = parsing(requests.get(self.serverURL + req,allow_redirects=True).text)
                 return ans
             except Exception as e:
                 print(f" << {error_msg} : ", str(e))
@@ -80,7 +84,7 @@ class Client:
     def try_POST(self, req, error_msg):
         while True:
             try:
-                requests.post(self.serverURL + req).text
+                requests.post(self.serverURL + req,allow_redirects=True).text
                 break
             except Exception as e:
                 print(f" << {error_msg} : ", str(e))
@@ -95,7 +99,7 @@ class Client:
             time.sleep(1)
             # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
             # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
-            shouldStart = requests.get(self.serverURL + "/ready/").text
+            shouldStart = requests.get(self.serverURL + "/ready/",allow_redirects=True).text
 
         self.players = list(filter(None, shouldStart[3:].split(",")))
         print(f" << Partie lancée ! Joueurs : {self.players}")
@@ -145,7 +149,10 @@ class Client:
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
 name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne avant et après un string
-url = "http://" + input(" << Veuillez entrer le code de la partie que vous souhaitez rejoindre :\n >> ").strip() + ".ngrok-free.app" # on complète l'url de ngrok-free.app par le code qui a été généré par le serveur lorsque le tunneling a commencé
+# url = "http://" + input(" << Veuillez entrer le code de la partie que vous souhaitez rejoindre :\n >> ").strip() + ".ngrok-free.app" # on complète l'url de ngrok-free.app par le code qui a été généré par le serveur lorsque le tunneling a commencé
+
+url = "http://gambling.share.zrok.io"
+# url = "http://localhost:8080"
 
 cl = Client(url, name)
 cl.run()

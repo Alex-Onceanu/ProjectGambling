@@ -4,8 +4,8 @@ from urllib.parse import urlparse   # cf parse_qs
 from urllib.parse import parse_qs   # pour transformer "/name?first=hamoude&last=akbar" en { "first" : "hamoude", "last" : "akbar" }
 import time
 from random import randint, shuffle
-import ngrok                        # pour envoyer localhost ailleurs (tunneling)
-import pyperclip
+# import ngrok                        # pour envoyer localhost ailleurs (tunneling)
+# import pyperclip
 import json
 
 INITIAL_MONEY = 100
@@ -244,9 +244,9 @@ PORT = 8080
 # il est de la forme "http://<CODE>.ngrok-free.app" où CODE est ce qu'on print pour que le client le copie-colle
 # pour le récupérer on fait url[8:-15] (donc on veut les charactères allant du 8ème au 15ème en partant de la fin)
 
-ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken="2sgDQwcgTEhjKCy8Zc0fENZUTxA_WttXEMohEf1P5iMZfkdQ")
-print(f" << Partie créée (le code de la partie est dans votre presse-papiers) : \n << {ngrok_listener.url()[8:-15]}")
-pyperclip.copy(ngrok_listener.url()[8:-15])
+# ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken="2sgDQwcgTEhjKCy8Zc0fENZUTxA_WttXEMohEf1P5iMZfkdQ")
+# print(f" << Partie créée (le code de la partie est dans votre presse-papiers) : \n << {ngrok_listener.url()}")
+# pyperclip.copy(ngrok_listener.url()[8:-15])
 
 game = Game()                                   # on crée une instance globale de Game
 gameThread = threading.Thread(target=game.run)  # sa méthode run s'exécutera * en parallèle * de la suite
@@ -266,10 +266,13 @@ class Server(http.server.SimpleHTTPRequestHandler):
     # fonction un peu osef
     def send_my_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("skip_zrok_interstitial", "*")
+        self.end_headers()
 
     # Cette méthode sera automatiquement appelée lorsque le serveur reçoit une requête GET
     # l'url reçu sera automatiquement stocké dans self.path
     def do_GET(self):
+        # print(" << GET Coucou j'ai reçu ", self.path)
         # si on reçoit un "http://urlchelou/register/user?name=HAMOUDE" par exemple
         try:
             if self.path.startswith('/register/user'):
@@ -279,13 +282,13 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')
-                self.end_headers()
+                self.send_my_headers()
                 self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
             # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
             elif self.path.startswith('/ready'):
                 self.send_response(200, 'OK')
-                self.end_headers()
+                self.send_my_headers()
                 ans = "notready"
                 if self.gameInstance.shouldStart:
                     ans = "go!" + self.gameInstance.get_all_names()
@@ -319,7 +322,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 else:
                     self.send_response(200, 'OK')
 
-                self.end_headers()
+                self.send_my_headers()
                 self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
             
             elif self.path.startswith('/update'):
@@ -349,7 +352,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 }
 
                 self.send_response(200, 'OK')
-                self.end_headers()
+                self.send_my_headers()
                 self.wfile.write(json.dumps(ans).encode())
 
                 self.gameInstance.id_to_update[their_id] = []
@@ -357,11 +360,12 @@ class Server(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
             self.send_response(400, 'NOTOK')
-            self.end_headers()
+            self.send_my_headers()
             self.wfile.write("error".encode())
 
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
+        # print(" << POST Coucou j'ai reçu ", self.path)
         try:
             if not self.gameInstance.round_transition:
                 if self.path.startswith('/bet'):
