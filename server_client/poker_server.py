@@ -4,8 +4,6 @@ from urllib.parse import urlparse   # cf parse_qs
 from urllib.parse import parse_qs   # pour transformer "/name?first=hamoude&last=akbar" en { "first" : "hamoude", "last" : "akbar" }
 import time
 from random import randint, shuffle
-# import ngrok                        # pour envoyer localhost ailleurs (tunneling)
-# import pyperclip
 import json
 
 INITIAL_MONEY = 100
@@ -236,18 +234,6 @@ class Game:
 
 print(" << Bienvenue sur le serveur du prototype du projet GAMBLING!")
 
-PORT = 8080
-
-# ngrok est l'API de "tunneling" qui nous permet d'envoyer localhost sur un url un peu random mais en ligne
-# pour faire ça on appelle ngrok.forward avec comme source "localhost:8080" (parce que c'est ce qu'on veut transférer)
-# ça nous renvoie dans ngrok_listener.url() l'url sus où a été envoyé notre localhost
-# il est de la forme "http://<CODE>.ngrok-free.app" où CODE est ce qu'on print pour que le client le copie-colle
-# pour le récupérer on fait url[8:-15] (donc on veut les charactères allant du 8ème au 15ème en partant de la fin)
-
-# ngrok_listener = ngrok.forward("localhost:" + str(PORT), authtoken="2sgDQwcgTEhjKCy8Zc0fENZUTxA_WttXEMohEf1P5iMZfkdQ")
-# print(f" << Partie créée (le code de la partie est dans votre presse-papiers) : \n << {ngrok_listener.url()}")
-# pyperclip.copy(ngrok_listener.url()[8:-15])
-
 game = Game()                                   # on crée une instance globale de Game
 gameThread = threading.Thread(target=game.run)  # sa méthode run s'exécutera * en parallèle * de la suite
 gameThread.start()
@@ -266,7 +252,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
     # fonction un peu osef
     def send_my_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("skip_zrok_interstitial", "*")
+        # self.send_header("skip_zrok_interstitial", "*")
         self.end_headers()
 
     # Cette méthode sera automatiquement appelée lorsque le serveur reçoit une requête GET
@@ -356,6 +342,35 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(ans).encode())
 
                 self.gameInstance.id_to_update[their_id] = []
+            
+            if not self.gameInstance.round_transition:
+                ans = "bruh"
+                if self.path.startswith('/bet'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    how_much = int(parse_qs(parsed_url.query)["how_much"][0])
+                    self.gameInstance.bet(their_id, how_much)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(ans).encode())
+
+                elif self.path.startswith('/fold'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    self.gameInstance.folded(their_id)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(ans).encode())
+
+                elif self.path.startswith('/check'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    self.gameInstance.checked(their_id)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(ans).encode())
+            else:
+                print(f" << Je skip la requête {self.path} car Game est en pleine transition")
 
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
@@ -398,6 +413,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
 handler_object = Server
 
+PORT = 8080
 httpd = http.server.HTTPServer(("localhost", PORT), handler_object)
 httpd.serve_forever()
 

@@ -1,4 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
-.DS_Store/
+.DS_Store
+server_client/start_tunnel.sh
+assets/.DS_Store
+cards/

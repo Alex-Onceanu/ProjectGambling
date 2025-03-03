@@ -220,17 +220,6 @@ position = Vector2(576, 324)
 
 [node name="PopUp" parent="EnterCode" instance=ExtResource("9_qktb6")]
 
-[node name="ServerKey" type="LineEdit" parent="EnterCode"]
-visible = false
-offset_left = -244.0
-offset_top = -95.0
-offset_right = 248.0
-offset_bottom = -39.0
-theme = ExtResource("10_p7uy6")
-placeholder_text = "Copie-colle ici la clé de la partie stp mon boeuf"
-alignment = 1
-max_length = 50
-
 [node name="Name" type="LineEdit" parent="EnterCode"]
 offset_left = -244.0
 offset_top = -95.0
@@ -293,7 +282,6 @@ text = "Suivre"
 [connection signal="request_completed" from="Requests/Ready" to="." method="_on_ready_completed"]
 [connection signal="timeout" from="Requests/UpdateTimer" to="." method="_on_update_timer_timeout"]
 [connection signal="request_completed" from="Requests/Update" to="." method="_on_update_completed"]
-[connection signal="text_submitted" from="EnterCode/ServerKey" to="." method="_on_server_key_text_submitted"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]

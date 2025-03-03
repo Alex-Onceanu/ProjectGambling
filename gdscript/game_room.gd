@@ -44,60 +44,39 @@ func rearrange_players(names, anim = false):
 			get_node("Players/Player" + str(true_i)).global_position = compute_player_pos(true_i - 1)
 			get_node("Players/Player" + str(true_i)).visible = true
 
-# demander à l'utilisateur d'entrer le code de la game
-func _on_server_key_text_submitted(new_text: String) -> void:
-	if new_text == "debug":
-		$EnterCode.visible = false
-		$Table.visible = true
-		rearrange_players(["j2", "j3", "j4", "j5", "j6", "j7", "j8", "j9", "j10", "j11", "j12", "player"])
-		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
-		return
-		
-	$EnterCode/ServerKey.text = ""
-	
-	if len(new_text) <= 10:
-		$EnterCode/ServerKey.placeholder_text = "Mauvais code mdr cheh"
-		return
-		
-	$EnterCode/ServerKey.placeholder_text = "En train de télécommuniquer..."
-	$EnterCode/ServerKey.editable = false
-	
-	url = "http://gambling.share.zrok.io"
-	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
-
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_register_completed(result, response_code, headers, body):
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
 	
 	if len(ans) > 3 or len(ans) <= 0:
-		$EnterCode/ServerKey.text = ""
-		$EnterCode/ServerKey.placeholder_text = "Code invalide, fais un effort stp"
-		$EnterCode/ServerKey.editable = true
+		$EnterCode/Name.text = ""
+		$EnterCode/Name.placeholder_text = "Erreur ??"
+		$EnterCode/Name.editable = true
 		print(ans)
 		return
 		
 	user_id = int(ans)
 	print("ID : ", ans)
-	$EnterCode/ServerKey.placeholder_text = "Partie trouvée !"
-	$EnterCode/ServerKey.text = ""
-	$EnterCode/ServerKey.editable = false
+	$EnterCode/Name.placeholder_text = "Partie trouvée !"
+	$EnterCode/Name.text = ""
+	$EnterCode/Name.editable = false
 	$Requests/Ready.request(str(url) + "/ready/")
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if ans == "notready":
-		$EnterCode/ServerKey.placeholder_text = "On attend que la partie se lance..."
+		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
 		tryagain_url = str(url) + "/ready/"
 		$Requests/TryAgain.start()
 	elif ans.begins_with("go!"):
-		$EnterCode/ServerKey.placeholder_text = "Go go go go !!"
+		$EnterCode/Name.placeholder_text = "Go go go go !!"
 		every_name = ans.substr(3).split(",", false)
 		nb_players = len(every_name)
 		rearrange_players(every_name)
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
-	$EnterCode/ServerKey.text = ""
-	$EnterCode/ServerKey.editable = false
+	$EnterCode/Name.text = ""
+	$EnterCode/Name.editable = false
 
 func start_game(cards):
 	var other_players = []
@@ -115,16 +94,16 @@ func start_game(cards):
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if ans == "notready":
-		$EnterCode/ServerKey.placeholder_text = "On attend que la partie se lance..."
-		$EnterCode/ServerKey.text = ""
-		$EnterCode/ServerKey.editable = false
+		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
+		$EnterCode/Name.text = ""
+		$EnterCode/Name.editable = false
 		tryagain_node = $Requests/Cards
 		tryagain_url = url + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
 	if ans == "invalid" or len(ans) > 20:
-		$EnterCode/ServerKey.placeholder_text = "No way ?? Un bug rare sauvage apparait : ID invalide"
-		$EnterCode/ServerKey.text = ""
+		$EnterCode/Name.placeholder_text = "No way ?? Un bug rare sauvage apparait : ID invalide"
+		$EnterCode/Name.text = ""
 		print("Error : ", ans)
 		tryagain_node = $Requests/Cards
 		tryagain_url = str(url) + "/cards?id=" + str(user_id)
@@ -147,8 +126,19 @@ func _on_try_again_timeout() -> void:
 
 func _on_name_text_submitted(new_text: String) -> void:
 	user_name = new_text
-	$EnterCode/Name.visible = false
-	$EnterCode/ServerKey.visible = true
+	
+	if new_text == "debug":
+		$EnterCode.visible = false
+		$Table.visible = true
+		rearrange_players(["j2", "j3", "j4", "j5", "j6", "j7", "j8", "j9", "j10", "j11", "j12", "player"])
+		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
+		return
+		
+	$EnterCode/Name.placeholder_text = "En train de télécommuniquer..."
+	$EnterCode/Name.editable = false
+	
+	url = "http://gambling.share.zrok.io"
+	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
 
 func _on_update_timer_timeout() -> void:
 	$Requests/Update.request(url + "/update?id=" + str(user_id))
@@ -178,7 +168,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 	
 	if round != data["round"]:
 		round = int(data["round"])
-		$UI/Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River"][round]
+		$UI/Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River", "FIN"][round]
 	
 	money_left = data["money_left"]
 	
@@ -206,16 +196,16 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		your_turn()
 
 func _on_surencherir_pressed() -> void:
-	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(int($UI/Surencherir/HowMuch.value)), [], HTTPClient.METHOD_POST)
+	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(int($UI/Surencherir/HowMuch.value)))
 	end_turn()
 
 func _on_se_coucher_pressed() -> void:
-	$Requests/Fold.request(url + "/fold?id=" + str(user_id), [], HTTPClient.METHOD_POST)
+	$Requests/Fold.request(url + "/fold?id=" + str(user_id))
 	end_turn()
 
 func _on_suivre_pressed() -> void:
 	if your_bet == current_blind:
-		$Requests/Check.request(url + "/check?id=" + str(user_id), [], HTTPClient.METHOD_POST)
+		$Requests/Check.request(url + "/check?id=" + str(user_id))
 	else:
-		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet), [], HTTPClient.METHOD_POST)
+		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet))
 	end_turn()

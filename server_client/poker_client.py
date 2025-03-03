@@ -1,10 +1,6 @@
 import requests     # pour ENVOYER des requêtes HTTP
 import time
-import threading    # pour le multithreading
 import json
-# import urllib3
-
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # on représentera les couleurs des cartes par des entiers entre 1 et 4 ici
 SPADES = 1
@@ -81,15 +77,6 @@ class Client:
                 print(f" << {error_msg} : ", str(e))
                 time.sleep(1)
 
-    def try_POST(self, req, error_msg):
-        while True:
-            try:
-                requests.post(self.serverURL + req,allow_redirects=True).text
-                break
-            except Exception as e:
-                print(f" << {error_msg} : ", str(e))
-                time.sleep(1)
-
     # fonction "main" du client un peu
     def run(self):
         shouldStart = ""
@@ -99,7 +86,7 @@ class Client:
             time.sleep(1)
             # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
             # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
-            shouldStart = requests.get(self.serverURL + "/ready/",allow_redirects=True).text
+            shouldStart = requests.get(self.serverURL + "/ready",allow_redirects=True).text
 
         self.players = list(filter(None, shouldStart[3:].split(",")))
         print(f" << Partie lancée ! Joueurs : {self.players}")
@@ -136,11 +123,11 @@ class Client:
                     exit(0)     # TODO : faire ça proprement
 
                 if user_action == -1:
-                    self.try_POST(f"/fold?id={self.client_id}", "Impossible de fold wtf")
+                    self.try_GET(lambda x : None, f"/fold?id={self.client_id}", "Impossible de fold wtf")
                 elif user_action == 0:
-                    self.try_POST(f"/check?id={self.client_id}", "Impossible de check wtf")
+                    self.try_GET(lambda x : None, f"/check?id={self.client_id}", "Impossible de check wtf")
                 else:
-                    self.try_POST(f"/bet?id={self.client_id}&how_much={user_action}", f"Impossible de bet {user_action} ?")
+                    self.try_GET(lambda x : None, f"/bet?id={self.client_id}&how_much={user_action}", f"Impossible de bet {user_action} ?")
                 print(" << Fin de tour pour moi")
             else:
                 print(f" << On attend {self.players[self.who_is_playing]}")
@@ -148,11 +135,8 @@ class Client:
             time.sleep(1)
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
-name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne avant et après un string
-# url = "http://" + input(" << Veuillez entrer le code de la partie que vous souhaitez rejoindre :\n >> ").strip() + ".ngrok-free.app" # on complète l'url de ngrok-free.app par le code qui a été généré par le serveur lorsque le tunneling a commencé
-
+name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 
 url = "http://gambling.share.zrok.io"
-# url = "http://localhost:8080"
 
 cl = Client(url, name)
 cl.run()
