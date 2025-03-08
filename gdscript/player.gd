@@ -22,8 +22,10 @@ func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0)
 		new_card.flip_frontface()
 	else:
 		new_card.flip_backface()
-		
+	
 	new_card.visible = true
+	$name_label.visible = true
+	$money_left.visible = true
 	var left_or_right = (nb_cards - 1) * 2 - 1
 	new_card.go_to(global_position + Vector2(left_or_right * GAP_SIZE / 2, 0.0), 0.2, cd)
 	

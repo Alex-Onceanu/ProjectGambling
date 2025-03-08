@@ -1,9 +1,9 @@
 [gd_scene load_steps=13 format=3 uid="uid://duvnm3asxykhb"]
 
-[ext_resource type="Script" path="res://gdscript/game_room.gd" id="1_2qplw"]
-[ext_resource type="Script" path="res://gdscript/deck.gd" id="2_6g2tb"]
+[ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
+[ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
 [ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
-[ext_resource type="Shader" path="res://shaders/table.gdshader" id="3_7c0aq"]
+[ext_resource type="Shader" uid="uid://dhtrfbqau0m46" path="res://shaders/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
 [ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
@@ -41,6 +41,8 @@ wait_time = 0.8
 [node name="Check" type="HTTPRequest" parent="Requests"]
 
 [node name="Bet" type="HTTPRequest" parent="Requests"]
+
+[node name="Showdown" type="HTTPRequest" parent="Requests"]
 
 [node name="Background" type="Sprite2D" parent="."]
 position = Vector2(573, 323.036)
@@ -147,21 +149,25 @@ position = Vector2(2, 2)
 [node name="4" parent="Deck" instance=ExtResource("3_r7l47")]
 
 [node name="Board" type="Node2D" parent="."]
-visible = false
 position = Vector2(576, 225.015)
 
 [node name="1" parent="Board" instance=ExtResource("3_r7l47")]
+visible = false
 position = Vector2(-150, 0)
 
 [node name="2" parent="Board" instance=ExtResource("3_r7l47")]
+visible = false
 position = Vector2(-75, 0)
 
 [node name="3" parent="Board" instance=ExtResource("3_r7l47")]
+visible = false
 
 [node name="4" parent="Board" instance=ExtResource("3_r7l47")]
+visible = false
 position = Vector2(75, 0)
 
 [node name="5" parent="Board" instance=ExtResource("3_r7l47")]
+visible = false
 position = Vector2(150, 0)
 
 [node name="Players" type="Node2D" parent="."]
@@ -236,6 +242,7 @@ visible = false
 [node name="Round" type="Label" parent="UI"]
 offset_right = 132.0
 offset_bottom = 41.0
+size_flags_horizontal = 3
 theme = ExtResource("10_p7uy6")
 
 [node name="WhoIsPlaying" type="Label" parent="UI"]
@@ -250,6 +257,7 @@ offset_top = 511.0
 offset_right = 153.0
 offset_bottom = 568.0
 theme = ExtResource("10_p7uy6")
+disabled = true
 text = "Se coucher"
 
 [node name="Surencherir" type="Button" parent="UI"]
@@ -258,6 +266,7 @@ offset_top = 577.0
 offset_right = 153.0
 offset_bottom = 634.0
 theme = ExtResource("10_p7uy6")
+disabled = true
 text = "surenchérir"
 
 [node name="HowMuch" type="SpinBox" parent="UI/Surencherir"]
@@ -266,7 +275,7 @@ offset_left = 150.0
 offset_right = 242.0
 offset_bottom = 58.0
 theme = ExtResource("10_p7uy6")
-step = 10.0
+alignment = 1
 
 [node name="Suivre" type="Button" parent="UI"]
 offset_left = 9.0
@@ -274,6 +283,7 @@ offset_top = 451.0
 offset_right = 154.0
 offset_bottom = 501.0
 theme = ExtResource("10_p7uy6")
+disabled = true
 text = "Suivre"
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
@@ -282,6 +292,7 @@ text = "Suivre"
 [connection signal="request_completed" from="Requests/Ready" to="." method="_on_ready_completed"]
 [connection signal="timeout" from="Requests/UpdateTimer" to="." method="_on_update_timer_timeout"]
 [connection signal="request_completed" from="Requests/Update" to="." method="_on_update_completed"]
+[connection signal="request_completed" from="Requests/Showdown" to="." method="_on_showdown_completed"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]

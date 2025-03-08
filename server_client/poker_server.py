@@ -6,6 +6,8 @@ import time
 from random import randint, shuffle
 import json
 
+from combos import poker_hand, str_of_combo
+
 INITIAL_MONEY = 100
 SMALL_BLIND = 5
 CHECK = 0
@@ -47,6 +49,10 @@ class Game:
         self.folded_ones = []           # liste des joueurs ayant foldé
         self.id_to_bet = {}             # associe à chaque id la mise de ce joueur pour ce tour
         self.round_transition = False   # vaut True tant que Game est en train de passer d'un round à un autre 
+        self.spectators = []            # ceux qui regardent la game sans y jouer
+        self.did_timeout = []           # ceux qui vont devenir specateurs en fin de manche
+        self.last_showdown = {}
+        self.nb_players = 0
 
         print(" << Classe Game initialisée.")
 
@@ -67,28 +73,71 @@ class Game:
             # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
             self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
         
-        # ce dictionnaire aura été rempli par Server via add_player()
-        print(" << Go ! Joueurs actuels : ", self.ids)
+        while True:
+            # faire une fonction reset_round() pour quand ça recommence
+            self.round = 0
+            
+            print(" << Go ! Joueurs actuels : ", self.ids)
 
-        self.deck = shuffle_deck()              # créer le deck
-        self.give_personal_cards()              # distribuer des cartes
+            self.deck = shuffle_deck()              # créer le deck
+            self.give_personal_cards()              # distribuer des cartes
 
-        for idp in self.ids:
-            self.id_to_update[idp] = []
-        self.money_left = [INITIAL_MONEY] * len(self.ids)
+            for idp in self.ids:
+                self.id_to_update[idp] = []
+            self.money_left = [INITIAL_MONEY] * len(self.ids)
 
-        self.inGame = True
-        print(" << Les cartes ont été distribuées")
+            self.inGame = True
+            print(" << Les cartes ont été distribuées")
 
-        self.play_round(0)
-        print(" << Preflop fini")
-        self.play_round(3)
-        print(" << Flop fini")
-        self.play_round(1)
-        print(" << Turn fini")
-        self.play_round(1)
-        print(" << River fini, FIN")
-        self.round_transition = False
+            self.play_round(0)
+            print(" << Preflop fini")
+            self.play_round(3)
+            print(" << Flop fini")
+            self.play_round(1)
+            print(" << Turn fini")
+            self.play_round(1)
+            print(" << River fini, FIN")
+            self.round_transition = True
+
+            self.showdown()
+            self.round_transition = False
+            break
+
+    def showdown(self):
+        # file d'attente pour les joueurs qui rejoignent en cours de game           OK
+        # Associer une combinaison à chaque joueur pour obtenir le gagnant          OK 
+        # Séparer les égalités en comparant les 5 cartes jouées en terme de hauteur OK
+        # donner tout l'argent au centre de la table au gagnant                     OK   
+        # ecrire tout ça dans un dictionnaire pour la requête                       en cours...
+        # enlever les joueurs qui ont timeout, rajouter ceux de la file d'attente   OK
+        # et relancer une game                                                      OK?
+
+        hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
+        winner = max(range(self.nb_players), key=(lambda i : hand_per_player[i]))
+
+        all_winners = [winner]
+        for i in range(self.nb_players):
+            if i != winner and hand_per_player[i] == hand_per_player[winner]:
+                all_winners.append(i)
+          
+        nb_winners = len(all_winners)
+        for w in all_winners:
+            self.money_left[w] += round(self.total_bet / nb_winners)
+        
+        self.total_bet = 0
+
+        self.last_showdown = {
+            "winners" : all_winners,
+            "money_left" : self.money_left,
+            "cards" : [f"{self.cards_per_player[p][0:2]},{self.cards_per_player[p][2:4]}" for p in self.ids],
+            "did_timeout" : [int(t in self.did_timeout) for t in range(self.nb_players)],
+            "hand_per_player" : [str_of_combo(co[0]) for co in hand_per_player]
+        }
+    
+        which_id_did_timeout = [self.ids[i] for i in self.did_timeout]
+        for p in which_id_did_timeout:
+            self.spectators.append(p)
+            self.ids.remove(p)
 
     # donne 2 cartes de self.deck à chaque joueur
     def give_personal_cards(self):
@@ -174,7 +223,7 @@ class Game:
             self.id_to_bet[i] = 0
 
     def play_round(self, nb_cards_to_add_to_board : int):
-        NB_PLAYERS = len(self.ids)
+        self.nb_players = len(self.ids)
         CD = 0.1
         DURATION_PER_PLAYER = 30
         self.reset_id_to_bet()
@@ -189,12 +238,12 @@ class Game:
             self.bet(self.ids[0], SMALL_BLIND)
             print(f" << {self.id_to_name[self.ids[1]]} mise la grosse blinde de {2 * SMALL_BLIND}")
             self.bet(self.ids[1], 2 * SMALL_BLIND)
-        
+    
         self.stable_since = 0
         self.round_transition = False
 
-        while self.stable_since < NB_PLAYERS:
-            print(f" << stable since : {self.stable_since} / {NB_PLAYERS}")
+        while self.stable_since < self.nb_players:
+            print(f" << stable since : {self.stable_since} / {self.nb_players}")
             if self.who_is_playing in self.folded_ones:
                 self.stable_since += 1
                 self.next_player()
@@ -207,6 +256,7 @@ class Game:
                 waited += CD
                 if waited >= DURATION_PER_PLAYER:
                     self.folded(self.ids[self.who_is_playing])
+                    self.did_timeout.append(self.who_is_playing)
                     break
         self.round_transition = True
         print(f" << On est revenus au tour de {self.id_to_name[self.ids[self.who_is_playing]]}, fin du round !")
@@ -223,6 +273,7 @@ class Game:
         self.ids.append(player_id)
         self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
         print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
+        self.nb_players += 1
         return player_id
     
     def get_all_names(self):
@@ -281,70 +332,66 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(ans.encode())
                 # on lui répond "go!j1,j2,j3" ssi la variable shouldStart de game vaut True (j1 j2 et j3 sont les noms des joueurs dans le bon ordre)
 
-            # si qlq nous demande quelles sont ses cartes
-            elif self.path.startswith('/cards'):
-                # On attend que Game passe au round suivant
-                while self.gameInstance.round_transition:
-                    print(f" << attend 2s stp {self.path}, y'a Game qui change de round")
-                    time.sleep(0.1)
+            elif not self.gameInstance.round_transition:
+                # si qlq nous demande quelles sont ses cartes
+                if self.path.startswith('/cards'):
+                    ans = "notready"
 
-                ans = "notready"
+                    if self.gameInstance.inGame:
+                        parsed_url = urlparse(self.path)
 
-                if self.gameInstance.inGame:
-                    parsed_url = urlparse(self.path)
+                        if "id" in parse_qs(parsed_url.query).keys():
+                            their_id = int(parse_qs(parsed_url.query)["id"][0])
+                            their_cards = self.gameInstance.cards_per_player[their_id]
 
-                    if "id" in parse_qs(parsed_url.query).keys():
-                        their_id = int(parse_qs(parsed_url.query)["id"][0])
-                        their_cards = self.gameInstance.cards_per_player[their_id]
+                            ans = f"{their_cards[0:2]},{their_cards[2:4]}"
+                            for board_card in self.gameInstance.board:
+                                ans += "," + board_card
 
-                        ans = f"{their_cards[0:2]},{their_cards[2:4]}"
-                        for board_card in self.gameInstance.board:
-                            ans += "," + board_card
-
-                        self.send_response(200, 'OK')
+                            self.send_response(200, 'OK')
+                        else:
+                            ans = "invalid"
+                            self.send_response(400, 'NOTOK')
                     else:
-                        ans = "invalid"
-                        self.send_response(400, 'NOTOK')
-                else:
+                        self.send_response(200, 'OK')
+
+                    self.send_my_headers()
+                    self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
+                
+                elif self.path.startswith('/update'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+
+                    if not their_id in self.gameInstance.ids:
+                        raise RuntimeError("C'est qui " + str(their_id) + " ?")
+                    if not their_id in self.gameInstance.id_to_update.keys():
+                        raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_update.keys()}")
+                    if not their_id in self.gameInstance.id_to_bet.keys():
+                        raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_bet.keys()}")
+                    
+                    ans = {
+                        "round" : self.gameInstance.round,
+                        "update" : self.gameInstance.id_to_update[their_id], 
+                        "money_left" : self.gameInstance.money_left, 
+                        "total_bet" : self.gameInstance.total_bet,
+                        "current_blind" : self.gameInstance.current_blind,
+                        "who_is_playing" : self.gameInstance.who_is_playing,
+                        "your_bet" : self.gameInstance.id_to_bet[their_id]
+                    }
+
                     self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(ans).encode())
 
-                self.send_my_headers()
-                self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
-            
-            elif self.path.startswith('/update'):
-                # On attend que game finisse de passer au round suivant quand même
-                while self.gameInstance.round_transition:
-                    print(f" << attend 2s stp {self.path}, y'a Game qui change de round")
-                    time.sleep(0.1)
-                parsed_url = urlparse(self.path)
-                their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    self.gameInstance.id_to_update[their_id] = []
 
-                if not their_id in self.gameInstance.ids:
-                    raise RuntimeError("C'est qui " + str(their_id) + " ?")
-                if not their_id in self.gameInstance.id_to_update.keys():
-                    raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_update.keys()}")
-                if not their_id in self.gameInstance.id_to_bet.keys():
-                    raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_bet.keys()}")
+                elif self.path.startswith('/showdown'):
+                    parsed_url = urlparse(self.path)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(self.gameInstance.last_showdown).encode())
                 
-                
-                ans = {
-                    "round" : self.gameInstance.round,
-                    "update" : self.gameInstance.id_to_update[their_id], 
-                    "money_left" : self.gameInstance.money_left, 
-                    "total_bet" : self.gameInstance.total_bet,
-                    "current_blind" : self.gameInstance.current_blind,
-                    "who_is_playing" : self.gameInstance.who_is_playing,
-                    "your_bet" : self.gameInstance.id_to_bet[their_id]
-                }
-
-                self.send_response(200, 'OK')
-                self.send_my_headers()
-                self.wfile.write(json.dumps(ans).encode())
-
-                self.gameInstance.id_to_update[their_id] = []
-            
-            if not self.gameInstance.round_transition:
-                ans = "bruh"
+                ans = "ok"
                 if self.path.startswith('/bet'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
@@ -371,6 +418,9 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps(ans).encode())
             else:
                 print(f" << Je skip la requête {self.path} car Game est en pleine transition")
+                self.send_response(200, 'OK')
+                self.send_my_headers()
+                self.wfile.write("transition".encode())
 
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
@@ -403,7 +453,6 @@ class Server(http.server.SimpleHTTPRequestHandler):
         
         except Exception as e:
             print(f" << Erreur dans do_POST pour la requête reçue {self.path} : {e}")
-
 
     def log_message(self, format, *args):
         pass
