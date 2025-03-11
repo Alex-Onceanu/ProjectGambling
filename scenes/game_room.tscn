@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=14 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
 [ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/wood.png" id="5_i1xx5"]
 [ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/money_bag.png" id="6_gpvgl"]
+[ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://scenes/money.gd" id="6_ij5t4"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 [ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
 
@@ -62,6 +63,7 @@ color = Color(0, 0.6, 0, 1)
 visible = false
 position = Vector2(204, 97)
 scale = Vector2(0.71, 0.71)
+script = ExtResource("6_ij5t4")
 
 [node name="MoneyBag1" type="Sprite2D" parent="Money"]
 visible = false
@@ -131,6 +133,10 @@ offset_bottom = 379.0
 theme = ExtResource("10_p7uy6")
 theme_override_font_sizes/font_size = 52
 text = "Mise : 0€"
+
+[node name="WinAnim" type="Timer" parent="Money"]
+wait_time = 0.8
+one_shot = true
 
 [node name="Deck" type="Node2D" parent="."]
 visible = false
@@ -293,6 +299,7 @@ text = "Suivre"
 [connection signal="timeout" from="Requests/UpdateTimer" to="." method="_on_update_timer_timeout"]
 [connection signal="request_completed" from="Requests/Update" to="." method="_on_update_completed"]
 [connection signal="request_completed" from="Requests/Showdown" to="." method="_on_showdown_completed"]
+[connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]

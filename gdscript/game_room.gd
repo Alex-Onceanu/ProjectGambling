@@ -267,6 +267,13 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	print("Cards : ", data["cards"])
 	print("Hand per player : ", data["hand_per_player"])
 	print("Did timeout : ", data["did_timeout"])
+	
+	var true_winners = []
+	for w in data["winners"]:
+		# dire aux sacs d'argent d'aller au gagnant
+		true_winners.append(get_node("Players/Player" + str(true_i_of_i(int(w)))).global_position)
+	$Money.set_winners(true_winners)
+	
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
 		if true_i > 1:
@@ -276,8 +283,8 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 			get_node("Players/Player" + str(true_i) + "/Card_2").set_card_type(their_cards[1])
 			get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1))
 			get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD)
-			get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
-			get_node("Players/Player" + str(true_i) + "/combo").visible = true
 			if int(data["did_timeout"][i]):
 				get_node("Players/Player" + str(true_i)).visible = false
+		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
+		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
