@@ -226,9 +226,13 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 	$UI/Surencherir/HowMuch.value = old_val
 	
 	animate_bets(data["update"])
-	
-	who_is_playing = int(data["who_is_playing"])
-	$UI/WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
+#	
+	if who_is_playing != int(data["who_is_playing"]):
+		if who_is_playing != null:
+			get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
+		who_is_playing = int(data["who_is_playing"])
+		get_node("Players/Player" + str(true_i_of_i(who_is_playing))).begin_scale_anim()
+		$UI/WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
 	if who_is_playing == my_player_offset:
 		your_turn()
 
@@ -268,10 +272,15 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	print("Hand per player : ", data["hand_per_player"])
 	print("Did timeout : ", data["did_timeout"])
 	
+	$UI/WhoIsPlaying.text = ""
+	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
+	
 	var true_winners = []
 	for w in data["winners"]:
 		# dire aux sacs d'argent d'aller au gagnant
-		true_winners.append(get_node("Players/Player" + str(true_i_of_i(int(w)))).global_position)
+		var player_node = get_node("Players/Player" + str(true_i_of_i(int(w))))
+		true_winners.append(player_node.global_position)
+		player_node.begin_scale_anim()
 	$Money.set_winners(true_winners)
 	
 	for i in range(nb_players):

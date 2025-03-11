@@ -180,7 +180,6 @@ position = Vector2(150, 0)
 position = Vector2(576, 300)
 
 [node name="Player1" parent="Players" instance=ExtResource("4_8otjw")]
-visible = false
 position = Vector2(0, 240)
 
 [node name="Player8" parent="Players" instance=ExtResource("4_8otjw")]

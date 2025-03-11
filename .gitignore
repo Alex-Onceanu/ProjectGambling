@@ -2,6 +2,6 @@
 .godot/
 /android/
 .DS_Store
-server_client/start_tunnel.sh
+server_client/*.sh
 assets/.DS_Store
 cards/

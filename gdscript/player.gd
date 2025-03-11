@@ -6,6 +6,13 @@ const MAX_NB_CARDS = 2
 @onready var GAP_SIZE = 76 * $Card_1.scale.x
 @onready var nb_cards = 0
 
+func begin_scale_anim():
+	$scale_anim_timer.start()
+
+func end_scale_anim():
+	scale = Vector2(1.0, 1.0)
+	$scale_anim_timer.stop()
+
 func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0):
 	if nb_cards >= MAX_NB_CARDS:
 		# on peut pas avoir 3 cartes au poker
@@ -49,6 +56,10 @@ func send_card_to(which : int, target : Vector2):
 	get_node("Card_" + str(which)).go_to(target)
 
 func _process(delta: float) -> void:
+	if not $scale_anim_timer.is_stopped():
+		var t = 1.0 - $scale_anim_timer.time_left / $scale_anim_timer.wait_time
+		var eased_t = 0.5 + 0.5 * sin(2.0 * PI * t)
+		scale = lerp(Vector2(1.0, 1.0), Vector2(1.15, 1.15), eased_t)
 	if not $bet_anim_timer.is_stopped():
 		var t = $bet_anim_timer.time_left / $bet_anim_timer.wait_time
 		t **= 2
