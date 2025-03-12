@@ -19,6 +19,7 @@ shader_parameter/noise = ExtResource("4_qfild")
 shader_parameter/wood = ExtResource("5_i1xx5")
 
 [node name="GameRoom" type="Node2D"]
+position = Vector2(-1, 0)
 script = ExtResource("1_2qplw")
 
 [node name="Requests" type="Node2D" parent="."]

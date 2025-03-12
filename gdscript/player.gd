@@ -3,7 +3,7 @@ extends Node2D
 var old_bet_pos
 
 const MAX_NB_CARDS = 2
-@onready var GAP_SIZE = 76 * $Card_1.scale.x
+@onready var GAP_SIZE = (80 if name == "Player1" else 72) * $Card_1.scale.x
 @onready var nb_cards = 0
 
 func begin_scale_anim():

@@ -14,8 +14,8 @@ void fragment() {
 	vec4 front = texture(front_tex, front_uv);
 	vec4 back = texture(back_tex, UV);
 
-	float n = 20.0;
+	float n = 40.0;
 	float border = pow(pow(abs(uv.x), n) + pow(abs(uv.y), n), 1.0 / n);
 
-	COLOR = vec4(mix(back, front, is_frontface).xyz, 1.0 - smoothstep(0.96, 0.98, border));
+	COLOR = vec4(0.75 * mix(back, front, is_frontface).xyz, 1.0 - smoothstep(0.96, 0.98, border));
 }
