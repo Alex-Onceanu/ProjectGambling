@@ -51,8 +51,9 @@ class Game:
         self.round_transition = False   # vaut True tant que Game est en train de passer d'un round à un autre 
         self.spectators = []            # ceux qui regardent la game sans y jouer
         self.did_timeout = []           # ceux qui vont devenir specateurs en fin de manche
-        self.last_showdown = {}
-        self.nb_players = 0
+        self.last_showdown = {}         # en fin de partie, on remplit ce dictionnaire avec tout ce qu'il faut
+        self.nb_players = 0             # len(self.ids)
+        self.combo_per_player = {}      # { i : poker_hand(cards_per_player[i] + self.board) for i in self.ids }
 
         print(" << Classe Game initialisée.")
 
@@ -143,6 +144,7 @@ class Game:
     def give_personal_cards(self):
         for p in self.ids:
             self.cards_per_player[p] = self.deck.pop() + self.deck.pop()
+            self.combo_per_player[p] = poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board)
 
     def next_player(self):
         self.who_is_playing = (1 + self.who_is_playing) % len(self.ids)
@@ -178,7 +180,6 @@ class Game:
             # donc c'est un call
             self.stable_since += 1
             print(f" << {self.id_to_name[who]} a call jusqu'à {self.current_blind}")
-
 
         self.next_player()
 
@@ -222,6 +223,23 @@ class Game:
         for i in self.ids:
             self.id_to_bet[i] = 0
 
+    def cards_id_for_vfx(self, player_id : int) -> list:
+        combo_to_nb_cards = [1, 2, 4, 3, 5, 5, 5, 4, 5, 5]
+        combo, cards = self.combo_per_player[player_id]
+        cards_in_combo = cards[:combo_to_nb_cards[combo]]
+
+        ans = []
+        for i in range(len(self.board)):
+            if self.board[i] in cards_in_combo:
+                ans.append(i)
+        # board : 0,1,2,3,4 ; hand : 5,6
+        if self.cards_per_player[player_id][:2] in cards_in_combo:
+            ans.append(5)
+        if self.cards_per_player[player_id][2:4] in cards_in_combo:
+            ans.append(6)
+
+        return ans
+
     def play_round(self, nb_cards_to_add_to_board : int):
         self.nb_players = len(self.ids)
         CD = 0.1
@@ -232,6 +250,9 @@ class Game:
 
         for _ in range(nb_cards_to_add_to_board):
             self.board.append(self.deck.pop())
+        
+        for p in self.ids:
+            self.combo_per_player[p] = poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board)
 
         if nb_cards_to_add_to_board == 0:
             print(f" << {self.id_to_name[self.ids[0]]} mise la petite blinde de {SMALL_BLIND}")
@@ -390,6 +411,15 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.send_response(200, 'OK')
                     self.send_my_headers()
                     self.wfile.write(json.dumps(self.gameInstance.last_showdown).encode())
+                
+                elif self.path.startswith('/vfx'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    
+                    cl = self.gameInstance.cards_id_for_vfx(their_id)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(json.dumps(cl).encode())
                 
                 ans = "ok"
                 if self.path.startswith('/bet'):

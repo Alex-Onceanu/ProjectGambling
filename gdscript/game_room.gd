@@ -21,6 +21,7 @@ const CD = 0.15
 @onready var board_cards = []
 @onready var in_game = false
 @onready var user_name = "debug"
+@onready var p1_has_cards = false
 
 func true_i_of_i(i: int) -> int:
 	return 1 + posmod(i - my_player_offset, nb_players)
@@ -121,10 +122,15 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		pass
 	
 	if in_game:
+		if not p1_has_cards:
+			$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
+		
 		var old_nb_cards = len(board_cards)
 		var new_nb_cards = len(cards)
 		if new_nb_cards - 2 != old_nb_cards:
 			for c in range(2 + old_nb_cards, new_nb_cards):
+				if p1_has_cards:
+					$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
 				var new_card = get_node("Board/" + str(c - 1))
 				var target = new_card.global_position
 				var wait = CD * (c - old_nb_cards - 1)
@@ -135,6 +141,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 				new_card.go_to(target, 0.2, wait)
 				new_card.reveal(0.2 + wait)
 				board_cards.append(cards[c])
+		p1_has_cards = true
 	else:
 		start_game(cards)
 
@@ -261,16 +268,15 @@ func _on_suivre_pressed() -> void:
 # "hand_per_player" : hand_per_player
 
 func _on_showdown_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
-	print("Showdown time !")
 	var data = JSON.parse_string(body.get_string_from_utf8())
 	if data == null:
 		print("Erreur au moment de parser la réponse de /update/ !!")
 		return
-	print("Winners : ", data["winners"])
-	print("Money left : ", data["money_left"])
-	print("Cards : ", data["cards"])
-	print("Hand per player : ", data["hand_per_player"])
-	print("Did timeout : ", data["did_timeout"])
+	#print("Winners : ", data["winners"])
+	#print("Money left : ", data["money_left"])
+	#print("Cards : ", data["cards"])
+	#print("Hand per player : ", data["hand_per_player"])
+	#print("Did timeout : ", data["did_timeout"])
 	
 	$UI/WhoIsPlaying.text = ""
 	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
@@ -297,3 +303,20 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
+
+
+func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	var ans = body.get_string_from_utf8()
+	print(ans)
+	var data = JSON.parse_string(ans)
+	if data == null:
+		return
+	for i in range(1, 6):
+		get_node("Board/" + str(i) + "/vfx").visible = false
+	$Players/Player1/Card_1/vfx.visible = false
+	$Players/Player1/Card_2/vfx.visible = false
+	
+	for card_id in data:
+		var node_path = "Board/" + str(int(card_id) + 1) if int(card_id) <= 4 else ("Players/Player1/Card_" + str(int(card_id) - 4))
+		var this_vfx = get_node(node_path + "/vfx")
+		this_vfx.visible = true

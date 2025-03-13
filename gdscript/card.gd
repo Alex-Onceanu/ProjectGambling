@@ -31,7 +31,6 @@ func set_card_type(colval : String):
 func flip_frontface():
 	is_frontface = true
 	$rect.material.set_shader_parameter("is_frontface", 1.0);
-	$vfx.visible = true
 	
 func flip_backface():
 	is_frontface = false

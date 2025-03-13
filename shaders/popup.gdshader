@@ -19,22 +19,16 @@ void fragment() {
 
 	vec4 background = border * (1.0 - rect_alpha) + interior;
 
+	float nb_spin = 6.0;
 	// 0.48 * (...) + pi := nombre magique quand on fait pas "t *= 0.3"
-	float t = 0.53 * (atan(uv.y, uv.x) - 3.0 * TIME) + 3.14;
+	float t = 0.53 * (atan(uv.y, uv.x) - 2.0 * TIME) + 3.14;
 	t *= 0.3;
 
-/*
-[[1.300 1.100 0.500] [0.500 0.500 0.500] [0.500 0.500 0.500] [0.500 0.500 0.500]]
-*/
-
-	//vec3 gradient = palette(t,vec3(1.00, 0.61, 0.76),vec3(0.00, 0.29, 1.00),vec3(1.00, 0.00, 1.00),vec3(0.76, 0.00, 0.51));
-	//vec3 gradient = mix(vec3(1.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0), sin(3.0 * t));
-	//vec3 gradient = palette(t, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.33,0.67));
-	vec3 gradient = palette(8.0 * t, 0.6 * vec3(1.300, 1.100, 0.500), vec3(0.500, 0.500, 0.500), vec3(0.500, 0.500, 0.500), vec3(0.500, 0.500, 0.500));
+	vec3 gradient = palette(2.0 * nb_spin * t, 0.6 * vec3(1.300, 1.100, 0.500), vec3(0.500, 0.500, 0.500), vec3(0.500, 0.500, 0.500), vec3(0.500, 0.500, 0.500));
 	gradient = floor(8.0 * gradient) / 8.0;
 
 	//vec3 led_color = vec3(0.7, 0.7, 0.9);
-	vec3 led_color = 4.0 * gradient;
+	vec3 led_color = 4.0 * gradient * gradient * gradient;
 	float led_n = 0.8;
 	float led_size = 0.06;
 	vec2 offset = vec2(0.085, 0.0);
