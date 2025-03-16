@@ -129,13 +129,14 @@ scale = Vector2(0.715, 0.715)
 texture = ExtResource("6_gpvgl")
 
 [node name="TotalBet" type="Label" parent="Money"]
-offset_left = 427.0
+offset_left = -246.0
 offset_top = 324.0
-offset_right = 652.0
+offset_right = 1294.0
 offset_bottom = 379.0
 theme = ExtResource("10_p7uy6")
 theme_override_font_sizes/font_size = 52
 text = "Mise : 0€"
+horizontal_alignment = 1
 
 [node name="WinAnim" type="Timer" parent="Money"]
 wait_time = 1.6
@@ -158,7 +159,7 @@ position = Vector2(2, 2)
 [node name="4" parent="Deck" instance=ExtResource("3_r7l47")]
 
 [node name="Board" type="Node2D" parent="."]
-position = Vector2(576, 225.015)
+position = Vector2(576, 268.145)
 
 [node name="1" parent="Board" instance=ExtResource("3_r7l47")]
 visible = false
@@ -248,12 +249,15 @@ max_length = 50
 visible = false
 
 [node name="Round" type="Label" parent="UI"]
+offset_left = 12.0
+offset_top = 5.0
 offset_right = 132.0
 offset_bottom = 41.0
 size_flags_horizontal = 3
 theme = ExtResource("10_p7uy6")
 
 [node name="WhoIsPlaying" type="Label" parent="UI"]
+offset_left = 12.0
 offset_top = 40.0
 offset_right = 132.0
 offset_bottom = 86.0
@@ -294,6 +298,15 @@ theme = ExtResource("10_p7uy6")
 disabled = true
 text = "Suivre"
 
+[node name="Rejouer" type="Button" parent="UI"]
+visible = false
+offset_left = 516.0
+offset_top = 380.0
+offset_right = 634.0
+offset_bottom = 431.0
+theme = ExtResource("10_p7uy6")
+text = "Rejouer"
+
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
 [connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
@@ -307,3 +320,4 @@ text = "Suivre"
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]
 [connection signal="pressed" from="UI/Suivre" to="." method="_on_suivre_pressed"]
+[connection signal="pressed" from="UI/Rejouer" to="." method="_on_rejouer_pressed"]

@@ -69,14 +69,17 @@ class Game:
     # puis crée un deck, et distribue 2 cartes à chaque joueur
     # cette fonction sera lancée en parallèle du serveur
     def run(self):
-        print(" << En attente de joueurs...")
-        while not self.shouldStart:
-            # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
-            self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
-        
         while True:
+            print(" << En attente de joueurs...")
+            self.shouldStart = False
+            while not self.shouldStart:
+                # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
+                self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
+        
             # faire une fonction reset_round() pour quand ça recommence
             self.round = 0
+            self.id_to_bet = {}
+            self.who_is_playing = 0
             
             print(" << Go ! Joueurs actuels : ", self.ids)
 
@@ -85,7 +88,8 @@ class Game:
 
             for idp in self.ids:
                 self.id_to_update[idp] = []
-            self.money_left = [INITIAL_MONEY] * len(self.ids)
+            if self.money_left == []:
+                self.money_left = [INITIAL_MONEY] * len(self.ids)
 
             self.inGame = True
             print(" << Les cartes ont été distribuées")
@@ -102,7 +106,7 @@ class Game:
 
             self.showdown()
             self.round_transition = False
-            break
+
 
     def showdown(self):
         # file d'attente pour les joueurs qui rejoignent en cours de game           OK
@@ -142,6 +146,7 @@ class Game:
 
     # donne 2 cartes de self.deck à chaque joueur
     def give_personal_cards(self):
+        self.board = []
         for p in self.ids:
             self.cards_per_player[p] = self.deck.pop() + self.deck.pop()
             self.combo_per_player[p] = poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board)

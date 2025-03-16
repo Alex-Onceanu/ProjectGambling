@@ -79,60 +79,62 @@ class Client:
 
     # fonction "main" du client un peu
     def run(self):
-        shouldStart = ""
-        print(" << On attend le feu vert du serveur")
-        while not shouldStart.startswith("go!"):
-            # la partie commence lorsque le serveur nous répond "go!"
-            time.sleep(1)
-            # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
-            # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
-            shouldStart = requests.get(self.serverURL + "/ready",allow_redirects=True).text
-
-        self.players = list(filter(None, shouldStart[3:].split(",")))
-        print(f" << Partie lancée ! Joueurs : {self.players}")
-        self.user_index = self.players.index(self.userName)         # correspond à true_i en Godot
-        print(f" << mon user index vaut {self.user_index}")
-
-        self.card1, self.card2 = self.try_GET(parseCards, f"/cards?id={self.client_id}", "Erreur dans la distribution de cartes")
-        print(f" << Vos cartes : {self.card1}, {self.card2}")
-
         while True:
-            self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing, self.user_bet = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
-            for action in update:
-                who, what = action
-                print(f" << Insérer super animation pour montrer que {self.players[who]} a misé {what} !")
+            shouldStart = ""
+            print(" << On attend le feu vert du serveur")
+            while not shouldStart.startswith("go!"):
+                # la partie commence lorsque le serveur nous répond "go!"
+                time.sleep(1)
+                # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
+                # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
+                shouldStart = requests.get(self.serverURL + "/ready",allow_redirects=True).text
 
-            if self.who_is_playing == self.user_index:
-                print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
-                minimal_bet = self.current_blind - self.user_bet
-                while True:
-                    try:
-                        user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins {minimal_bet}. \n << Répondez par votre mise (ou 0 pour Check, -1 pour Fold, \"quitter\" pour arrêter de jouer)\n >> ")
-                        if user_action.startswith("quitter"):
-                            # TODO : gérer quelqu'un qui se casse mid-game ?
+            self.players = list(filter(None, shouldStart[3:].split(",")))
+            print(f" << Partie lancée ! Joueurs : {self.players}")
+            self.user_index = self.players.index(self.userName)         # correspond à true_i en Godot
+            print(f" << mon user index vaut {self.user_index}")
+
+            self.card1, self.card2 = self.try_GET(parseCards, f"/cards?id={self.client_id}", "Erreur dans la distribution de cartes")
+            print(f" << Vos cartes : {self.card1}, {self.card2}")
+
+            while True:
+                self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing, self.user_bet = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
+                for action in update:
+                    who, what = action
+                    print(f" << Insérer super animation pour montrer que {self.players[who]} a misé {what} !")
+                if self.round >= 4:
+                    break
+                if self.who_is_playing == self.user_index:
+                    print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
+                    minimal_bet = self.current_blind - self.user_bet
+                    while True:
+                        try:
+                            user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins {minimal_bet}. \n << Répondez par votre mise (ou 0 pour Check, -1 pour Fold, \"quitter\" pour arrêter de jouer)\n >> ")
+                            if user_action.startswith("quitter"):
+                                # TODO : gérer quelqu'un qui se casse mid-game ?
+                                break
+                            user_action = int(user_action)
+                            if user_action < -1:
+                                user_action = -1
                             break
-                        user_action = int(user_action)
-                        if user_action < -1:
-                            user_action = -1
-                        break
-                    except:
-                        print(" << C'est pas une mise ça, fais un effort stp")
-                        continue
+                        except:
+                            print(" << C'est pas une mise ça, fais un effort stp")
+                            continue
 
-                if str(user_action).startswith("quitter"):
-                    exit(0)     # TODO : faire ça proprement
+                    if str(user_action).startswith("quitter"):
+                        exit(0)     # TODO : faire ça proprement
 
-                if user_action == -1:
-                    self.try_GET(lambda x : None, f"/fold?id={self.client_id}", "Impossible de fold wtf")
-                elif user_action == 0:
-                    self.try_GET(lambda x : None, f"/check?id={self.client_id}", "Impossible de check wtf")
+                    if user_action == -1:
+                        self.try_GET(lambda x : None, f"/fold?id={self.client_id}", "Impossible de fold wtf")
+                    elif user_action == 0:
+                        self.try_GET(lambda x : None, f"/check?id={self.client_id}", "Impossible de check wtf")
+                    else:
+                        self.try_GET(lambda x : None, f"/bet?id={self.client_id}&how_much={user_action}", f"Impossible de bet {user_action} ?")
+                    print(" << Fin de tour pour moi")
                 else:
-                    self.try_GET(lambda x : None, f"/bet?id={self.client_id}&how_much={user_action}", f"Impossible de bet {user_action} ?")
-                print(" << Fin de tour pour moi")
-            else:
-                print(f" << On attend {self.players[self.who_is_playing]}")
-            
-            time.sleep(1)
+                    print(f" << On attend {self.players[self.who_is_playing]}")
+                
+                time.sleep(1)
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
 name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 

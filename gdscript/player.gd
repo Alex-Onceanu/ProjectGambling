@@ -50,10 +50,11 @@ func animate_bet(how_much):
 	old_bet_pos = $bet_anim.position
 	$bet_anim_timer.start()
 	
-func send_card_to(which : int, target : Vector2):
+func send_card_to(which : int, target : Vector2, cd : float):
 	if which <= 0 or which > nb_cards:
 		return
-	get_node("Card_" + str(which)).go_to(target)
+	nb_cards -= 1
+	get_node("Card_" + str(which)).go_to(target, 0.4, cd)
 
 func _process(delta: float) -> void:
 	if not $scale_anim_timer.is_stopped():

@@ -3,6 +3,7 @@ extends Node2D
 var pos_before_goto
 var target
 var initial_scale_x
+var should_reveal_frontface
 
 @onready var is_frontface = false
 @onready var WIDTH = $rect.size.x
@@ -32,11 +33,13 @@ func flip_frontface():
 	is_frontface = true
 	$rect.material.set_shader_parameter("is_frontface", 1.0);
 	
-func flip_backface():
-	is_frontface = false
-	$rect.material.set_shader_parameter("is_frontface", 0.0);
-	$vfx.visible = false
-	
+func flip_backface(wait = 0):
+	if wait <= 0:
+		_on_flip_wait_timeout()
+	else:
+		$flip_wait.wait_time = wait
+		$flip_wait.start()
+		
 func go_to(__target : Vector2, time = 0.4, wait = 0):
 	target = __target
 	$goto_anim.wait_time = time
@@ -46,9 +49,8 @@ func go_to(__target : Vector2, time = 0.4, wait = 0):
 		$goto_wait.wait_time = wait
 		$goto_wait.start()
 
-func reveal(wait = 0):
-	if is_frontface:
-		return
+func reveal(wait = 0, should_unreveal = false):
+	should_reveal_frontface = not should_unreveal
 	if wait <= 0:
 		_on_reveal_wait_timeout()
 	else:
@@ -84,9 +86,16 @@ func _on_reveal_wait_timeout() -> void:
 
 func _on_reveal_anim_timeout() -> void:
 	if is_anim_before_halfway:
-		flip_frontface()
+		if should_reveal_frontface:
+			flip_frontface()
+		else:
+			flip_backface()
 		is_anim_before_halfway = false
 		$reveal_anim.start()
 	else:
 		scale.x = initial_scale_x
-	
+
+func _on_flip_wait_timeout() -> void:
+	is_frontface = false
+	$rect.material.set_shader_parameter("is_frontface", 0.0);
+	$vfx.visible = false

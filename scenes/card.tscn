@@ -54,7 +54,12 @@ one_shot = true
 wait_time = 0.08
 one_shot = true
 
+[node name="flip_wait" type="Timer" parent="."]
+wait_time = 0.08
+one_shot = true
+
 [connection signal="timeout" from="goto_anim" to="." method="_on_goto_anim_timeout"]
 [connection signal="timeout" from="goto_wait" to="." method="_on_goto_wait_timeout"]
 [connection signal="timeout" from="reveal_wait" to="." method="_on_reveal_wait_timeout"]
 [connection signal="timeout" from="reveal_anim" to="." method="_on_reveal_anim_timeout"]
+[connection signal="timeout" from="flip_wait" to="." method="_on_flip_wait_timeout"]

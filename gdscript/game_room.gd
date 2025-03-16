@@ -69,14 +69,17 @@ func _on_register_completed(result, response_code, headers, body):
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	$UI/Rejouer.visible = false
 	if ans == "notready":
 		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
+		$Money/TotalBet.text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
 		tryagain_url = str(url) + "/ready/"
 		$Requests/TryAgain.start()
 	
 	elif ans.begins_with("go!"):
 		$EnterCode/Name.placeholder_text = "Go go go go !!"
+		$Money/TotalBet.text = "Allez une game de +"
 		every_name = ans.substr(3).split(",", false)
 		nb_players = len(every_name)
 		rearrange_players(every_name)
@@ -98,6 +101,7 @@ func start_game(cards):
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+
 	if ans == "notready":
 		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
 		$EnterCode/Name.text = ""
@@ -132,10 +136,10 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 				if p1_has_cards:
 					$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
 				var new_card = get_node("Board/" + str(c - 1))
-				var target = new_card.global_position
+				var target = $Board.position + Vector2(75.0 * (c - 2) - 150.0, 0.0)
 				var wait = CD * (c - old_nb_cards - 1)
 				
-				new_card.global_position = $Deck.global_position
+				new_card.global_position = $Deck.get_global_pos()
 				new_card.set_card_type(cards[c])
 				new_card.visible = true
 				new_card.go_to(target, 0.2, wait)
@@ -244,7 +248,6 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		your_turn()
 
 func _on_surencherir_pressed() -> void:
-	print(str(int($UI/Surencherir/HowMuch.value)))
 	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(int($UI/Surencherir/HowMuch.value)))
 	end_turn()
 
@@ -303,14 +306,15 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
+	$UI/Rejouer.visible = true
 
 
 func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
-	print(ans)
 	var data = JSON.parse_string(ans)
 	if data == null:
 		return
+		
 	for i in range(1, 6):
 		get_node("Board/" + str(i) + "/vfx").visible = false
 	$Players/Player1/Card_1/vfx.visible = false
@@ -320,3 +324,23 @@ func _on_card_to_vfx_request_completed(result: int, response_code: int, headers:
 		var node_path = "Board/" + str(int(card_id) + 1) if int(card_id) <= 4 else ("Players/Player1/Card_" + str(int(card_id) - 4))
 		var this_vfx = get_node(node_path + "/vfx")
 		this_vfx.visible = true
+
+
+func _on_rejouer_pressed() -> void:
+	$UI/Rejouer.visible = false
+	board_cards = []
+	for i in range(nb_players):
+		var true_i = true_i_of_i(i)
+		var this_player = get_node("Players/Player" + str(true_i))
+		this_player.end_scale_anim()
+		this_player.send_card_to(2, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1))
+		this_player.send_card_to(1, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1) + CD)
+		get_node("Players/Player" + str(true_i) + "/combo").visible = false
+		get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1), true)
+		get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD, true)
+	for i in range(1, 6):
+		get_node("Board/" + str(i)).go_to($Deck.get_global_pos(), 0.4, 0.08 + CD * 2.0 * (nb_players - 1 + i))
+		get_node("Board/" + str(i)).reveal(CD * 2.0 * (nb_players - 1 + i), true)
+	p1_has_cards = false
+	in_game = false
+	$Requests/Ready.request(str(url) + "/ready/")
