@@ -70,11 +70,13 @@ class Game:
     # cette fonction sera lancée en parallèle du serveur
     def run(self):
         while True:
+            self.inGame = False
             print(" << En attente de joueurs...")
             self.shouldStart = False
             while not self.shouldStart:
                 # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
-                self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
+                # self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
+                time.sleep(0.5)
         
             # faire une fonction reset_round() pour quand ça recommence
             self.round = 0
@@ -107,16 +109,7 @@ class Game:
             self.showdown()
             self.round_transition = False
 
-
     def showdown(self):
-        # file d'attente pour les joueurs qui rejoignent en cours de game           OK
-        # Associer une combinaison à chaque joueur pour obtenir le gagnant          OK 
-        # Séparer les égalités en comparant les 5 cartes jouées en terme de hauteur OK
-        # donner tout l'argent au centre de la table au gagnant                     OK   
-        # ecrire tout ça dans un dictionnaire pour la requête                       en cours...
-        # enlever les joueurs qui ont timeout, rajouter ceux de la file d'attente   OK
-        # et relancer une game                                                      OK?
-
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
         winner = max(range(self.nb_players), key=(lambda i : hand_per_player[i]))
 
@@ -227,6 +220,8 @@ class Game:
         self.id_to_bet = {}
         for i in self.ids:
             self.id_to_bet[i] = 0
+        for i in self.spectators:
+            self.id_to_bet[i] = 0
 
     def cards_id_for_vfx(self, player_id : int) -> list:
         combo_to_nb_cards = [1, 2, 4, 3, 5, 5, 5, 4, 5, 5]
@@ -292,14 +287,21 @@ class Game:
     def add_player(self, player : str) -> int:
         # comme 2 joueurs peuvent avoir le même nom, on attribue à chaque joueur un identifiant unique
         # on prend un entier de [1, 100], et s'il y est déja (parmi les id des joueurs) on reroll
-        player_id = randint(1, 100)
-        while player_id in self.ids:
-            player_id = randint(1, 100)
+        player_id = randint(1000, 9999)
+        while player_id in self.ids or player_id in self.spectators:
+            player_id = randint(1000, 9999)
 
-        self.ids.append(player_id)
-        self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
-        print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
-        self.nb_players += 1
+        if self.inGame:
+            self.spectators.append(player_id)
+            self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
+            print(f"\n << Ajouté {player} d'id {player_id} aux spectateurs.\n >> ", end="")
+            self.id_to_update[player_id] = [(0, 0)]
+            self.id_to_bet[player_id] = 0
+        else:
+            self.ids.append(player_id)
+            self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
+            print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
+            self.nb_players += 1
         return player_id
     
     def get_all_names(self):
@@ -346,7 +348,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')
                 self.send_my_headers()
-                self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
+                if player_id in self.gameInstance.spectators:
+                    self.wfile.write(("spectator," + str(player_id)).encode())
+                else:
+                    self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
             # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
             elif self.path.startswith('/ready'):
@@ -368,11 +373,18 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
                         if "id" in parse_qs(parsed_url.query).keys():
                             their_id = int(parse_qs(parsed_url.query)["id"][0])
-                            their_cards = self.gameInstance.cards_per_player[their_id]
+                            if not their_id in self.gameInstance.spectators:
+                                their_cards = self.gameInstance.cards_per_player[their_id]
 
-                            ans = f"{their_cards[0:2]},{their_cards[2:4]}"
-                            for board_card in self.gameInstance.board:
-                                ans += "," + board_card
+                                ans = f"{their_cards[0:2]},{their_cards[2:4]}"
+                                for board_card in self.gameInstance.board:
+                                    ans += "," + board_card
+                            else:
+                                ans = ""
+                                if len(self.gameInstance.board) > 0:
+                                    ans = self.gameInstance.board[0]
+                                    for board_card in self.gameInstance.board[1:]:
+                                        ans += "," + board_card
 
                             self.send_response(200, 'OK')
                         else:
@@ -388,7 +400,9 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
 
-                    if not their_id in self.gameInstance.ids:
+                    if not their_id in self.gameInstance.ids and not their_id in self.gameInstance.spectators:
+                        print(" << c'est qui " + str(their_id) + " ?")
+                        return
                         raise RuntimeError("C'est qui " + str(their_id) + " ?")
                     if not their_id in self.gameInstance.id_to_update.keys():
                         raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_update.keys()}")
@@ -404,6 +418,9 @@ class Server(http.server.SimpleHTTPRequestHandler):
                         "who_is_playing" : self.gameInstance.who_is_playing,
                         "your_bet" : self.gameInstance.id_to_bet[their_id]
                     }
+
+                    if their_id in self.gameInstance.spectators:
+                        print(ans)
 
                     self.send_response(200, 'OK')
                     self.send_my_headers()
@@ -451,6 +468,13 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.send_response(200, 'OK')
                     self.send_my_headers()
                     self.wfile.write(json.dumps(ans).encode())
+
+                elif self.path.startswith('/GO'):
+                    self.gameInstance.shouldStart = True
+                    parsed_url = urlparse(self.path)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write("okbro".encode())
             else:
                 print(f" << Je skip la requête {self.path} car Game est en pleine transition")
                 self.send_response(200, 'OK')

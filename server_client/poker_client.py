@@ -1,6 +1,7 @@
 import requests     # pour ENVOYER des requêtes HTTP
 import time
 import json
+from random import randint
 
 # on représentera les couleurs des cartes par des entiers entre 1 et 4 ici
 SPADES = 1
@@ -107,19 +108,21 @@ class Client:
                 if self.who_is_playing == self.user_index:
                     print(f" << État actuel de la partie : mise totale : {self.total_bet}, blinde actuelle : {self.current_blind}")
                     minimal_bet = self.current_blind - self.user_bet
-                    while True:
-                        try:
-                            user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins {minimal_bet}. \n << Répondez par votre mise (ou 0 pour Check, -1 pour Fold, \"quitter\" pour arrêter de jouer)\n >> ")
-                            if user_action.startswith("quitter"):
-                                # TODO : gérer quelqu'un qui se casse mid-game ?
-                                break
-                            user_action = int(user_action)
-                            if user_action < -1:
-                                user_action = -1
-                            break
-                        except:
-                            print(" << C'est pas une mise ça, fais un effort stp")
-                            continue
+                    # while True:
+                    #     try:
+                    #         user_action = input(f" << Votre tour ! Vos cartes sont {self.card1}, {self.card2}. Vous devez miser au moins {minimal_bet}. \n << Répondez par votre mise (ou 0 pour Check, -1 pour Fold, \"quitter\" pour arrêter de jouer)\n >> ")
+                    #         if user_action.startswith("quitter"):
+                    #             # TODO : gérer quelqu'un qui se casse mid-game ?
+                    #             break
+                    #         user_action = int(user_action)
+                    #         if user_action < -1:
+                    #             user_action = -1
+                    #         break
+                    #     except:
+                    #         print(" << C'est pas une mise ça, fais un effort stp")
+                    #         continue
+                    time.sleep(0.5)
+                    user_action = str(minimal_bet)
 
                     if str(user_action).startswith("quitter"):
                         exit(0)     # TODO : faire ça proprement
@@ -137,8 +140,10 @@ class Client:
                 time.sleep(1)
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
-name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 
-url = "http://gambling.share.zrok.io"
+time.sleep(1)
+# name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 
+name = "Bot_" + str(randint(1, 9999))
+url = "http://gambling2.share.zrok.io"
 
 cl = Client(url, name)
 cl.run()

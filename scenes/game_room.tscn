@@ -48,6 +48,8 @@ wait_time = 0.8
 
 [node name="CardToVFX" type="HTTPRequest" parent="Requests"]
 
+[node name="ServerGo" type="HTTPRequest" parent="Requests"]
+
 [node name="Background" type="Sprite2D" parent="."]
 position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
@@ -307,6 +309,14 @@ offset_bottom = 431.0
 theme = ExtResource("10_p7uy6")
 text = "Rejouer"
 
+[node name="ServerGo" type="Button" parent="."]
+offset_left = 17.0
+offset_top = 381.0
+offset_right = 155.0
+offset_bottom = 431.0
+theme = ExtResource("10_p7uy6")
+text = "server go"
+
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
 [connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
@@ -321,3 +331,4 @@ text = "Rejouer"
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]
 [connection signal="pressed" from="UI/Suivre" to="." method="_on_suivre_pressed"]
 [connection signal="pressed" from="UI/Rejouer" to="." method="_on_rejouer_pressed"]
+[connection signal="pressed" from="ServerGo" to="." method="_on_server_go_pressed"]

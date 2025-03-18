@@ -6,7 +6,6 @@ var tryagain_node
 var tryagain_url
 var nb_players
 var my_player_offset
-var round
 var money_left
 var total_bet
 var current_blind
@@ -17,6 +16,8 @@ var every_name
 
 const CD = 0.15
 
+@onready var is_spectator = false
+@onready var round = -1
 @onready var can_activate_btns = true
 @onready var board_cards = []
 @onready var in_game = false
@@ -40,7 +41,6 @@ func rearrange_players(names, anim = false):
 	my_player_offset = names.find(user_name)
 	if my_player_offset == -1:
 		print("Me suis pas trouvé moi-même parmi les joueurs ??")
-		pass
 	
 	var true_i
 	for i in range(nb_players):
@@ -54,7 +54,13 @@ func rearrange_players(names, anim = false):
 func _on_register_completed(result, response_code, headers, body):
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
 	
-	if len(ans) > 3 or len(ans) <= 0:
+	if ans.begins_with("spectator"):
+		ans = ans.split(",")[1]
+		$EnterCode/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
+		$EnterCode/Name.text = ""
+		is_spectator = true
+	elif len(ans) > 4 or len(ans) <= 0:
+		print("error : " + ans)
 		$EnterCode/Name.text = ""
 		$EnterCode/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
 		tryagain_node = $Requests/Register
@@ -89,14 +95,20 @@ func start_game(cards):
 	var other_players = []
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
-		
+	
 	$EnterCode.visible = false
 	$UI.visible = true
 	$Table.visible = true
 	$Deck.visible = true
 	$Money.visible = true
 	in_game = true
-	$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
+	
+	if is_spectator:
+		other_players.append($Players/Player1)
+		$Deck.deal_cards(null, [], other_players)
+	else:
+		$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
+
 	$Requests/UpdateTimer.start()
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -120,24 +132,27 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		return
 		
 	var cards = ans.split(",")
-	
-	if len(cards) <= 1 or len(cards) > 7:
+	print(cards)
+		
+	if not is_spectator and (len(cards) <= 1 or len(cards) > 7):
 		print("Erreur : on reçoit trop/pas de cartes là")
-		pass
-	
-	if in_game:
-		if not p1_has_cards:
+		return
+
+	if in_game and len(cards) > 0:
+		if not p1_has_cards and not is_spectator:
 			$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
 		
 		var old_nb_cards = len(board_cards)
 		var new_nb_cards = len(cards)
-		if new_nb_cards - 2 != old_nb_cards:
-			for c in range(2 + old_nb_cards, new_nb_cards):
-				if p1_has_cards:
+		var player_nb_cards = 0 if is_spectator else 2
+		if new_nb_cards - player_nb_cards != old_nb_cards:
+			for c in range(player_nb_cards + old_nb_cards, new_nb_cards):
+				if p1_has_cards and not is_spectator:
 					$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
-				var new_card = get_node("Board/" + str(c - 1))
-				var target = $Board.position + Vector2(75.0 * (c - 2) - 150.0, 0.0)
-				var wait = CD * (c - old_nb_cards - 1)
+					
+				var new_card = get_node("Board/" + str(c - player_nb_cards + 1))
+				var target = $Board.position + Vector2(75.0 * (c - player_nb_cards) - 150.0, 0.0)
+				var wait = CD * (c - old_nb_cards - player_nb_cards + 1)
 				
 				new_card.global_position = $Deck.get_global_pos()
 				new_card.set_card_type(cards[c])
@@ -145,7 +160,8 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 				new_card.go_to(target, 0.2, wait)
 				new_card.reveal(0.2 + wait)
 				board_cards.append(cards[c])
-		p1_has_cards = true
+		if not is_spectator:
+			p1_has_cards = true
 	else:
 		start_game(cards)
 
@@ -173,7 +189,7 @@ func _on_name_text_submitted(new_text: String) -> void:
 		url = ""
 		return
 	
-	url = "http://gambling.share.zrok.io"
+	url = "http://gambling2.share.zrok.io"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
 
 func _on_update_timer_timeout() -> void:
@@ -202,9 +218,10 @@ func end_turn():
 	# donc disabled se remet à false et les boutons restent accessibles
 
 func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
-	var data = JSON.parse_string(body.get_string_from_utf8())
+	var ans = body.get_string_from_utf8()
+	var data = JSON.parse_string(ans)
 	if data == null:
-		print("Erreur au moment de parser la réponse de /update/ !!")
+		print("Erreur au moment de parser la réponse de /update/ !! err : " + ans)
 		return
 	
 	if round != data["round"]:
@@ -284,9 +301,14 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	$UI/WhoIsPlaying.text = ""
 	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
 	
+	if len(data["winners"]) > 1:
+		$UI/Round.text = "Vainqueurs : "
+	else:
+		$UI/Round.text = "Vainqueur : "
 	var true_winners = []
 	for w in data["winners"]:
 		# dire aux sacs d'argent d'aller au gagnant
+		$UI/Round.text += every_name[w] + " "
 		var player_node = get_node("Players/Player" + str(true_i_of_i(int(w))))
 		true_winners.append(player_node.global_position)
 		player_node.begin_scale_anim()
@@ -294,7 +316,7 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
-		if true_i > 1:
+		if true_i > 1 or is_spectator:
 			get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(data["money_left"][i])) + "€"
 			var their_cards = data["cards"][i].split(",")
 			get_node("Players/Player" + str(true_i) + "/Card_1").set_card_type(their_cards[0])
@@ -329,6 +351,7 @@ func _on_card_to_vfx_request_completed(result: int, response_code: int, headers:
 func _on_rejouer_pressed() -> void:
 	$UI/Rejouer.visible = false
 	board_cards = []
+	const anim_speed = 0.5
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
 		var this_player = get_node("Players/Player" + str(true_i))
@@ -339,8 +362,12 @@ func _on_rejouer_pressed() -> void:
 		get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1), true)
 		get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD, true)
 	for i in range(1, 6):
-		get_node("Board/" + str(i)).go_to($Deck.get_global_pos(), 0.4, 0.08 + CD * 2.0 * (nb_players - 1 + i))
-		get_node("Board/" + str(i)).reveal(CD * 2.0 * (nb_players - 1 + i), true)
+		get_node("Board/" + str(i)).go_to($Deck.get_global_pos(), 0.4, 0.08 + CD * 2.0 * (nb_players - 1 + anim_speed * i))
+		get_node("Board/" + str(i)).reveal(CD * 2.0 * (nb_players - 1 + anim_speed * i), true)
 	p1_has_cards = false
 	in_game = false
 	$Requests/Ready.request(str(url) + "/ready/")
+
+
+func _on_server_go_pressed() -> void:
+	$Requests/ServerGo.request(str(url) + "/GO")
