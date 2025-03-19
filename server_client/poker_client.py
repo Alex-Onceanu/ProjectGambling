@@ -86,9 +86,9 @@ class Client:
             while not shouldStart.startswith("go!"):
                 # la partie commence lorsque le serveur nous répond "go!"
                 time.sleep(1)
-                # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready/" pour demander au serveur si la partie a commencé
+                # Truc important à retenir : on fera en godot un peu comme ça aussi. On envoie une requête GET avec un certain url, ici "http://urlchelou/ready?id=..." pour demander au serveur si la partie a commencé
                 # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
-                shouldStart = requests.get(self.serverURL + "/ready",allow_redirects=True).text
+                shouldStart = requests.get(self.serverURL + "/ready?id=" + str(self.client_id),allow_redirects=True).text
 
             self.players = list(filter(None, shouldStart[3:].split(",")))
             print(f" << Partie lancée ! Joueurs : {self.players}")
@@ -140,7 +140,7 @@ class Client:
                 time.sleep(1)
 
 print(" << Bienvenue dans le prototype du projet GAMBLING !")
-time.sleep(1)
+time.sleep(randint(500, 1500) / 1000)
 # name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 
 name = "Bot_" + str(randint(1, 9999))
 url = "http://gambling2.share.zrok.io"

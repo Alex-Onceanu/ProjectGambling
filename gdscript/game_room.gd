@@ -54,12 +54,7 @@ func rearrange_players(names, anim = false):
 func _on_register_completed(result, response_code, headers, body):
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
 	
-	if ans.begins_with("spectator"):
-		ans = ans.split(",")[1]
-		$EnterCode/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
-		$EnterCode/Name.text = ""
-		is_spectator = true
-	elif len(ans) > 4 or len(ans) <= 0:
+	if len(ans) > 4 or len(ans) <= 0:
 		print("error : " + ans)
 		$EnterCode/Name.text = ""
 		$EnterCode/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
@@ -71,20 +66,26 @@ func _on_register_completed(result, response_code, headers, body):
 	user_id = int(ans)
 	print("ID : ", ans)
 	$EnterCode/Name.placeholder_text = "Partie trouvée !"
-	$Requests/Ready.request(str(url) + "/ready/")
+	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	print("Ready completed : ", ans)
 	$UI/Rejouer.visible = false
+	if ans.begins_with("spectator"):
+		ans = ans.substr(9)
+		$EnterCode/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
+		$EnterCode/Name.text = ""
+		is_spectator = true
+	
 	if ans == "notready":
 		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
 		$Money/TotalBet.text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
-		tryagain_url = str(url) + "/ready/"
+		tryagain_url = str(url) + "/ready?id=" + str(user_id)
 		$Requests/TryAgain.start()
-	
 	elif ans.begins_with("go!"):
-		$EnterCode/Name.placeholder_text = "Go go go go !!"
+		$EnterCode/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
 		$Money/TotalBet.text = "Allez une game de +"
 		every_name = ans.substr(3).split(",", false)
 		nb_players = len(every_name)
@@ -132,13 +133,12 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		return
 		
 	var cards = ans.split(",")
-	print(cards)
 		
 	if not is_spectator and (len(cards) <= 1 or len(cards) > 7):
 		print("Erreur : on reçoit trop/pas de cartes là")
 		return
 
-	if in_game and len(cards) > 0:
+	if in_game and len(cards) > 0 and (len(cards) > 1 or cards[0] != ""):
 		if not p1_has_cards and not is_spectator:
 			$Requests/CardToVFX.request(url + "/vfx?id=" + str(user_id))
 		
@@ -323,12 +323,15 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 			get_node("Players/Player" + str(true_i) + "/Card_2").set_card_type(their_cards[1])
 			get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1))
 			get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD)
-			if int(data["did_timeout"][i]):
-				get_node("Players/Player" + str(true_i)).visible = false
+			#if int(data["did_timeout"][i]):
+				#get_node("Players/Player" + str(true_i)).visible = false
 		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
-	$UI/Rejouer.visible = true
+	if is_spectator:
+		$UI/CDSpectate.start()
+	else:
+		$UI/Rejouer.visible = true
 
 
 func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -359,6 +362,8 @@ func _on_rejouer_pressed() -> void:
 		this_player.send_card_to(2, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1))
 		this_player.send_card_to(1, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1) + CD)
 		get_node("Players/Player" + str(true_i) + "/combo").visible = false
+		get_node("Players/Player" + str(true_i) + "/name_label").visible = false
+		get_node("Players/Player" + str(true_i) + "/money_left").visible = false
 		get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1), true)
 		get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD, true)
 	for i in range(1, 6):
@@ -366,8 +371,12 @@ func _on_rejouer_pressed() -> void:
 		get_node("Board/" + str(i)).reveal(CD * 2.0 * (nb_players - 1 + anim_speed * i), true)
 	p1_has_cards = false
 	in_game = false
-	$Requests/Ready.request(str(url) + "/ready/")
+	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
 
 
 func _on_server_go_pressed() -> void:
 	$Requests/ServerGo.request(str(url) + "/GO")
+
+
+func _on_cd_spectate_timeout() -> void:
+	_on_rejouer_pressed()

@@ -128,7 +128,6 @@ class Game:
             "winners" : all_winners,
             "money_left" : self.money_left,
             "cards" : [f"{self.cards_per_player[p][0:2]},{self.cards_per_player[p][2:4]}" for p in self.ids],
-            "did_timeout" : [int(t in self.did_timeout) for t in range(self.nb_players)],
             "hand_per_player" : [str_of_combo(co[0]) for co in hand_per_player]
         }
     
@@ -136,6 +135,9 @@ class Game:
         for p in which_id_did_timeout:
             self.spectators.append(p)
             self.ids.remove(p)
+            
+        self.did_timeout = []
+        # print(f" >> Which did timeout : {[self.id_to_name[i] for i in which_id_did_timeout]}\n >> Spectators : {[self.id_to_name[i] for i in self.spectators]}\n Ids : {[self.id_to_name[i] for i in self.ids]}")
 
     # donne 2 cartes de self.deck à chaque joueur
     def give_personal_cards(self):
@@ -243,7 +245,7 @@ class Game:
     def play_round(self, nb_cards_to_add_to_board : int):
         self.nb_players = len(self.ids)
         CD = 0.1
-        DURATION_PER_PLAYER = 30
+        DURATION_PER_PLAYER = 10
         self.reset_id_to_bet()
         self.current_blind = 0
         self.who_is_playing = 0
@@ -276,8 +278,8 @@ class Game:
                 time.sleep(CD)
                 waited += CD
                 if waited >= DURATION_PER_PLAYER:
-                    self.folded(self.ids[self.who_is_playing])
                     self.did_timeout.append(self.who_is_playing)
+                    self.folded(self.ids[self.who_is_playing])
                     break
         self.round_transition = True
         print(f" << On est revenus au tour de {self.id_to_name[self.ids[self.who_is_playing]]}, fin du round !")
@@ -348,18 +350,21 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')
                 self.send_my_headers()
-                if player_id in self.gameInstance.spectators:
-                    self.wfile.write(("spectator," + str(player_id)).encode())
-                else:
-                    self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
+                self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
             # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
             elif self.path.startswith('/ready'):
+                parsed_url = urlparse(self.path)
+                their_id = int(parse_qs(parsed_url.query)["id"][0])
                 self.send_response(200, 'OK')
                 self.send_my_headers()
                 ans = "notready"
                 if self.gameInstance.shouldStart:
                     ans = "go!" + self.gameInstance.get_all_names()
+                
+                if their_id in self.gameInstance.spectators:
+                    ans = "spectator" + ans
+
                 self.wfile.write(ans.encode())
                 # on lui répond "go!j1,j2,j3" ssi la variable shouldStart de game vaut True (j1 j2 et j3 sont les noms des joueurs dans le bon ordre)
 

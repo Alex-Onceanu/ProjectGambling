@@ -12,6 +12,7 @@ var should_reveal_frontface
 @onready var is_anim_before_halfway = false
 
 func region_of_string(colval : String) -> Vector2i:
+	print(colval)
 	assert(len(colval) == 2)
 	var line_of_col = { 'H' : 0, 'C' : 1, 'D' : 2, 'S' : 3 }
 	var column_of_val = { 'J' : 9, 'Q' : 10, 'K' : 11, 'A' : 12 }
