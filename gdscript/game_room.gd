@@ -13,6 +13,7 @@ var who_is_playing
 var your_bet
 var other_players
 var every_name
+var old_dealer
 
 const CD = 0.15
 
@@ -40,8 +41,7 @@ func compute_player_pos(player_i):
 func rearrange_players(names, anim = false):
 	nb_players = len(names)
 	my_player_offset = names.find(user_name)
-	if my_player_offset == -1:
-		print("Me suis pas trouvé moi-même parmi les joueurs ??")
+	# TODO : me trouver via mon id pas via mon nom
 	
 	var true_i
 	for i in range(nb_players):
@@ -71,7 +71,6 @@ func _on_register_completed(result, response_code, headers, body):
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
-	print("Ready completed : ", ans)
 	$UI/Rejouer.visible = false
 	if ans.begins_with("spectator"):
 		ans = ans.substr(9)
@@ -190,11 +189,21 @@ func _on_name_text_submitted(new_text: String) -> void:
 func _on_update_timer_timeout() -> void:
 	$Requests/Update.request(url + "/update?id=" + str(user_id))
 	
+func change_player_text_color(who : int, col : Color) -> void:
+	get_node("Players/Player" + str(who) + "/name_label").set("theme_override_colors/font_color", col)
+	get_node("Players/Player" + str(who) + "/money_left").set("theme_override_colors/font_color", col)
+	get_node("Players/Player" + str(who) + "/combo").set("theme_override_colors/font_color", col)
+	
 func animate_bets(bets):
 	for b in bets:
 		var who = b[0]
-		var what = b[1]
-		get_node("Players/Player" + str(true_i_of_i(who))).animate_bet(int(what))
+		var what = int(b[1])
+		if what == -3:
+			change_player_text_color(true_i_of_i(posmod(who - 1, nb_players)), Color(0.8, 0.4, 0.4))
+			if old_dealer != null:
+				change_player_text_color(old_dealer, Color(0.996, 0.8353, 0.451))
+			old_dealer = true_i_of_i(posmod(who - 1, nb_players))
+		get_node("Players/Player" + str(true_i_of_i(who))).animate_bet(what)
 
 func your_turn():
 	if can_activate_btns:

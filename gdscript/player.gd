@@ -38,7 +38,7 @@ func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0)
 	
 func animate_bet(how_much):
 	if how_much == 0:
-		$bet_anim.set("theme_override_colors/font_color", Color(0.7, 0.7, 0.7))
+		$bet_anim.set("theme_override_colors/font_color", Color(0.75, 0.75, 0.75))
 		$bet_anim.text = "check"
 	elif how_much == -1:
 		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.1, 0.1))
@@ -46,6 +46,12 @@ func animate_bet(how_much):
 	elif how_much == -2:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.4, 0.4, 0.4))
 		$bet_anim.text = "fold par afk"
+	elif how_much == -3:
+		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.44, 0.7))
+		$bet_anim.text = "petite blinde"
+	elif how_much == -4:
+		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.44, 0.7))
+		$bet_anim.text = "grosse blinde"
 	elif int($money_left.text) <= 0:
 		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.4, 0.3))
 		$bet_anim.text = "all-in"

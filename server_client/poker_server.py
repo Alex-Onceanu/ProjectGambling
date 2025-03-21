@@ -9,7 +9,8 @@ import json
 from combos import poker_hand, str_of_combo
 
 INITIAL_MONEY = 100
-SMALL_BLIND = 5
+SMALL_BLIND = -3
+BIG_BLIND = -4
 CHECK = 0
 FOLD = -1
 TIMEOUT = -2
@@ -46,7 +47,7 @@ class Game:
         self.id_to_update = {}          # un update est de la forme [(1, 80), (2, CHECK), (3, 90), (4, FOLD)]
         self.money_left = []            # argent de chaque joueur dans le bon ordre
         self.total_bet = 0              # argent au centre de la table
-        self.current_blind = SMALL_BLIND# mise minimale pour suivre
+        self.current_blind = 10         # mise minimale pour suivre
         self.folded_ones = []           # liste des joueurs ayant foldé
         self.id_to_bet = {}             # associe à chaque id la mise de ce joueur pour ce tour
         self.round_transition = False   # vaut True tant que Game est en train de passer d'un round à un autre 
@@ -56,6 +57,7 @@ class Game:
         self.nb_players = 0             # len(self.ids)
         self.combo_per_player = {}      # { i : poker_hand(cards_per_player[i] + self.board) for i in self.ids }
         self.nb_skippable = 0
+        self.dealer = 0
 
         print(" << Classe Game initialisée.")
 
@@ -83,7 +85,7 @@ class Game:
             # faire une fonction reset_round() pour quand ça recommence
             self.round = 0
             self.id_to_bet = {}
-            self.who_is_playing = 0
+            self.who_is_playing = self.dealer
             self.nb_skippable = 0
             
             print(" << Go ! Joueurs actuels : ", self.ids)
@@ -93,9 +95,6 @@ class Game:
 
             for idp in self.ids:
                 self.id_to_update[idp] = []
-            # if self.money_left == []:
-                # self.money_left = [INITIAL_MONEY] * len(self.ids)
-            print(f" >> Money : ", self.money_left)
 
             self.inGame = True
             print(" << Les cartes ont été distribuées")
@@ -112,6 +111,7 @@ class Game:
 
             self.showdown()
             self.round_transition = False
+            self.dealer += 1
 
     def showdown(self):
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
@@ -171,6 +171,12 @@ class Game:
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas miser car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
             return
+
+        bet_for_update = how_much
+        if how_much == SMALL_BLIND:
+            how_much = 5
+        elif how_much == BIG_BLIND:
+            how_much = 10
         
         if self.money_left[self.who_is_playing] <= how_much:
             print(f" << {self.id_to_name[who]} choisit de ALL-IN")
@@ -183,7 +189,7 @@ class Game:
             return
 
         for idp in self.id_to_update.keys():
-            self.id_to_update[idp].append((self.who_is_playing, how_much))
+            self.id_to_update[idp].append((self.who_is_playing, bet_for_update))
         
         self.money_left[self.who_is_playing] -= how_much
         self.total_bet += how_much
@@ -271,7 +277,7 @@ class Game:
         DURATION_PER_PLAYER = 40
         self.reset_id_to_bet()
         self.current_blind = 0
-        self.who_is_playing = 0
+        self.who_is_playing = self.dealer + 1
 
         for _ in range(nb_cards_to_add_to_board):
             self.board.append(self.deck.pop())
@@ -280,10 +286,10 @@ class Game:
             self.combo_per_player[p] = poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board)
 
         if nb_cards_to_add_to_board == 0:
-            print(f" << {self.id_to_name[self.ids[0]]} mise la petite blinde de {SMALL_BLIND}")
-            self.bet(self.ids[0], SMALL_BLIND)
-            print(f" << {self.id_to_name[self.ids[1]]} mise la grosse blinde de {2 * SMALL_BLIND}")
-            self.bet(self.ids[1], 2 * SMALL_BLIND)
+            print(f" << {self.id_to_name[self.ids[self.dealer + 1 % self.nb_players]]} mise la petite blinde de {SMALL_BLIND}")
+            self.bet(self.ids[self.dealer + 1 % self.nb_players], SMALL_BLIND)
+            print(f" << {self.id_to_name[self.ids[(self.dealer + 2) % self.nb_players]]} mise la grosse blinde de {BIG_BLIND}")
+            self.bet(self.ids[self.dealer + 2 % self.nb_players], BIG_BLIND)
     
         self.stable_since = 0
         self.round_transition = False
@@ -459,9 +465,6 @@ class Server(http.server.SimpleHTTPRequestHandler):
                         "who_is_playing" : self.gameInstance.who_is_playing,
                         "your_bet" : self.gameInstance.id_to_bet[their_id]
                     }
-
-                    if their_id in self.gameInstance.spectators:
-                        print(ans)
 
                     self.send_response(200, 'OK')
                     self.send_my_headers()
