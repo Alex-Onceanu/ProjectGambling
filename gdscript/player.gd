@@ -43,16 +43,17 @@ func animate_bet(how_much):
 	elif how_much == -1:
 		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.1, 0.1))
 		$bet_anim.text = "fold"
+	elif how_much == -2:
+		$bet_anim.set("theme_override_colors/font_color", Color(0.4, 0.4, 0.4))
+		$bet_anim.text = "fold par afk"
 	else:
-		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 1.0, 0.09))
-		$bet_anim.text = "+" + str(how_much) + "€"
+		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.74, 1.0))
+		$bet_anim.text = "-" + str(how_much) + "€"
 	$bet_anim.visible = true
 	old_bet_pos = $bet_anim.position
 	$bet_anim_timer.start()
 	
 func send_card_to(which : int, target : Vector2, cd : float):
-	if which <= 0 or which > nb_cards:
-		return
 	nb_cards -= 1
 	get_node("Card_" + str(which)).go_to(target, 0.4, cd)
 

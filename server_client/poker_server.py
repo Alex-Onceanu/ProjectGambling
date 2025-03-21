@@ -12,6 +12,7 @@ INITIAL_MONEY = 100
 SMALL_BLIND = 5
 CHECK = 0
 FOLD = -1
+TIMEOUT = -2
 everyColor = ['S', 'C', 'H', 'D']   # spades, clubs, hearts, diamonds
 everyValue = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'J', 'Q', 'K', 'A']  # valeurs de cartes
 
@@ -90,8 +91,9 @@ class Game:
 
             for idp in self.ids:
                 self.id_to_update[idp] = []
-            if self.money_left == []:
-                self.money_left = [INITIAL_MONEY] * len(self.ids)
+            # if self.money_left == []:
+                # self.money_left = [INITIAL_MONEY] * len(self.ids)
+            print(f" >> Money : ", self.money_left)
 
             self.inGame = True
             print(" << Les cartes ont été distribuées")
@@ -123,6 +125,7 @@ class Game:
             self.money_left[w] += round(self.total_bet / nb_winners)
         
         self.total_bet = 0
+        self.money_left = [self.money_left[i] for i in range(len(self.money_left)) if i not in self.did_timeout]
 
         self.last_showdown = {
             "winners" : all_winners,
@@ -132,12 +135,13 @@ class Game:
         }
     
         which_id_did_timeout = [self.ids[i] for i in self.did_timeout]
-        for p in which_id_did_timeout:
-            self.spectators.append(p)
-            self.ids.remove(p)
-            
+        for p in range(len(which_id_did_timeout)):
+            self.spectators.append(which_id_did_timeout[p])
+            self.ids.remove(which_id_did_timeout[p])
+            self.nb_players -= 1
+
         self.did_timeout = []
-        # print(f" >> Which did timeout : {[self.id_to_name[i] for i in which_id_did_timeout]}\n >> Spectators : {[self.id_to_name[i] for i in self.spectators]}\n Ids : {[self.id_to_name[i] for i in self.ids]}")
+        self.folded_ones = []
 
     # donne 2 cartes de self.deck à chaque joueur
     def give_personal_cards(self):
@@ -183,7 +187,7 @@ class Game:
 
         self.next_player()
 
-    def folded(self, who):
+    def folded(self, who, fold_or_timeout = FOLD):
         if not who in self.ids:
             print(f" << Qui a invité {who} ?")
             return
@@ -194,7 +198,7 @@ class Game:
         self.folded_ones.append(self.who_is_playing)
 
         for idp in self.id_to_update.keys():
-            self.id_to_update[idp].append((self.who_is_playing, FOLD))
+            self.id_to_update[idp].append((self.who_is_playing, fold_or_timeout))
 
         print(f" << {self.id_to_name[who]} s'est couché")
         self.stable_since += 1
@@ -279,7 +283,7 @@ class Game:
                 waited += CD
                 if waited >= DURATION_PER_PLAYER:
                     self.did_timeout.append(self.who_is_playing)
-                    self.folded(self.ids[self.who_is_playing])
+                    self.folded(self.ids[self.who_is_playing], TIMEOUT)
                     break
         self.round_transition = True
         print(f" << On est revenus au tour de {self.id_to_name[self.ids[self.who_is_playing]]}, fin du round !")
@@ -301,6 +305,7 @@ class Game:
             self.id_to_bet[player_id] = 0
         else:
             self.ids.append(player_id)
+            self.money_left.append(100)
             self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
             print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
             self.nb_players += 1
@@ -311,6 +316,15 @@ class Game:
         for p in self.ids:
             ans += self.id_to_name[p] + ","
         return ans
+
+    def unspectate(self, who):
+        if not who in self.spectators or self.inGame:
+            return
+        self.spectators.remove(who)
+        self.ids.append(who)
+        self.money_left.append(100)
+        print(f"\n << Ajouté {self.id_to_name[who]} d'id {who} aux joueurs.\n >> ", end="")
+        self.nb_players += 1
 
 
 print(" << Bienvenue sur le serveur du prototype du projet GAMBLING!")
@@ -473,6 +487,14 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.send_response(200, 'OK')
                     self.send_my_headers()
                     self.wfile.write(json.dumps(ans).encode())
+
+                elif self.path.startswith('/unspectate'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    self.gameInstance.unspectate(their_id)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write(("ok" if not self.gameInstance.inGame else "no").encode())
 
                 elif self.path.startswith('/GO'):
                     self.gameInstance.shouldStart = True

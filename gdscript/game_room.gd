@@ -16,6 +16,7 @@ var every_name
 
 const CD = 0.15
 
+@onready var user_did_timeout = false
 @onready var is_spectator = false
 @onready var round = -1
 @onready var can_activate_btns = true
@@ -102,7 +103,9 @@ func start_game(cards):
 	$Table.visible = true
 	$Deck.visible = true
 	$Money.visible = true
+	$UI/Rejoindre.visible = false
 	in_game = true
+	board_cards = []
 	
 	if is_spectator:
 		other_players.append($Players/Player1)
@@ -144,7 +147,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		
 		var old_nb_cards = len(board_cards)
 		var new_nb_cards = len(cards)
-		var player_nb_cards = 0 if is_spectator else 2
+		var player_nb_cards = 0 if is_spectator and not user_did_timeout else 2
 		if new_nb_cards - player_nb_cards != old_nb_cards:
 			for c in range(player_nb_cards + old_nb_cards, new_nb_cards):
 				if p1_has_cards and not is_spectator:
@@ -237,7 +240,8 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 	
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
-		get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(money_left[i])) + "€"
+		if i < len(money_left):
+			get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(money_left[i])) + "€"
 		
 	if total_bet != int(data["total_bet"]):
 		total_bet = int(data["total_bet"])
@@ -245,15 +249,21 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		for m in range(20, total_bet, 20):
 			get_node("Money/MoneyBag" + str(min(m / 20, 10))).visible = true
 	
-	current_blind = int(data["current_blind"])
-	your_bet = int(data["your_bet"])
-	$UI/Suivre.text = "Suivre (" + str(current_blind - your_bet) + "€)"
-	var old_val = $UI/Surencherir/HowMuch.value
-	$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 1
-	$UI/Surencherir/HowMuch.max_value = int(money_left[my_player_offset])
-	$UI/Surencherir/HowMuch.value = old_val
+	if round != 4:
+		current_blind = int(data["current_blind"])
+		your_bet = int(data["your_bet"])
+		$UI/Suivre.text = "Suivre (" + str(current_blind - your_bet) + "€)"
+		var old_val = $UI/Surencherir/HowMuch.value
+		$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 1
+		$UI/Surencherir/HowMuch.max_value = int(money_left[my_player_offset])
+		$UI/Surencherir/HowMuch.value = old_val
 	
 	animate_bets(data["update"])
+	if data["update"].find([my_player_offset * 1.0, -2.0]) != -1:
+		is_spectator = true
+		$Players/Player1/Card_1/vfx.visible = false
+		$Players/Player1/Card_2/vfx.visible = false
+		user_did_timeout = true
 #	
 	if who_is_playing != int(data["who_is_playing"]):
 		if who_is_playing != null:
@@ -263,6 +273,8 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		$UI/WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
 	if who_is_playing == my_player_offset:
 		your_turn()
+	else:
+		end_turn()
 
 func _on_surencherir_pressed() -> void:
 	$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(int($UI/Surencherir/HowMuch.value)))
@@ -317,22 +329,22 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
 		if true_i > 1 or is_spectator:
-			get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(data["money_left"][i])) + "€"
+			if i < len(data["money_left"]):
+				get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(data["money_left"][i])) + "€"
 			var their_cards = data["cards"][i].split(",")
 			get_node("Players/Player" + str(true_i) + "/Card_1").set_card_type(their_cards[0])
 			get_node("Players/Player" + str(true_i) + "/Card_2").set_card_type(their_cards[1])
 			get_node("Players/Player" + str(true_i) + "/Card_1").reveal(CD * 2.0 * (true_i - 1))
 			get_node("Players/Player" + str(true_i) + "/Card_2").reveal(CD * 2.0 * (true_i - 1) + CD)
-			#if int(data["did_timeout"][i]):
-				#get_node("Players/Player" + str(true_i)).visible = false
 		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
 	if is_spectator:
 		$UI/CDSpectate.start()
+		$UI/Rejoindre.disabled = false
+		$UI/Rejoindre.visible = true
 	else:
 		$UI/Rejouer.visible = true
-
 
 func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
@@ -353,14 +365,14 @@ func _on_card_to_vfx_request_completed(result: int, response_code: int, headers:
 
 func _on_rejouer_pressed() -> void:
 	$UI/Rejouer.visible = false
-	board_cards = []
+	
 	const anim_speed = 0.5
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
 		var this_player = get_node("Players/Player" + str(true_i))
 		this_player.end_scale_anim()
-		this_player.send_card_to(2, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1))
-		this_player.send_card_to(1, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1) + CD)
+		this_player.send_card_to(1, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1))
+		this_player.send_card_to(2, $Deck.get_global_pos(), 0.08 + CD * 2.0 * (true_i - 1) + CD)
 		get_node("Players/Player" + str(true_i) + "/combo").visible = false
 		get_node("Players/Player" + str(true_i) + "/name_label").visible = false
 		get_node("Players/Player" + str(true_i) + "/money_left").visible = false
@@ -371,12 +383,24 @@ func _on_rejouer_pressed() -> void:
 		get_node("Board/" + str(i)).reveal(CD * 2.0 * (nb_players - 1 + anim_speed * i), true)
 	p1_has_cards = false
 	in_game = false
+	user_did_timeout = false
 	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
-
 
 func _on_server_go_pressed() -> void:
 	$Requests/ServerGo.request(str(url) + "/GO")
 
-
 func _on_cd_spectate_timeout() -> void:
 	_on_rejouer_pressed()
+
+func _on_rejoindre_pressed() -> void:
+	$Requests/Unspectate.request(str(url) + "/unspectate?id=" + str(user_id))
+	$UI/Rejoindre.disabled = true
+	
+func _on_unspectate_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	var ans = body.get_string_from_utf8()
+	if ans == "ok":
+		is_spectator = false
+		$Money/TotalBet.text = "Tu vas join la prochaine game"
+		$UI/Rejoindre.visible = false
+	else:
+		$UI/Rejoindre.disabled = false
