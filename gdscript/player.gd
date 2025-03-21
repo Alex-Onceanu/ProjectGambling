@@ -32,7 +32,7 @@ func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0)
 	
 	new_card.visible = true
 	$name_label.visible = true
-	$money_left.visible = true
+
 	var left_or_right = (nb_cards - 1) * 2 - 1
 	new_card.go_to(global_position + Vector2(left_or_right * GAP_SIZE / 2, 0.0), 0.2, cd)
 	
@@ -46,6 +46,9 @@ func animate_bet(how_much):
 	elif how_much == -2:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.4, 0.4, 0.4))
 		$bet_anim.text = "fold par afk"
+	elif int($money_left.text) <= 0:
+		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.4, 0.3))
+		$bet_anim.text = "all-in"
 	else:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.74, 1.0))
 		$bet_anim.text = "-" + str(how_much) + "€"

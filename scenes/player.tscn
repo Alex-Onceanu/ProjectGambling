@@ -17,36 +17,38 @@ position = Vector2(-53, -9.53674e-07)
 
 [node name="name_label" type="Label" parent="."]
 visible = false
-offset_left = -87.0
+offset_left = -68.0
 offset_top = 45.0
-offset_right = 88.0
-offset_bottom = 68.0
+offset_right = 103.0
+offset_bottom = 71.0
+scale = Vector2(0.8, 0.8)
 theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="money_left" type="Label" parent="."]
 visible = false
-offset_left = -87.0
-offset_top = 68.0
-offset_right = 88.0
-offset_bottom = 91.0
+offset_left = -70.0
+offset_top = 63.0
+offset_right = 105.0
+offset_bottom = 89.0
+scale = Vector2(0.8, 0.8)
 theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="combo" type="Label" parent="."]
 visible = false
-offset_left = -100.0
-offset_top = 91.0
-offset_right = 100.0
-offset_bottom = 117.0
+offset_left = -80.0
+offset_top = 83.0
+offset_right = 120.0
+offset_bottom = 109.0
+scale = Vector2(0.8, 0.8)
 theme = ExtResource("3_4nyiy")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="bet_anim" type="Label" parent="."]
-visible = false
 offset_left = 47.0
 offset_top = 46.0
 offset_right = 97.0

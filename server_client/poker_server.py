@@ -55,6 +55,7 @@ class Game:
         self.last_showdown = {}         # en fin de partie, on remplit ce dictionnaire avec tout ce qu'il faut
         self.nb_players = 0             # len(self.ids)
         self.combo_per_player = {}      # { i : poker_hand(cards_per_player[i] + self.board) for i in self.ids }
+        self.nb_skippable = 0
 
         print(" << Classe Game initialisée.")
 
@@ -83,6 +84,7 @@ class Game:
             self.round = 0
             self.id_to_bet = {}
             self.who_is_playing = 0
+            self.nb_skippable = 0
             
             print(" << Go ! Joueurs actuels : ", self.ids)
 
@@ -113,17 +115,25 @@ class Game:
 
     def showdown(self):
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
-        winner = max(range(self.nb_players), key=(lambda i : hand_per_player[i]))
-
-        all_winners = [winner]
-        for i in range(self.nb_players):
-            if i != winner and hand_per_player[i] == hand_per_player[winner]:
-                all_winners.append(i)
-          
-        nb_winners = len(all_winners)
-        for w in all_winners:
-            self.money_left[w] += round(self.total_bet / nb_winners)
+        who_didnt_fold = [i for i in range(self.nb_players) if not i in self.folded_ones]
         
+        all_winners = []
+        if who_didnt_fold != []:
+            winner = max(who_didnt_fold, key=(lambda i : hand_per_player[i]))
+
+            all_winners = [winner]
+            for i in range(self.nb_players):
+                if i != winner and hand_per_player[i] == hand_per_player[winner] and not i in self.folded_ones:
+                    all_winners.append(i)
+            
+            reward = round(self.total_bet / len(all_winners))
+            for w in all_winners:
+                self.money_left[w] += reward
+                print(f" << Youpi gg {self.id_to_name[self.ids[w]]} tu as désormais {self.money_left[w]}$")
+                if w in self.did_timeout:
+                    print(" << et meme que je t'enleve des did_timeout")
+                    self.did_timeout.remove(w)
+
         self.total_bet = 0
         self.money_left = [self.money_left[i] for i in range(len(self.money_left)) if i not in self.did_timeout]
 
@@ -131,7 +141,8 @@ class Game:
             "winners" : all_winners,
             "money_left" : self.money_left,
             "cards" : [f"{self.cards_per_player[p][0:2]},{self.cards_per_player[p][2:4]}" for p in self.ids],
-            "hand_per_player" : [str_of_combo(co[0]) for co in hand_per_player]
+            "hand_per_player" : [str_of_combo(co[0]) for co in hand_per_player],
+            "reward" : reward
         }
     
         which_id_did_timeout = [self.ids[i] for i in self.did_timeout]
@@ -160,11 +171,15 @@ class Game:
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas miser car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
             return
-        if how_much + self.id_to_bet[who] < self.current_blind:
+        
+        if self.money_left[self.who_is_playing] <= how_much:
+            print(f" << {self.id_to_name[who]} choisit de ALL-IN")
+            how_much = self.money_left[self.who_is_playing]
+            self.did_timeout.append(self.who_is_playing)
+            self.nb_skippable += 1
+            
+        elif how_much + self.id_to_bet[who] < self.current_blind:
             print(f" << Non {self.id_to_name[who]}, tu peux pas miser car la blinde actuelle c'est {self.current_blind} gros naze")
-            return
-        if self.money_left[self.who_is_playing] < how_much:
-            print(f" << Non {self.id_to_name[who]}, tu peux pas miser car t'as pas assez d'argent mdr cheh")
             return
 
         for idp in self.id_to_update.keys():
@@ -194,8 +209,12 @@ class Game:
         if self.ids[self.who_is_playing] != who:
             print(f" << Non {self.id_to_name[who]}, tu peux pas fold car c'est le tour de {self.id_to_name[self.ids[self.who_is_playing]]}")
             return
+        if len(self.folded_ones) + 1 == len(self.ids):
+            print(f" << Non {self.id_to_name[who]}, tu peux pas fold car t'es le dernier en lice t'as gagné")
+            return
         
         self.folded_ones.append(self.who_is_playing)
+        self.nb_skippable += 1
 
         for idp in self.id_to_update.keys():
             self.id_to_update[idp].append((self.who_is_playing, fold_or_timeout))
@@ -249,7 +268,7 @@ class Game:
     def play_round(self, nb_cards_to_add_to_board : int):
         self.nb_players = len(self.ids)
         CD = 0.1
-        DURATION_PER_PLAYER = 10
+        DURATION_PER_PLAYER = 40
         self.reset_id_to_bet()
         self.current_blind = 0
         self.who_is_playing = 0
@@ -271,7 +290,9 @@ class Game:
 
         while self.stable_since < self.nb_players:
             print(f" << stable since : {self.stable_since} / {self.nb_players}")
-            if self.who_is_playing in self.folded_ones:
+            if self.who_is_playing in self.folded_ones or self.money_left[self.who_is_playing] <= 0:
+                if len(self.ids) == self.nb_skippable or len(self.ids) == self.nb_skippable + 1:
+                    time.sleep(0.5)
                 self.stable_since += 1
                 self.next_player()
                 continue
@@ -283,6 +304,7 @@ class Game:
                 waited += CD
                 if waited >= DURATION_PER_PLAYER:
                     self.did_timeout.append(self.who_is_playing)
+                    self.nb_skippable += 1
                     self.folded(self.ids[self.who_is_playing], TIMEOUT)
                     break
         self.round_transition = True
@@ -497,7 +519,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(("ok" if not self.gameInstance.inGame else "no").encode())
 
                 elif self.path.startswith('/GO'):
-                    self.gameInstance.shouldStart = True
+                    self.gameInstance.shouldStart = len(self.gameInstance.ids) > 1
                     parsed_url = urlparse(self.path)
                     self.send_response(200, 'OK')
                     self.send_my_headers()

@@ -52,6 +52,9 @@ wait_time = 0.8
 
 [node name="Unspectate" type="HTTPRequest" parent="Requests"]
 
+[node name="WaitBeforeUpdate" type="Timer" parent="Requests"]
+one_shot = true
+
 [node name="Background" type="Sprite2D" parent="."]
 position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
@@ -321,7 +324,7 @@ theme = ExtResource("10_p7uy6")
 text = "Rejoindre"
 
 [node name="CDSpectate" type="Timer" parent="UI"]
-wait_time = 5.0
+wait_time = 10.0
 one_shot = true
 
 [node name="ServerGo" type="Button" parent="."]
@@ -341,6 +344,7 @@ text = "server go"
 [connection signal="request_completed" from="Requests/Showdown" to="." method="_on_showdown_completed"]
 [connection signal="request_completed" from="Requests/CardToVFX" to="." method="_on_card_to_vfx_request_completed"]
 [connection signal="request_completed" from="Requests/Unspectate" to="." method="_on_unspectate_request_completed"]
+[connection signal="timeout" from="Requests/WaitBeforeUpdate" to="." method="_on_wait_before_update_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]

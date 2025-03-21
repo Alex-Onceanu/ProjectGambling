@@ -85,6 +85,7 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		tryagain_node = $Requests/Ready
 		tryagain_url = str(url) + "/ready?id=" + str(user_id)
 		$Requests/TryAgain.start()
+	
 	elif ans.begins_with("go!"):
 		$EnterCode/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
 		$Money/TotalBet.text = "Allez une game de +"
@@ -109,11 +110,13 @@ func start_game(cards):
 	
 	if is_spectator:
 		other_players.append($Players/Player1)
-		$Deck.deal_cards(null, [], other_players)
+		var how_much_wait = $Deck.deal_cards(null, [], other_players)
+		$Requests/WaitBeforeUpdate.wait_time = max(0, how_much_wait - $Requests/UpdateTimer.wait_time)
 	else:
-		$Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players)
+		var how_much_wait = $Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players) - $Requests/UpdateTimer.wait_time
+		$Requests/WaitBeforeUpdate.wait_time = max(0, how_much_wait - $Requests/UpdateTimer.wait_time)
 
-	$Requests/UpdateTimer.start()
+	$Requests/WaitBeforeUpdate.start()
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
@@ -181,17 +184,6 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/Name.placeholder_text = "En train de télécommuniquer..."
 	$EnterCode/Name.editable = false
 	
-	if new_text == "debug":
-		$EnterCode.visible = false
-		$Table.visible = true
-		rearrange_players(["j2", "j3", "j4", "j5", "j6", "j7", "j8", "j9", "j10", "j11", "j12", "debug"])
-		$Deck.deal_cards($Players/Player1, ["HA", "SA"], [$Players/Player2, $Players/Player3, $Players/Player4, $Players/Player5, $Players/Player6, $Players/Player7, $Players/Player8, $Players/Player9, $Players/Player10, $Players/Player11, $Players/Player12])
-		$UI.visible = true
-		$Deck.visible = true
-		$Money.visible = true
-		url = ""
-		return
-	
 	url = "http://gambling2.share.zrok.io"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
 
@@ -217,8 +209,6 @@ func end_turn():
 	$UI/Surencherir.disabled = true
 	$UI/Suivre.disabled = true
 	can_activate_btns = false
-	# TODO (bug) : on reçoit un update dans lequel c'est tjrs notre tour juste après avoir lancé end_turn
-	# donc disabled se remet à false et les boutons restent accessibles
 
 func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
@@ -235,14 +225,16 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 			$Requests/Showdown.request(url + "/showdown")
 		else:
 			$Requests/Cards.request(url + "/cards?id=" + str(user_id))
-	
+
 	money_left = data["money_left"]
 	
-	for i in range(nb_players):
-		var true_i = true_i_of_i(i)
-		if i < len(money_left):
-			get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(money_left[i])) + "€"
-		
+	if round != 4:
+		for i in range(nb_players):
+			var true_i = true_i_of_i(i)
+			if i < len(money_left):
+				get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(money_left[i])) + "€"
+				get_node("Players/Player" + str(true_i) + "/money_left").visible = true
+#	
 	if total_bet != int(data["total_bet"]):
 		total_bet = int(data["total_bet"])
 		$Money/TotalBet.text = "Mise : " + str(total_bet) + "€"
@@ -264,7 +256,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		$Players/Player1/Card_1/vfx.visible = false
 		$Players/Player1/Card_2/vfx.visible = false
 		user_did_timeout = true
-#	
+		
 	if who_is_playing != int(data["who_is_playing"]):
 		if who_is_playing != null:
 			get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
@@ -291,8 +283,6 @@ func _on_suivre_pressed() -> void:
 		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet))
 	end_turn()
 
-# TODO : gérer le cas où le serveur nous répond "transition" avec un TryAgain
-
 # "winners" : all_winners,
 # "money_left" : self.money_left,
 # "cards" : [self.cards_per_player[p] for p in self.ids],
@@ -304,6 +294,7 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	if data == null:
 		print("Erreur au moment de parser la réponse de /update/ !!")
 		return
+
 	#print("Winners : ", data["winners"])
 	#print("Money left : ", data["money_left"])
 	#print("Cards : ", data["cards"])
@@ -324,13 +315,12 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		var player_node = get_node("Players/Player" + str(true_i_of_i(int(w))))
 		true_winners.append(player_node.global_position)
 		player_node.begin_scale_anim()
+		get_node("Players/Player" + str(true_i_of_i(int(w))) + "/money_left").text = str(int(get_node("Players/Player" + str(true_i_of_i(int(w))) + "/money_left").text) + int(data["reward"])) + "€"
 	$Money.set_winners(true_winners)
 	
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
 		if true_i > 1 or is_spectator:
-			if i < len(data["money_left"]):
-				get_node("Players/Player" + str(true_i) + "/money_left").text = str(int(data["money_left"][i])) + "€"
 			var their_cards = data["cards"][i].split(",")
 			get_node("Players/Player" + str(true_i) + "/Card_1").set_card_type(their_cards[0])
 			get_node("Players/Player" + str(true_i) + "/Card_2").set_card_type(their_cards[1])
@@ -339,6 +329,12 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		get_node("Players/Player" + str(true_i) + "/combo").text = data["hand_per_player"][i]
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
+	
+	if int($Players/Player1/money_left.text) <= 0 and not str(my_player_offset * 1.0) in data["winners"]:
+		is_spectator = true
+		$Players/Player1/Card_1/vfx.visible = false
+		$Players/Player1/Card_2/vfx.visible = false
+	
 	if is_spectator:
 		$UI/CDSpectate.start()
 		$UI/Rejoindre.disabled = false
@@ -361,7 +357,6 @@ func _on_card_to_vfx_request_completed(result: int, response_code: int, headers:
 		var node_path = "Board/" + str(int(card_id) + 1) if int(card_id) <= 4 else ("Players/Player1/Card_" + str(int(card_id) - 4))
 		var this_vfx = get_node(node_path + "/vfx")
 		this_vfx.visible = true
-
 
 func _on_rejouer_pressed() -> void:
 	$UI/Rejouer.visible = false
@@ -404,3 +399,6 @@ func _on_unspectate_request_completed(result: int, response_code: int, headers: 
 		$UI/Rejoindre.visible = false
 	else:
 		$UI/Rejoindre.disabled = false
+
+func _on_wait_before_update_timeout() -> void:
+	$Requests/UpdateTimer.start()

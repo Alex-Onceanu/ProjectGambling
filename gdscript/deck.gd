@@ -22,6 +22,7 @@ func deal_cards(player1, player1_cards, others):
 		player1.get_node("Card_1").reveal(DEAL_CD * i)
 		i += 1
 		player1.get_node("Card_2").reveal(DEAL_CD * i)
+	return DEAL_CD * (i + 1)
 
 func get_global_pos():
 	return global_position
