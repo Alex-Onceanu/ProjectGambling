@@ -12,11 +12,9 @@ shader_parameter/spades = ExtResource("2_44jad")
 shader_parameter/hearts = ExtResource("4_o00ih")
 shader_parameter/diamonds = ExtResource("3_mydxm")
 shader_parameter/clubs = ExtResource("2_gyu4m")
-shader_parameter/color = Color(1, 0.380392, 0.0509804, 1)
+shader_parameter/color = Color(3.00817e-09, 0.146031, 0, 1)
 
 [node name="Symbol" type="ColorRect"]
 material = SubResource("ShaderMaterial_44jad")
-offset_left = -32.0
-offset_top = -32.0
-offset_right = 32.0
-offset_bottom = 32.0
+offset_right = 64.0
+offset_bottom = 64.0
