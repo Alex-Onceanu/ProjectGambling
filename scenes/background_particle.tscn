@@ -1,0 +1,22 @@
+[gd_scene load_steps=7 format=3 uid="uid://ddnt82l3p7b72"]
+
+[ext_resource type="Shader" uid="uid://dmj7nts1wubf3" path="res://scenes/background_particle.gdshader" id="1_6bvtx"]
+[ext_resource type="Texture2D" uid="uid://81006gsehfof" path="res://assets/spades_dist.jpg" id="2_44jad"]
+[ext_resource type="Texture2D" uid="uid://brf51bj2wgbnt" path="res://assets/clubs_dist.jpg" id="2_gyu4m"]
+[ext_resource type="Texture2D" uid="uid://2xp3iwm2jpm4" path="res://assets/diamonds_dist.jpg" id="3_mydxm"]
+[ext_resource type="Texture2D" uid="uid://cj4h77d8sik5a" path="res://assets/hearts_dist.jpg" id="4_o00ih"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_44jad"]
+shader = ExtResource("1_6bvtx")
+shader_parameter/spades = ExtResource("2_44jad")
+shader_parameter/hearts = ExtResource("4_o00ih")
+shader_parameter/diamonds = ExtResource("3_mydxm")
+shader_parameter/clubs = ExtResource("2_gyu4m")
+shader_parameter/color = Color(1, 0.380392, 0.0509804, 1)
+
+[node name="Symbol" type="ColorRect"]
+material = SubResource("ShaderMaterial_44jad")
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0

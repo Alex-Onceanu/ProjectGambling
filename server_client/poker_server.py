@@ -286,10 +286,10 @@ class Game:
             self.combo_per_player[p] = poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board)
 
         if nb_cards_to_add_to_board == 0:
-            print(f" << {self.id_to_name[self.ids[self.dealer + 1 % self.nb_players]]} mise la petite blinde de {SMALL_BLIND}")
-            self.bet(self.ids[self.dealer + 1 % self.nb_players], SMALL_BLIND)
+            print(f" << {self.id_to_name[self.ids[(self.dealer + 1) % self.nb_players]]} mise la petite blinde de {SMALL_BLIND}")
+            self.bet(self.ids[(self.dealer + 1) % self.nb_players], SMALL_BLIND)
             print(f" << {self.id_to_name[self.ids[(self.dealer + 2) % self.nb_players]]} mise la grosse blinde de {BIG_BLIND}")
-            self.bet(self.ids[self.dealer + 2 % self.nb_players], BIG_BLIND)
+            self.bet(self.ids[(self.dealer + 2) % self.nb_players], BIG_BLIND)
     
         self.stable_since = 0
         self.round_transition = False
