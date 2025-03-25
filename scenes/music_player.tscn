@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://dtqyjjeakp1v"]
+
+[ext_resource type="AudioStream" uid="uid://do3sv16qma4h7" path="res://assets/boring20s.mp3" id="1_jxdhu"]
+
+[node name="MusicPlayer" type="Node2D"]
+
+[node name="Stream" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(689, 372)
+stream = ExtResource("1_jxdhu")

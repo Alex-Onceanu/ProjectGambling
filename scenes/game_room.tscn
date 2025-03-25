@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=16 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
 [ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
+[ext_resource type="PackedScene" uid="uid://maipilee56om" path="res://scenes/background_particles.tscn" id="3_0t0sp"]
 [ext_resource type="Shader" uid="uid://dhtrfbqau0m46" path="res://shaders/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
@@ -12,6 +13,7 @@
 [ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://scenes/money.gd" id="6_ij5t4"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 [ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
+[ext_resource type="PackedScene" uid="uid://dtqyjjeakp1v" path="res://scenes/music_player.tscn" id="14_0rgw7"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qblcs"]
 shader = ExtResource("3_7c0aq")
@@ -59,6 +61,9 @@ one_shot = true
 position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
 texture = ExtResource("2_ctk2m")
+
+[node name="BackgroundParticles" parent="." instance=ExtResource("3_0t0sp")]
+visible = false
 
 [node name="Table" type="ColorRect" parent="."]
 visible = false
@@ -251,6 +256,8 @@ theme = ExtResource("10_p7uy6")
 placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50
+
+[node name="MusicPlayer" parent="." instance=ExtResource("14_0rgw7")]
 
 [node name="UI" type="Node2D" parent="."]
 visible = false

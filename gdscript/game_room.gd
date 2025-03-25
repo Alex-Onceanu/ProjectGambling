@@ -94,6 +94,10 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 
 func start_game(cards):
+	if not $BackgroundParticles.visible:
+		$MusicPlayer/Stream.play()
+		$BackgroundParticles.visible = true
+	
 	var other_players = []
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))

@@ -7,10 +7,10 @@ uniform sampler2D wood;
 void fragment() {
 	vec2 uv = UV * 2.0 - vec2(1.0, 1.0);
 
-	float border_alpha = smoothstep(0.8, 0.86, dot(uv, uv)) * (1.0 - smoothstep(0.98, 1.0, dot(uv, uv)));
-	vec4 border = vec4(vec3(0.345, 0.24, 0.15), border_alpha);
+	float border_alpha = step(0.85, dot(uv, uv)) * (1.0 - smoothstep(0.98, 1.0, dot(uv, uv)));
+	vec4 border = vec4(vec3(0.345, 0.2, 0.15), border_alpha);
 
-	float dark_alpha = (1.0 - step(0.86, dot(uv, uv)));
+	float dark_alpha = (1.0 - step(0.85, dot(uv, uv)));
 	vec4 dark_table = vec4(vec3(0.0, 0.2 + 0.4 * (1.0 - dot(uv, uv)), 0.0), dark_alpha);
 
 	vec3 velvet = normalize(texture(noise, 0.87 * UV).rgb) * dark_alpha;
@@ -23,5 +23,5 @@ void fragment() {
 
 	//COLOR = vec4(clamp(dot(velvet, vec3(0.0, 0.0, -1.0)), 0.0, 1.0));
 	vec4 bright_color = dot(wood_nm, 3.0 * light) + border * border.a + dark_table * dark_table.a + dot(velvet, light);
-	COLOR = vec4(0.4 * bright_color.xyz, bright_color.a);
+	COLOR = vec4(0.4 * bright_color.xyz, border_alpha + dark_alpha);
 }
