@@ -1,9 +1,15 @@
 [gd_scene load_steps=2 format=3 uid="uid://dtqyjjeakp1v"]
 
-[ext_resource type="AudioStream" uid="uid://do3sv16qma4h7" path="res://assets/boring20s.mp3" id="1_jxdhu"]
+[ext_resource type="Script" uid="uid://c30fpuorquk2k" path="res://scenes/music_player.gd" id="1_ql6qh"]
 
 [node name="MusicPlayer" type="Node2D"]
+script = ExtResource("1_ql6qh")
 
-[node name="Stream" type="AudioStreamPlayer2D" parent="."]
+[node name="StreamPlayer" type="AudioStreamPlayer2D" parent="."]
 position = Vector2(689, 372)
-stream = ExtResource("1_jxdhu")
+
+[node name="WaitBeforeNext" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="finished" from="StreamPlayer" to="." method="_on_stream_player_finished"]
+[connection signal="timeout" from="WaitBeforeNext" to="." method="_on_wait_before_next_timeout"]

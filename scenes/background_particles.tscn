@@ -9,7 +9,7 @@
 
 [sub_resource type="Curve2D" id="Curve2D_cl88g"]
 _data = {
-"points": PackedVector2Array(336.865, 130.282, -336.865, -130.282, 1095, 49, 320.593, 23.1995, -320.593, -23.1995, 1026.34, 451.738, 314.893, 58.7928, -314.893, -58.7928, 1092, 51)
+"points": PackedVector2Array(217.485, 98.8034, -217.485, -98.8034, 1090.26, 8, 213.483, 63.3948, -213.483, -63.3948, 1111.79, 448, 180.24, 83.015, -180.24, -83.015, 1090.26, 8)
 }
 point_count = 3
 
@@ -23,42 +23,11 @@ shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 0.0
-
-[sub_resource type="Curve2D" id="Curve2D_s2r6w"]
-_data = {
-"points": PackedVector2Array(-156.161, 0.424589, 156.161, -0.424589, 75, 22, 150.802, -177.837, -150.802, 177.837, 280, 148, -122.238, -1.77156, 122.238, 1.77156, 75, 22)
-}
-point_count = 3
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_4s878"]
-shader = ExtResource("1_s2r6w")
-shader_parameter/spades = ExtResource("5_7ej4g")
-shader_parameter/hearts = ExtResource("4_ch57y")
-shader_parameter/diamonds = ExtResource("3_l5vo1")
-shader_parameter/clubs = ExtResource("2_4s878")
-shader_parameter/frequency = 2.033
-shader_parameter/phase = 0.0
-shader_parameter/which_figure = 3.0
-
-[sub_resource type="Curve2D" id="Curve2D_4s878"]
-_data = {
-"points": PackedVector2Array(7.65207, 86.5421, -7.65207, -86.5421, 1099, 533, 7.71071, -68.3469, -7.71071, 68.3469, 791, 463, 9.91734, 86.7769, -9.91734, -86.7769, 1099, 533)
-}
-point_count = 3
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_l5vo1"]
-shader = ExtResource("1_s2r6w")
-shader_parameter/spades = ExtResource("5_7ej4g")
-shader_parameter/hearts = ExtResource("4_ch57y")
-shader_parameter/diamonds = ExtResource("3_l5vo1")
-shader_parameter/clubs = ExtResource("2_4s878")
-shader_parameter/frequency = 2.033
-shader_parameter/phase = 0.0
-shader_parameter/which_figure = 1.0
+shader_parameter/fade = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_l5vo1"]
 _data = {
-"points": PackedVector2Array(8.76923, -155.897, -8.76923, 155.897, 81, 330, 92.8368, -68.4942, -92.8368, 68.4942, 246, 525, 108.821, -24.0652, -108.821, 24.0652, 78, 329)
+"points": PackedVector2Array(103.769, -18.6247, -103.769, 18.6247, 81, 330, 132.837, 20.5967, -132.837, -20.5967, 78, 733, 178.821, -29.0652, -178.821, 29.0652, 78, 329)
 }
 point_count = 3
 
@@ -71,10 +40,62 @@ shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 2.0
+shader_parameter/fade = 0.0
+
+[sub_resource type="Curve2D" id="Curve2D_4s878"]
+_data = {
+"points": PackedVector2Array(65.4021, -0.907938, -65.4021, 0.907938, 1074, 578, -48.9393, -3.99692, 48.9393, 3.99692, 1095, 50, 55.0173, -0.123143, -55.0173, 0.123143, 1074, 578)
+}
+point_count = 3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_l5vo1"]
+shader = ExtResource("1_s2r6w")
+shader_parameter/spades = ExtResource("5_7ej4g")
+shader_parameter/hearts = ExtResource("4_ch57y")
+shader_parameter/diamonds = ExtResource("3_l5vo1")
+shader_parameter/clubs = ExtResource("2_4s878")
+shader_parameter/frequency = 2.033
+shader_parameter/phase = 0.0
+shader_parameter/which_figure = 1.0
+shader_parameter/fade = 0.0
+
+[sub_resource type="Curve2D" id="Curve2D_s2r6w"]
+_data = {
+"points": PackedVector2Array(-156.161, 0.424589, 156.161, -0.424589, 85, 51, 150.802, -177.837, -150.802, 177.837, 187, 183, -122.238, -1.77156, 122.238, 1.77156, 85, 52)
+}
+point_count = 3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4s878"]
+shader = ExtResource("1_s2r6w")
+shader_parameter/spades = ExtResource("5_7ej4g")
+shader_parameter/hearts = ExtResource("4_ch57y")
+shader_parameter/diamonds = ExtResource("3_l5vo1")
+shader_parameter/clubs = ExtResource("2_4s878")
+shader_parameter/frequency = 2.033
+shader_parameter/phase = 0.0
+shader_parameter/which_figure = 3.0
+shader_parameter/fade = 0.0
+
+[sub_resource type="Curve2D" id="Curve2D_86s8c"]
+_data = {
+"points": PackedVector2Array(-73.2793, 38.7838, 73.2793, -38.7838, 1024, 326, 104.285, -82.0325, -104.285, 82.0325, 945, 71, -75.119, 35.431, 75.119, -35.431, 1024, 328)
+}
+point_count = 3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ukgoj"]
+shader = ExtResource("1_s2r6w")
+shader_parameter/spades = ExtResource("5_7ej4g")
+shader_parameter/hearts = ExtResource("4_ch57y")
+shader_parameter/diamonds = ExtResource("3_l5vo1")
+shader_parameter/clubs = ExtResource("2_4s878")
+shader_parameter/frequency = 2.033
+shader_parameter/phase = 1.0
+shader_parameter/which_figure = 2.0
+shader_parameter/fade = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_ch57y"]
 _data = {
-"points": PackedVector2Array(-7.97936, 160.099, 7.97936, -160.099, 167, 543, 11.9324, 157.025, -11.9324, -157.025, 375, 592, -13.4697, 217.053, 13.4697, -217.053, 167, 545)
+"points": PackedVector2Array(-7.97936, 160.099, 7.97936, -160.099, 133, 540, 3.7506, 206.116, -3.7506, -206.116, 310, 600, -0.742444, 215.235, 0.742444, -215.235, 132, 541)
 }
 point_count = 3
 
@@ -87,26 +108,28 @@ shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 0.0
+shader_parameter/fade = 0.0
 
-[sub_resource type="Curve2D" id="Curve2D_86s8c"]
+[sub_resource type="Curve2D" id="Curve2D_ukgoj"]
 _data = {
-"points": PackedVector2Array(-68.8793, -0.2662, 68.8793, 0.2662, 1036, 261, 28.6165, 103.751, -28.6165, -103.751, 1116, 129, -39.2645, -76.5325, 39.2645, 76.5325, 797, 79, -65.219, 1.331, 65.219, -1.331, 1035, 263)
+"points": PackedVector2Array(78.1116, 135.442, -78.1116, -135.442, 1022, 691, 16.9852, 198.444, -16.9852, -198.444, 1254, 601, 93.3347, 137.624, -93.3347, -137.624, 1021, 691)
 }
-point_count = 4
+point_count = 3
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ukgoj"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xfcud"]
 shader = ExtResource("1_s2r6w")
 shader_parameter/spades = ExtResource("5_7ej4g")
 shader_parameter/hearts = ExtResource("4_ch57y")
 shader_parameter/diamonds = ExtResource("3_l5vo1")
 shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
-shader_parameter/phase = 1.0
-shader_parameter/which_figure = 2.0
+shader_parameter/phase = 0.0
+shader_parameter/which_figure = 3.0
+shader_parameter/fade = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_7ej4g"]
 _data = {
-"points": PackedVector2Array(-15.4, -79.75, 15.4, 79.75, 358, 413, 1.65, 58.3, -1.65, -58.3, 48, 348, 1.65, -38.5, -1.65, 38.5, 358, 413)
+"points": PackedVector2Array(170.335, -75.515, -170.335, 75.515, 103, 585, 180.73, -89.925, -180.73, 89.925, 37, 272, 188.595, -76.615, -188.595, 76.615, 103, 585)
 }
 point_count = 3
 
@@ -119,155 +142,166 @@ shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
 shader_parameter/which_figure = 1.0
-
-[sub_resource type="Curve2D" id="Curve2D_ukgoj"]
-_data = {
-"points": PackedVector2Array(-106, 19.5, 106, -19.5, 815, 386, 35, 164, -35, -164, 1136, 468, 90, 9, -90, -9, 875, 540, -93.5, 20.5, 93.5, -20.5, 815, 386)
-}
-point_count = 4
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_xfcud"]
-shader = ExtResource("1_s2r6w")
-shader_parameter/spades = ExtResource("5_7ej4g")
-shader_parameter/hearts = ExtResource("4_ch57y")
-shader_parameter/diamonds = ExtResource("3_l5vo1")
-shader_parameter/clubs = ExtResource("2_4s878")
-shader_parameter/frequency = 2.033
-shader_parameter/phase = 0.0
-shader_parameter/which_figure = 3.0
+shader_parameter/fade = 0.0
 
 [node name="BackgroundParticles" type="Node2D"]
 script = ExtResource("1_4s878")
 
 [node name="Path1" type="Path2D" parent="."]
-position = Vector2(-41.6835, 24.2622)
+position = Vector2(-15, 26)
 scale = Vector2(0.975, 1)
 curve = SubResource("Curve2D_cl88g")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path1"]
-position = Vector2(1095, 49)
-rotation = -6.28319
+position = Vector2(1090.26, 8)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path1/PathFollow2D"]
 material = SubResource("ShaderMaterial_s2r6w")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 metadata/_edit_use_anchors_ = true
 
 [node name="Path2" type="Path2D" parent="."]
-curve = SubResource("Curve2D_s2r6w")
+position = Vector2(4, -133)
+curve = SubResource("Curve2D_l5vo1")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path2"]
-position = Vector2(75, 22)
-rotation = -0.0558505
+position = Vector2(81, 330)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path2/PathFollow2D"]
-material = SubResource("ShaderMaterial_4s878")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
-rotation = 0.0575959
+material = SubResource("ShaderMaterial_ch57y")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 
 [node name="Path3" type="Path2D" parent="."]
 position = Vector2(-17, -1)
 curve = SubResource("Curve2D_4s878")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path3"]
-position = Vector2(1099, 533)
-rotation = -0.0258009
+position = Vector2(1074, 578)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path3/PathFollow2D"]
 material = SubResource("ShaderMaterial_l5vo1")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
-rotation = 0.0575959
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 
 [node name="Path4" type="Path2D" parent="."]
-position = Vector2(4, -133)
-curve = SubResource("Curve2D_l5vo1")
+curve = SubResource("Curve2D_s2r6w")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path4"]
-position = Vector2(81, 330)
-rotation = 1.62699
+position = Vector2(85, 51)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path4/PathFollow2D"]
-material = SubResource("ShaderMaterial_ch57y")
-offset_left = -92.2854
-offset_top = 104.348
-offset_right = 99.7146
-offset_bottom = 296.348
-rotation = -1.62316
+material = SubResource("ShaderMaterial_4s878")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 
 [node name="Path5" type="Path2D" parent="."]
-position = Vector2(-76, -50)
-curve = SubResource("Curve2D_ch57y")
+position = Vector2(41, -15)
+curve = SubResource("Curve2D_86s8c")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path5"]
-position = Vector2(167, 543)
-rotation = -0.064132
+position = Vector2(1024, 326)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path5/PathFollow2D"]
-material = SubResource("ShaderMaterial_7ej4g")
-offset_left = -91.5179
-offset_top = -104.079
-offset_right = 100.482
-offset_bottom = 87.9208
-rotation = 0.0698132
+material = SubResource("ShaderMaterial_ukgoj")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 metadata/_edit_use_anchors_ = true
 
 [node name="Path6" type="Path2D" parent="."]
-position = Vector2(-21, -13)
-curve = SubResource("Curve2D_86s8c")
+position = Vector2(-76, -50)
+curve = SubResource("Curve2D_ch57y")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path6"]
-position = Vector2(1036, 261)
+position = Vector2(133, 540)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path6/PathFollow2D"]
-material = SubResource("ShaderMaterial_ukgoj")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
+material = SubResource("ShaderMaterial_7ej4g")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 metadata/_edit_use_anchors_ = true
 
 [node name="Path7" type="Path2D" parent="."]
-curve = SubResource("Curve2D_7ej4g")
+position = Vector2(-132, -112)
+curve = SubResource("Curve2D_ukgoj")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path7"]
-position = Vector2(358, 413)
+position = Vector2(1022, 691)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path7/PathFollow2D"]
-material = SubResource("ShaderMaterial_86s8c")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
+material = SubResource("ShaderMaterial_xfcud")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 metadata/_edit_use_anchors_ = true
 
 [node name="Path8" type="Path2D" parent="."]
-position = Vector2(7, -123)
-curve = SubResource("Curve2D_ukgoj")
+position = Vector2(32, -23)
+curve = SubResource("Curve2D_7ej4g")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Path8"]
-position = Vector2(815, 386)
+position = Vector2(103, 585)
 rotates = false
 
 [node name="Particle" type="ColorRect" parent="Path8/PathFollow2D"]
-material = SubResource("ShaderMaterial_xfcud")
-offset_left = -96.0
-offset_top = -96.0
-offset_right = 96.0
-offset_bottom = 96.0
+material = SubResource("ShaderMaterial_86s8c")
+offset_left = -81.0
+offset_top = -81.0
+offset_right = 81.0
+offset_bottom = 81.0
 metadata/_edit_use_anchors_ = true
+
+[node name="Timers" type="Node2D" parent="."]
+
+[node name="Fade1" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade2" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade3" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade4" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade5" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade6" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade7" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Fade8" type="Timer" parent="Timers"]
+wait_time = 3.0
+one_shot = true

@@ -2,20 +2,31 @@ def val_of_str(c):
     val_of_figure = { "J" : 11, "Q" : 12, "K" : 13, "A" : 14 }
     return (1 + int(c)) if c <= '9' else val_of_figure[c]
 
+def make_unique_by_key(l, f) -> list:
+    ans = []
+    fs = []
+    for i in l:
+        fi = f(i)
+        if not fi in fs:
+            fs.append(fi)
+            ans.append(i)
+    return ans
+
 # Renvoie par exemple [S8, D7, S6, S5, S4] ou []
 def has_straight(cards) -> list:
+    cards = make_unique_by_key(cards, lambda c : val_of_str(c[1]))
     if len(cards) < 5: return []
     by_value = sorted(cards, key=(lambda c : val_of_str(c[1])), reverse=True)
-
-    straight_count = 0
-    prev = None
+    
+    straight_count = 1
+    prev = by_value[0]
     for i in range(1, len(by_value)):
         if straight_count >= 5:
-            return by_value[i - 4 : i + 1]
+            return by_value[i - 5 : i]
         if prev is None or val_of_str(prev[1]) - val_of_str(by_value[i][1]) == 1:
-            straight_count += 1
+            straight_count += 1 
         else:
-            straight_count = 0
+            straight_count = 1
             if len(by_value) - i < 5:
                 return []
         prev = by_value[i]
@@ -124,17 +135,23 @@ def poker_hand(cards : list) -> tuple:
     return (val, combo)
 
 
-# if __name__ == "__main__":
-#     assert poker_hand(["D4", "H6", "S3", "SQ", "C5", "C2", "H9"]) == (4, ["H6", "C5", "D4", "S3", "C2"])
-#     assert poker_hand(["SA", "CA", "HJ", "DJ", "SQ", "HQ", "S2"]) == (2, ["SA", "CA", "SQ", "HQ", "HJ"])
-#     assert poker_hand(["S3", "S4", "SA", "S5", "S6", "DQ", "S7"]) == (8, ["S7", "S6", "S5", "S4", "S3"])
-#     assert poker_hand(["S3", "S7", "SA", "S5", "S6", "DQ", "S9", "S2"]) == (5, ["SA", "S9", "S7", "S6", "S5"])
-#     assert poker_hand(["S3", "S4", "DA", "S5", "S6", "DQ", "C9"]) == (0, ["DA", "DQ", "C9", "S6", "S5"])
-#     assert poker_hand(["SA"]) == (0, ["SA"])
-#     assert poker_hand(["SA", "CA"]) == (1, ["SA", "CA"])
-#     assert poker_hand(["SA", "CA", "DA"]) == (3, ["SA", "CA", "DA"])
-#     assert poker_hand(["SA", "CA", "DQ", "DA", "D9", "D2", "D4", "CQ"]) == (6, ["SA", "CA", "DA", "DQ", "CQ"])
-#     assert poker_hand(["SA", "CA", "DA", "HA"]) == (7, ["SA", "CA", "DA", "HA"])
-#     assert poker_hand(["S9", "SJ", "SA", "SK", "DQ", "SQ", "DK"]) == (9, ["SA", "SK", "SQ", "SJ", "S9"])
+if __name__ == "__main__":
+    assert poker_hand(["D4", "H6", "S3", "SQ", "C5", "C2", "H9"]) == (4, ["H6", "C5", "D4", "S3", "C2"])
+    assert poker_hand(["SA", "CA", "HJ", "DJ", "SQ", "HQ", "S2"]) == (2, ["SA", "CA", "SQ", "HQ", "HJ"])
+    assert poker_hand(["S3", "S4", "SA", "S5", "S6", "DQ", "S7"]) == (8, ["S7", "S6", "S5", "S4", "S3"])
+    assert poker_hand(["S3", "S7", "SA", "S5", "S6", "DQ", "S9", "S2"]) == (5, ["SA", "S9", "S7", "S6", "S5"])
+    assert poker_hand(["S3", "S4", "DA", "S5", "S6", "DQ", "C9"]) == (0, ["DA", "DQ", "C9", "S6", "S5"])
+    assert poker_hand(["SA"]) == (0, ["SA"])
+    assert poker_hand(["SA", "CA"]) == (1, ["SA", "CA"])
+    assert poker_hand(["SA", "CA", "DA"]) == (3, ["SA", "CA", "DA"])
+    assert poker_hand(["SA", "CA", "DQ", "DA", "D9", "D2", "D4", "CQ"]) == (6, ["SA", "CA", "DA", "DQ", "CQ"])
+    assert poker_hand(["SA", "CA", "DA", "HA"]) == (7, ["SA", "CA", "DA", "HA"])
+    assert poker_hand(["S9", "SJ", "SA", "SK", "DQ", "SQ", "DK"]) == (9, ["SA", "SK", "SQ", "SJ", "S9"])
+    assert poker_hand(["HQ", "H9", "D8", "H7", "H3", "H6", "H5"]) == (5, ["HQ", "H9", "H7", "H6", "H5"])
+    assert poker_hand(["HQ", "H9", "H5", "H7", "H3", "H6", "D8"]) == (5, ["HQ", "H9", "H7", "H6", "H5"])
+    assert poker_hand(["DA", "S8", "H9", "H5", "H7", "H6", "D8"]) == (4, ["H9", "S8", "H7", "H6", "H5"])
+    assert poker_hand(["C4", "SJ", "S7", "S6", "H8", "C9", "H7"]) == (4, ["SJ", "C9", "H8", "S7", "S6"])
 
-#     print("Tests passés !!!")
+    print(max([poker_hand(["S8", "C7", "D2", "C2", "HK", "S6", "C6"]), poker_hand(["S8", "C7", "D2", "C2", "HK", "SQ", "CQ"])]))
+
+    print("Tests passés !!!")

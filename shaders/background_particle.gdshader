@@ -7,6 +7,7 @@ uniform sampler2D clubs;
 uniform float frequency;
 uniform float phase;
 uniform float which_figure;
+uniform float fade;
 
 void fragment() {
 	float zoom = 1.0 + 0.4 * (1.0 - pow(2.0 * fract(frequency * TIME + phase) - 1.0, 6.0));
@@ -58,5 +59,5 @@ void fragment() {
 
 	float alpha = min(1.0, figure + wave_col);
 
-	COLOR = vec4(vec3(color.rgb) * alpha, 0.8 * alpha);
+	COLOR = vec4(vec3(color.rgb) * alpha, fade * 0.7 * alpha);
 }

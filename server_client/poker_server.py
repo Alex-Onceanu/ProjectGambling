@@ -116,15 +116,19 @@ class Game:
     def showdown(self):
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
         who_didnt_fold = [i for i in range(self.nb_players) if not i in self.folded_ones]
+        print(f" << hand per player : {hand_per_player}\n << who didnt fold : {who_didnt_fold}")
         
         all_winners = []
         if who_didnt_fold != []:
             winner = max(who_didnt_fold, key=(lambda i : hand_per_player[i]))
+            print(f" << winner : {winner}")
 
             all_winners = [winner]
             for i in range(self.nb_players):
                 if i != winner and hand_per_player[i] == hand_per_player[winner] and not i in self.folded_ones:
                     all_winners.append(i)
+
+            print(f" << all winners : {all_winners}")
             
             reward = round(self.total_bet / len(all_winners))
             for w in all_winners:
@@ -277,7 +281,8 @@ class Game:
         DURATION_PER_PLAYER = 40
         self.reset_id_to_bet()
         self.current_blind = 0
-        self.who_is_playing = self.dealer + 1
+        self.who_is_playing = self.dealer
+        self.next_player()
 
         for _ in range(nb_cards_to_add_to_board):
             self.board.append(self.deck.pop())

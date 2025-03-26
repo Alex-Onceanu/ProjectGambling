@@ -93,11 +93,15 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		rearrange_players(every_name)
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 
+func update_rythm():
+	$MusicPlayer/StreamPlayer.play()
+	$BackgroundParticles.visible = true
+	get_node("BackgroundParticles").set_frequency($MusicPlayer.get_bps())
+	get_node("BackgroundParticles").set_phase($MusicPlayer.get_phase() + fposmod(Time.get_ticks_msec() / 1000, 1.0))
+
 func start_game(cards):
 	if not $BackgroundParticles.visible:
-		$MusicPlayer/Stream.play()
-		$BackgroundParticles.visible = true
-	
+		update_rythm()
 	var other_players = []
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
@@ -181,6 +185,7 @@ func _on_try_again_timeout() -> void:
 		tryagain_node = null
 
 func _on_name_text_submitted(new_text: String) -> void:
+	#update_rythm()
 	user_name = new_text
 	
 	$EnterCode/Name.text = ""

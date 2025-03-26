@@ -57,6 +57,8 @@ wait_time = 0.8
 [node name="WaitBeforeUpdate" type="Timer" parent="Requests"]
 one_shot = true
 
+[node name="MusicPlayer" parent="." instance=ExtResource("14_0rgw7")]
+
 [node name="Background" type="Sprite2D" parent="."]
 position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
@@ -256,8 +258,6 @@ theme = ExtResource("10_p7uy6")
 placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50
-
-[node name="MusicPlayer" parent="." instance=ExtResource("14_0rgw7")]
 
 [node name="UI" type="Node2D" parent="."]
 visible = false
