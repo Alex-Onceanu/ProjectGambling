@@ -6,7 +6,7 @@ import time
 from random import randint, shuffle
 import json
 
-from combos import poker_hand, str_of_combo
+from combos import poker_hand, str_of_combo, val_of_str
 
 INITIAL_MONEY = 100
 SMALL_BLIND = -3
@@ -111,7 +111,7 @@ class Game:
 
             self.showdown()
             self.round_transition = False
-            self.dealer += 1
+            self.dealer = (1 + self.dealer) % len(self.ids)
 
     def showdown(self):
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
@@ -123,10 +123,13 @@ class Game:
             winner = max(who_didnt_fold, key=(lambda i : hand_per_player[i]))
             print(f" << winner : {winner}")
 
+            winner_values = [val_of_str(h[1]) for h in hand_per_player[winner][1]]
             all_winners = [winner]
             for i in range(self.nb_players):
-                if i != winner and hand_per_player[i] == hand_per_player[winner] and not i in self.folded_ones:
-                    all_winners.append(i)
+                if i != winner and hand_per_player[i][0] == hand_per_player[winner][0] and not i in self.folded_ones:
+                    values = [val_of_str(h[1]) for h in hand_per_player[i][1]]
+                    if values == winner_values:
+                        all_winners.append(i)
 
             print(f" << all winners : {all_winners}")
             
@@ -293,8 +296,10 @@ class Game:
         if nb_cards_to_add_to_board == 0:
             print(f" << {self.id_to_name[self.ids[(self.dealer + 1) % self.nb_players]]} mise la petite blinde de {SMALL_BLIND}")
             self.bet(self.ids[(self.dealer + 1) % self.nb_players], SMALL_BLIND)
+            time.sleep(4.0)
             print(f" << {self.id_to_name[self.ids[(self.dealer + 2) % self.nb_players]]} mise la grosse blinde de {BIG_BLIND}")
             self.bet(self.ids[(self.dealer + 2) % self.nb_players], BIG_BLIND)
+            time.sleep(0.5)
     
         self.stable_since = 0
         self.round_transition = False

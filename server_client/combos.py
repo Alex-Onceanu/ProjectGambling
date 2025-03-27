@@ -74,9 +74,9 @@ def has_multiples(hand) -> tuple:
         # carré
         return (7, fill_with(sorted_multiples[0], hand))
     if best == 3:
-        if len(sorted_multiples) > 1 and len(sorted_multiples[1]) == 2:
+        if len(sorted_multiples) > 1 and len(sorted_multiples[1]) >= 2:
             # full house
-            return (6, sorted_multiples[0] + sorted_multiples[1])
+            return (6, (sorted_multiples[0] + sorted_multiples[1])[:5])
         # brelan
         return (3, fill_with(sorted_multiples[0], hand))
     if best == 2:
@@ -151,7 +151,8 @@ if __name__ == "__main__":
     assert poker_hand(["HQ", "H9", "H5", "H7", "H3", "H6", "D8"]) == (5, ["HQ", "H9", "H7", "H6", "H5"])
     assert poker_hand(["DA", "S8", "H9", "H5", "H7", "H6", "D8"]) == (4, ["H9", "S8", "H7", "H6", "H5"])
     assert poker_hand(["C4", "SJ", "S7", "S6", "H8", "C9", "H7"]) == (4, ["SJ", "C9", "H8", "S7", "S6"])
+    assert poker_hand(["S8", "C8", "C7", "D8", "D7", "S7", "HQ"]) == (6, ["S8", "C8", "D8", "C7", "D7"])
 
-    print(max([poker_hand(["S8", "C7", "D2", "C2", "HK", "S6", "C6"]), poker_hand(["S8", "C7", "D2", "C2", "HK", "SQ", "CQ"])]))
+    # print(max([poker_hand(["S8", "C7", "D2", "C2", "HK", "S6", "C6"]), poker_hand(["S8", "C7", "D2", "C2", "HK", "SQ", "CQ"])]))
 
     print("Tests passés !!!")

@@ -24,6 +24,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 0.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_l5vo1"]
 _data = {
@@ -39,8 +40,9 @@ shader_parameter/diamonds = ExtResource("3_l5vo1")
 shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
-shader_parameter/which_figure = 2.0
+shader_parameter/which_figure = 3.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_4s878"]
 _data = {
@@ -58,6 +60,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
 shader_parameter/which_figure = 1.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_s2r6w"]
 _data = {
@@ -75,6 +78,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
 shader_parameter/which_figure = 3.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_86s8c"]
 _data = {
@@ -92,6 +96,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 2.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_ch57y"]
 _data = {
@@ -109,6 +114,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
 shader_parameter/which_figure = 0.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_ukgoj"]
 _data = {
@@ -126,6 +132,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
 shader_parameter/which_figure = 3.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [sub_resource type="Curve2D" id="Curve2D_7ej4g"]
 _data = {
@@ -143,6 +150,7 @@ shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
 shader_parameter/which_figure = 1.0
 shader_parameter/fade = 0.0
+shader_parameter/my_time = 0.0
 
 [node name="BackgroundParticles" type="Node2D"]
 script = ExtResource("1_4s878")
@@ -275,33 +283,65 @@ metadata/_edit_use_anchors_ = true
 [node name="Timers" type="Node2D" parent="."]
 
 [node name="Fade1" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade2" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade3" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade4" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade5" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade6" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade7" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [node name="Fade8" type="Timer" parent="Timers"]
-wait_time = 3.0
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph1" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph2" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph3" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph4" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph5" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph6" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph7" type="Timer" parent="Timers"]
+wait_time = 1.5
+one_shot = true
+
+[node name="Morph8" type="Timer" parent="Timers"]
+wait_time = 1.5
 one_shot = true

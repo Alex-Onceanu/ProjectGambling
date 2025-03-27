@@ -25,7 +25,7 @@ func next_track() -> void:
 func _ready() -> void:
 	const paths  = ["boring20s", "lonedigger", "busteretcharlie"]
 	const BPS    = [2.0333, 2.0666, 2.15]
-	const phases = [0.5, 0.2, 0.25]
+	const phases = [0.6, 0.7, 0.8]
 	
 	for i in range(len(BPS)):
 		var tr = AudioStreamMP3.load_from_file("assets/" + paths[i] + ".mp3")

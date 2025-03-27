@@ -157,6 +157,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		
 		var old_nb_cards = len(board_cards)
 		var new_nb_cards = len(cards)
+		$BackgroundParticles.set_colors(cards)
 		var player_nb_cards = 0 if is_spectator and not user_did_timeout else 2
 		if new_nb_cards - player_nb_cards != old_nb_cards:
 			for c in range(player_nb_cards + old_nb_cards, new_nb_cards):

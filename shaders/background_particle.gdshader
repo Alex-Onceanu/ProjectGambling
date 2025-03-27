@@ -8,9 +8,10 @@ uniform float frequency;
 uniform float phase;
 uniform float which_figure;
 uniform float fade;
+uniform float my_time;
 
 void fragment() {
-	float zoom = 1.0 + 0.4 * (1.0 - pow(2.0 * fract(frequency * TIME + phase) - 1.0, 6.0));
+	float zoom = 1.0 + 0.4 * (1.0 - pow(2.0 * fract(frequency * my_time + phase) - 1.0, 6.0));
 
 	vec2 uv = UV * 2.0 - vec2(1.0, 1.0);
 	uv *= zoom;
@@ -18,7 +19,7 @@ void fragment() {
 	uv = mix(vec2(0.01, 0.01), (uv + vec2(1.0, 1.0)) / 2.0, step(dot(uv, uv), 0.8));
 
 	float span_ease = 0.25;
-	float span = pow(fract(frequency * TIME / 2.0 + phase / 2.0), span_ease);
+	float span = pow(fract(frequency * my_time / 2.0 + phase / 2.0), span_ease);
 
 	float d_clubs = texture(clubs, uv).r;
 	float d_hearts = texture(hearts, uv).r;
