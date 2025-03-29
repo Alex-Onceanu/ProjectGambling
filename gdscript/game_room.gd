@@ -57,8 +57,8 @@ func _on_register_completed(result, response_code, headers, body):
 	
 	if len(ans) > 4 or len(ans) <= 0:
 		print("error : " + ans)
-		$EnterCode/Name.text = ""
-		$EnterCode/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
+		$EnterCode/CanvasLayer/Name.text = ""
+		$EnterCode/CanvasLayer/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
 		tryagain_node = $Requests/Register
 		tryagain_url = str(url) + "/register/user?name=" + user_name
 		$Requests/TryAgain.start()
@@ -66,7 +66,7 @@ func _on_register_completed(result, response_code, headers, body):
 		
 	user_id = int(ans)
 	print("ID : ", ans)
-	$EnterCode/Name.placeholder_text = "Partie trouvée !"
+	$EnterCode/CanvasLayer/Name.placeholder_text = "Partie trouvée !"
 	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -74,19 +74,19 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 	$UI/Rejouer.visible = false
 	if ans.begins_with("spectator"):
 		ans = ans.substr(9)
-		$EnterCode/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
-		$EnterCode/Name.text = ""
+		$EnterCode/CanvasLayer/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
+		$EnterCode/CanvasLayer/Name.text = ""
 		is_spectator = true
 	
 	if ans == "notready":
-		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
+		$EnterCode/CanvasLayer/Name.placeholder_text = "On attend que la partie se lance..."
 		$Money/TotalBet.text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
 		tryagain_url = str(url) + "/ready?id=" + str(user_id)
 		$Requests/TryAgain.start()
 	
 	elif ans.begins_with("go!"):
-		$EnterCode/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
+		$EnterCode/CanvasLayer/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
 		$Money/TotalBet.text = "Allez une game de +"
 		every_name = ans.substr(3).split(",", false)
 		nb_players = len(every_name)
@@ -107,7 +107,7 @@ func start_game(cards):
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
 	
-	$EnterCode.visible = false
+	$EnterCode/CanvasLayer.visible = false
 	$UI.visible = true
 	$Table.visible = true
 	$Deck.visible = true
@@ -130,16 +130,16 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 	var ans = body.get_string_from_utf8()
 
 	if ans == "notready":
-		$EnterCode/Name.placeholder_text = "On attend que la partie se lance..."
-		$EnterCode/Name.text = ""
-		$EnterCode/Name.editable = false
+		$EnterCode/CanvasLayer/Name.placeholder_text = "On attend que la partie se lance..."
+		$EnterCode/CanvasLayer/Name.text = ""
+		$EnterCode/CanvasLayer/Name.editable = false
 		tryagain_node = $Requests/Cards
 		tryagain_url = url + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
 	if ans == "invalid" or len(ans) > 20:
-		$EnterCode/Name.placeholder_text = "No way ?? Un bug rare sauvage apparait : ID invalide"
-		$EnterCode/Name.text = ""
+		$EnterCode/CanvasLayer/Name.placeholder_text = "No way ?? Un bug rare sauvage apparait : ID invalide"
+		$EnterCode/CanvasLayer/Name.text = ""
 		print("Error : ", ans)
 		tryagain_node = $Requests/Cards
 		tryagain_url = str(url) + "/cards?id=" + str(user_id)
@@ -190,9 +190,9 @@ func _on_name_text_submitted(new_text: String) -> void:
 	#update_rythm()
 	user_name = new_text
 	
-	$EnterCode/Name.text = ""
-	$EnterCode/Name.placeholder_text = "En train de télécommuniquer..."
-	$EnterCode/Name.editable = false
+	$EnterCode/CanvasLayer/Name.text = ""
+	$EnterCode/CanvasLayer/Name.placeholder_text = "En train de télécommuniquer..."
+	$EnterCode/CanvasLayer/Name.editable = false
 	
 	url = "http://gambling2.share.zrok.io"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=27 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -14,11 +14,41 @@
 [ext_resource type="AudioStream" uid="uid://di7vho5ylh664" path="res://assets/count_to3.mp3" id="5_rx1b2"]
 [ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/money_bag.png" id="6_gpvgl"]
 [ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://scenes/money.gd" id="6_ij5t4"]
+[ext_resource type="Texture2D" uid="uid://ck30m32aswpla" path="res://assets/poker-chip.png" id="7_5eqtb"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 [ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
 [ext_resource type="PackedScene" uid="uid://dtqyjjeakp1v" path="res://scenes/music_player.tscn" id="14_0rgw7"]
 [ext_resource type="Script" uid="uid://7glo8ebeohq6" path="res://scenes/button.gd" id="15_0rgw7"]
 [ext_resource type="Texture2D" uid="uid://beyowmfcbm5ib" path="res://assets/title.png" id="17_jn4qs"]
+
+[sub_resource type="Curve" id="Curve_5eqtb"]
+_data = [Vector2(0, 0.494444), 0.0, 0.0, 0, 0, Vector2(1, 0.4), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_eanov"]
+curve = SubResource("Curve_5eqtb")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_eanov"]
+particle_flag_disable_z = true
+emission_shape_offset = Vector3(0, -180, 0)
+emission_shape = 3
+emission_box_extents = Vector3(700, 1, 1)
+gravity = Vector3(0, 250, 0)
+alpha_curve = SubResource("CurveTexture_eanov")
+hue_variation_min = -0.5
+hue_variation_max = 0.3
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5eqtb"]
+particle_flag_disable_z = true
+angle_min = -9.99999
+angle_max = 10.0
+direction = Vector3(0, -1, 0)
+spread = 48.0
+initial_velocity_min = 500.0
+initial_velocity_max = 650.01
+gravity = Vector3(0, 550, 0)
+hue_variation_min = -0.4
+hue_variation_max = 0.4
 
 [sub_resource type="Curve2D" id="Curve2D_jn4qs"]
 _data = {
@@ -86,10 +116,47 @@ position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
 texture = ExtResource("4_w0exb")
 
+[node name="ChipRain" type="GPUParticles2D" parent="TitleScreen"]
+position = Vector2(579, 5)
+emitting = false
+amount = 69
+texture = ExtResource("7_5eqtb")
+lifetime = 2.8
+process_material = SubResource("ParticleProcessMaterial_eanov")
+
+[node name="ChipExplosion" type="GPUParticles2D" parent="TitleScreen"]
+position = Vector2(578, 241)
+emitting = false
+amount = 32
+texture = ExtResource("7_5eqtb")
+lifetime = 5.0
+one_shot = true
+explosiveness = 0.95
+randomness = 0.01
+process_material = SubResource("ParticleProcessMaterial_5eqtb")
+
 [node name="Title" type="Sprite2D" parent="TitleScreen"]
 position = Vector2(578, 241)
-scale = Vector2(1.97461, 1.97461)
+scale = Vector2(1.675, 1.675)
 texture = ExtResource("17_jn4qs")
+
+[node name="BoingStart" type="Timer" parent="TitleScreen/Title"]
+wait_time = 3.3
+one_shot = true
+autostart = true
+
+[node name="BoingEnd" type="Timer" parent="TitleScreen/Title"]
+wait_time = 3.55
+one_shot = true
+autostart = true
+
+[node name="Rythm" type="Timer" parent="TitleScreen/Title"]
+wait_time = 0.992
+
+[node name="StartDancing" type="Timer" parent="TitleScreen/Title"]
+wait_time = 4.15
+one_shot = true
+autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="TitleScreen"]
 follow_viewport_enabled = true
@@ -107,7 +174,7 @@ text = "JOUER"
 script = ExtResource("15_0rgw7")
 
 [node name="StartZoomOut" type="Timer" parent="TitleScreen"]
-wait_time = 2.8
+wait_time = 2.7
 one_shot = true
 autostart = true
 
@@ -306,16 +373,19 @@ visible = false
 position = Vector2(-275, 183)
 
 [node name="EnterCode" type="Node2D" parent="."]
-visible = false
 position = Vector2(576, 324)
 
-[node name="PopUp" parent="EnterCode" instance=ExtResource("9_qktb6")]
+[node name="CanvasLayer" type="CanvasLayer" parent="EnterCode"]
+visible = false
 
-[node name="Name" type="LineEdit" parent="EnterCode"]
-offset_left = -244.0
-offset_top = -95.0
-offset_right = 248.0
-offset_bottom = -39.0
+[node name="PopUp" parent="EnterCode/CanvasLayer" instance=ExtResource("9_qktb6")]
+position = Vector2(575, 324)
+
+[node name="Name" type="LineEdit" parent="EnterCode/CanvasLayer"]
+offset_left = 331.0
+offset_top = 229.0
+offset_right = 823.0
+offset_bottom = 285.0
 theme = ExtResource("10_p7uy6")
 placeholder_text = "Ton pseudo :"
 alignment = 1
@@ -417,25 +487,29 @@ theme = ExtResource("10_p7uy6")
 text = "server go"
 script = ExtResource("15_0rgw7")
 
-[node name="Fader" type="ColorRect" parent="."]
-offset_left = 12.0
-offset_top = 1.0
-offset_right = 1159.0
+[node name="FrontLayer" type="CanvasLayer" parent="."]
+
+[node name="Fader" type="ColorRect" parent="FrontLayer"]
+light_mask = 3
+visibility_layer = 3
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 1158.0
 offset_bottom = 652.0
 color = Color(0, 0, 0, 0)
 
-[node name="FirstFade" type="Timer" parent="Fader"]
-wait_time = 0.5
+[node name="FirstFade" type="Timer" parent="FrontLayer/Fader"]
+wait_time = 0.4
 one_shot = true
 autostart = true
 
-[node name="SecondFade" type="Timer" parent="Fader"]
-wait_time = 1.4
+[node name="SecondFade" type="Timer" parent="FrontLayer/Fader"]
+wait_time = 1.3
 one_shot = true
 autostart = true
 
-[node name="FadeDuration" type="Timer" parent="Fader"]
-wait_time = 0.3
+[node name="FadeDuration" type="Timer" parent="FrontLayer/Fader"]
+wait_time = 0.4
 one_shot = true
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
@@ -448,9 +522,12 @@ one_shot = true
 [connection signal="request_completed" from="Requests/CardToVFX" to="." method="_on_card_to_vfx_request_completed"]
 [connection signal="request_completed" from="Requests/Unspectate" to="." method="_on_unspectate_request_completed"]
 [connection signal="timeout" from="Requests/WaitBeforeUpdate" to="." method="_on_wait_before_update_timeout"]
+[connection signal="timeout" from="TitleScreen/Title/BoingStart" to="TitleScreen" method="_on_boing_timeout"]
+[connection signal="timeout" from="TitleScreen/Title/BoingEnd" to="TitleScreen" method="_on_boing_end_timeout"]
+[connection signal="timeout" from="TitleScreen/Title/StartDancing" to="TitleScreen" method="_on_start_dancing_timeout"]
 [connection signal="timeout" from="TitleScreen/StartZoomOut" to="TitleScreen" method="_on_start_zoom_out_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
-[connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
+[connection signal="text_submitted" from="EnterCode/CanvasLayer/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]
 [connection signal="pressed" from="UI/Suivre" to="." method="_on_suivre_pressed"]
@@ -458,6 +535,6 @@ one_shot = true
 [connection signal="pressed" from="UI/Rejoindre" to="." method="_on_rejoindre_pressed"]
 [connection signal="timeout" from="UI/CDSpectate" to="." method="_on_cd_spectate_timeout"]
 [connection signal="pressed" from="UI/ServerGo" to="." method="_on_server_go_pressed"]
-[connection signal="timeout" from="Fader/FirstFade" to="TitleScreen" method="_on_first_fade_timeout"]
-[connection signal="timeout" from="Fader/SecondFade" to="TitleScreen" method="_on_second_fade_timeout"]
-[connection signal="timeout" from="Fader/FadeDuration" to="TitleScreen" method="_on_fade_duration_timeout"]
+[connection signal="timeout" from="FrontLayer/Fader/FirstFade" to="TitleScreen" method="_on_first_fade_timeout"]
+[connection signal="timeout" from="FrontLayer/Fader/SecondFade" to="TitleScreen" method="_on_second_fade_timeout"]
+[connection signal="timeout" from="FrontLayer/Fader/FadeDuration" to="TitleScreen" method="_on_fade_duration_timeout"]

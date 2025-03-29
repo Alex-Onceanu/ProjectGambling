@@ -12,21 +12,21 @@ corner_radius_bottom_left = 10
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tnp0o"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g6lb4"]
-bg_color = Color(0.801263, 4.11518e-06, 8.66354e-07, 0.666667)
+bg_color = Color(0.8, 0, 0, 0.803922)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tnp0o"]
-bg_color = Color(0.623529, 0.00392157, 0.00392157, 0.627451)
+bg_color = Color(0.623529, 0.00392157, 0.00392157, 0.745098)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ornth"]
-bg_color = Color(0.750228, 0.198136, 0.194106, 0.784314)
+bg_color = Color(0.74902, 0.2, 0.192157, 0.882353)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
