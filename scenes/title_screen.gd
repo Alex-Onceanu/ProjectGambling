@@ -9,6 +9,7 @@ const INTRO_DURATION = 3.8
 @onready var current_fade_nb = 0
 
 var tween : Tween
+var swap_tween : Tween
 var title_tween : Tween
 
 func _ready() -> void:
@@ -54,6 +55,11 @@ func reset_title_tween() -> void:
 		title_tween.kill()
 	title_tween = create_tween()
 	
+func reset_swap_tween() -> void:
+	if swap_tween:
+		swap_tween.kill()
+	swap_tween = create_tween()
+	
 func _on_first_fade_timeout() -> void:
 	fade_in()
 	fade_duration.start()
@@ -89,3 +95,20 @@ func _on_start_dancing_timeout() -> void:
 	$Title/Rythm.start()
 	$ChipExplosion.restart()
 	$ChipRain.emitting = true
+
+func _on_play_toggled(toggled_on: bool) -> void:
+	var popup_target = Vector2(0.0, 700.0)
+	var title_target = Vector2(578.0, 241.0)
+	
+	if toggled_on:
+		popup_target = Vector2(0.0, 0.0)
+		title_target = Vector2(578.0, 941.0)
+		
+	reset_swap_tween()
+	swap_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+	swap_tween.tween_property(get_node("../EnterCode/CanvasLayer"), "offset", popup_target, 1.5)
+	
+	reset_title_tween()
+	title_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+	title_tween.tween_property($Title, "position", title_target, 1.5)
+		

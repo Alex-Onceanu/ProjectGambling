@@ -92,6 +92,10 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		nb_players = len(every_name)
 		rearrange_players(every_name)
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
+		$TitleScreen/CanvasLayer.layer = 1
+		$TitleScreen.fade_in()
+		$TitleScreen/TitleMusic.stop()
+		
 
 func update_rythm():
 	$MusicPlayer/StreamPlayer.play()
@@ -100,7 +104,7 @@ func update_rythm():
 	get_node("BackgroundParticles").set_phase($MusicPlayer.get_phase() + fposmod(Time.get_ticks_msec() / 1000, 1.0))
 
 func start_game(cards):
-	$TitleBackground.visible = false
+	$TitleScreen.fade_out()
 	if not $BackgroundParticles.visible:
 		update_rythm()
 	var other_players = []
@@ -178,6 +182,8 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		if not is_spectator:
 			p1_has_cards = true
 	else:
+		$TitleScreen.visible = false
+		$TitleScreen/CanvasLayer/Play.visible = false
 		start_game(cards)
 
 func _on_try_again_timeout() -> void:
@@ -187,12 +193,12 @@ func _on_try_again_timeout() -> void:
 		tryagain_node = null
 
 func _on_name_text_submitted(new_text: String) -> void:
-	#update_rythm()
 	user_name = new_text
 	
 	$EnterCode/CanvasLayer/Name.text = ""
 	$EnterCode/CanvasLayer/Name.placeholder_text = "En train de télécommuniquer..."
 	$EnterCode/CanvasLayer/Name.editable = false
+	$EnterCode/CanvasLayer.layer = 1
 	
 	url = "http://gambling2.share.zrok.io"
 	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)

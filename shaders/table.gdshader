@@ -11,7 +11,7 @@ void fragment() {
 	vec4 border = vec4(vec3(0.345, 0.2, 0.15), border_alpha);
 
 	float dark_alpha = (1.0 - step(0.85, dot(uv, uv)));
-	vec4 dark_table = vec4((0.5 + 0.5 * (1.0 - dot(uv, uv))) * vec3(0.15, 0.5, 0.2), dark_alpha);
+	vec4 dark_table = vec4((0.5 + 0.5 * (1.0 - dot(uv, uv))) * vec3(0.05, 0.5, 0.1), dark_alpha);
 
 	vec3 velvet = normalize(texture(noise, 0.87 * UV).rgb) * dark_alpha;
 	vec3 wood_nm = normalize(texture(wood, 0.87 * UV).rgb) * border_alpha;

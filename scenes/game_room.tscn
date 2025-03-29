@@ -170,6 +170,7 @@ pivot_offset = Vector2(86, 42.5)
 theme = ExtResource("10_p7uy6")
 theme_override_font_sizes/font_size = 51
 disabled = true
+toggle_mode = true
 text = "JOUER"
 script = ExtResource("15_0rgw7")
 
@@ -376,10 +377,12 @@ position = Vector2(-275, 183)
 position = Vector2(576, 324)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="EnterCode"]
-visible = false
+layer = 2
+offset = Vector2(0, 700)
+transform = Transform2D(1, 0, 0, 1, 0, 700)
 
 [node name="PopUp" parent="EnterCode/CanvasLayer" instance=ExtResource("9_qktb6")]
-position = Vector2(575, 324)
+position = Vector2(578, 324)
 
 [node name="Name" type="LineEdit" parent="EnterCode/CanvasLayer"]
 offset_left = 331.0
@@ -392,6 +395,7 @@ alignment = 1
 max_length = 50
 
 [node name="UI" type="CanvasLayer" parent="."]
+layer = 2
 visible = false
 follow_viewport_enabled = true
 
@@ -477,16 +481,6 @@ script = ExtResource("15_0rgw7")
 wait_time = 10.0
 one_shot = true
 
-[node name="ServerGo" type="Button" parent="UI"]
-offset_left = 16.0
-offset_top = 381.0
-offset_right = 154.0
-offset_bottom = 431.0
-pivot_offset = Vector2(69, 25)
-theme = ExtResource("10_p7uy6")
-text = "server go"
-script = ExtResource("15_0rgw7")
-
 [node name="FrontLayer" type="CanvasLayer" parent="."]
 
 [node name="Fader" type="ColorRect" parent="FrontLayer"]
@@ -512,6 +506,16 @@ autostart = true
 wait_time = 0.4
 one_shot = true
 
+[node name="ServerGo" type="Button" parent="FrontLayer"]
+offset_left = 16.0
+offset_top = 381.0
+offset_right = 154.0
+offset_bottom = 431.0
+pivot_offset = Vector2(69, 25)
+theme = ExtResource("10_p7uy6")
+text = "server go"
+script = ExtResource("15_0rgw7")
+
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
 [connection signal="timeout" from="Requests/TryAgain" to="." method="_on_try_again_timeout"]
@@ -525,6 +529,7 @@ one_shot = true
 [connection signal="timeout" from="TitleScreen/Title/BoingStart" to="TitleScreen" method="_on_boing_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/BoingEnd" to="TitleScreen" method="_on_boing_end_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/StartDancing" to="TitleScreen" method="_on_start_dancing_timeout"]
+[connection signal="toggled" from="TitleScreen/CanvasLayer/Play" to="TitleScreen" method="_on_play_toggled"]
 [connection signal="timeout" from="TitleScreen/StartZoomOut" to="TitleScreen" method="_on_start_zoom_out_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
 [connection signal="text_submitted" from="EnterCode/CanvasLayer/Name" to="." method="_on_name_text_submitted"]
@@ -534,7 +539,7 @@ one_shot = true
 [connection signal="pressed" from="UI/Rejouer" to="." method="_on_rejouer_pressed"]
 [connection signal="pressed" from="UI/Rejoindre" to="." method="_on_rejoindre_pressed"]
 [connection signal="timeout" from="UI/CDSpectate" to="." method="_on_cd_spectate_timeout"]
-[connection signal="pressed" from="UI/ServerGo" to="." method="_on_server_go_pressed"]
 [connection signal="timeout" from="FrontLayer/Fader/FirstFade" to="TitleScreen" method="_on_first_fade_timeout"]
 [connection signal="timeout" from="FrontLayer/Fader/SecondFade" to="TitleScreen" method="_on_second_fade_timeout"]
 [connection signal="timeout" from="FrontLayer/Fader/FadeDuration" to="TitleScreen" method="_on_fade_duration_timeout"]
+[connection signal="pressed" from="FrontLayer/ServerGo" to="." method="_on_server_go_pressed"]
