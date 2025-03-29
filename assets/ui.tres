@@ -1,6 +1,36 @@
-[gd_resource type="Theme" load_steps=3 format=3 uid="uid://cdvctlg72he3p"]
+[gd_resource type="Theme" load_steps=8 format=3 uid="uid://cdvctlg72he3p"]
 
 [ext_resource type="FontFile" uid="uid://dnojavsy32nh7" path="res://assets/gambling_font.ttf" id="1_jmamk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xh2vi"]
+bg_color = Color(0.439216, 0.0745098, 0.0705882, 0.588235)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tnp0o"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g6lb4"]
+bg_color = Color(0.801263, 4.11518e-06, 8.66354e-07, 0.666667)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tnp0o"]
+bg_color = Color(0.623529, 0.00392157, 0.00392157, 0.627451)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ornth"]
+bg_color = Color(0.750228, 0.198136, 0.194106, 0.784314)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tmu7m"]
 
@@ -8,6 +38,11 @@
 resource_local_to_scene = true
 default_font = ExtResource("1_jmamk")
 default_font_size = 23
+Button/styles/disabled = SubResource("StyleBoxFlat_xh2vi")
+Button/styles/focus = SubResource("StyleBoxEmpty_tnp0o")
+Button/styles/hover = SubResource("StyleBoxFlat_g6lb4")
+Button/styles/normal = SubResource("StyleBoxFlat_tnp0o")
+Button/styles/pressed = SubResource("StyleBoxFlat_ornth")
 Label/colors/font_color = Color(0.996078, 0.835294, 0.45098, 1)
 Label/colors/font_outline_color = Color(0, 0, 0, 1)
 Label/colors/font_shadow_color = Color(0, 0, 0, 0)

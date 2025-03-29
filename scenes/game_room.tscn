@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=22 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -6,14 +6,25 @@
 [ext_resource type="PackedScene" uid="uid://maipilee56om" path="res://scenes/background_particles.tscn" id="3_0t0sp"]
 [ext_resource type="Shader" uid="uid://dhtrfbqau0m46" path="res://shaders/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
+[ext_resource type="Script" uid="uid://ds6frx281fnro" path="res://scenes/title_screen.gd" id="4_0emb5"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
 [ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
+[ext_resource type="Texture2D" uid="uid://cwefci3c0xreg" path="res://assets/title_background.png" id="4_w0exb"]
 [ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/wood.png" id="5_i1xx5"]
+[ext_resource type="AudioStream" uid="uid://di7vho5ylh664" path="res://assets/count_to3.mp3" id="5_rx1b2"]
 [ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/money_bag.png" id="6_gpvgl"]
 [ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://scenes/money.gd" id="6_ij5t4"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
 [ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
 [ext_resource type="PackedScene" uid="uid://dtqyjjeakp1v" path="res://scenes/music_player.tscn" id="14_0rgw7"]
+[ext_resource type="Script" uid="uid://7glo8ebeohq6" path="res://scenes/button.gd" id="15_0rgw7"]
+[ext_resource type="Texture2D" uid="uid://beyowmfcbm5ib" path="res://assets/title.png" id="17_jn4qs"]
+
+[sub_resource type="Curve2D" id="Curve2D_jn4qs"]
+_data = {
+"points": PackedVector2Array(-15.3731, 2.19615, 15.3731, -2.19615, 796, 545, 11.7128, 8.7846, -11.7128, -8.7846, 336, 541, -9.075, 7.865, 9.075, -7.865, 328, 105, -9.075, -7.26, 9.075, 7.26, 875, 107, 6.05, -9.68, -6.05, 9.68, 876, 372, -40.5866, -121.767, 40.5866, 121.767, 295, 364, 0, 0, 0, 0, 576, 326)
+}
+point_count = 7
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qblcs"]
 shader = ExtResource("3_7c0aq")
@@ -63,6 +74,56 @@ one_shot = true
 position = Vector2(573, 323.036)
 scale = Vector2(0.842647, 0.841052)
 texture = ExtResource("2_ctk2m")
+
+[node name="TitleScreen" type="Node2D" parent="."]
+script = ExtResource("4_0emb5")
+
+[node name="TitleMusic" type="AudioStreamPlayer2D" parent="TitleScreen"]
+stream = ExtResource("5_rx1b2")
+
+[node name="TitleBackground" type="Sprite2D" parent="TitleScreen"]
+position = Vector2(573, 323.036)
+scale = Vector2(0.842647, 0.841052)
+texture = ExtResource("4_w0exb")
+
+[node name="Title" type="Sprite2D" parent="TitleScreen"]
+position = Vector2(578, 241)
+scale = Vector2(1.97461, 1.97461)
+texture = ExtResource("17_jn4qs")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="TitleScreen"]
+follow_viewport_enabled = true
+
+[node name="Play" type="Button" parent="TitleScreen/CanvasLayer"]
+offset_left = 489.0
+offset_top = 449.0
+offset_right = 661.0
+offset_bottom = 534.0
+pivot_offset = Vector2(86, 42.5)
+theme = ExtResource("10_p7uy6")
+theme_override_font_sizes/font_size = 51
+disabled = true
+text = "JOUER"
+script = ExtResource("15_0rgw7")
+
+[node name="StartZoomOut" type="Timer" parent="TitleScreen"]
+wait_time = 2.8
+one_shot = true
+autostart = true
+
+[node name="Path2D" type="Path2D" parent="TitleScreen"]
+curve = SubResource("Curve2D_jn4qs")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="TitleScreen/Path2D"]
+position = Vector2(865.087, 371.857)
+rotation = -3.0291
+progress = 1721.5
+loop = false
+
+[node name="Camera2D" type="Camera2D" parent="TitleScreen/Path2D/PathFollow2D"]
+position = Vector2(-1.99078, -3.00613)
+zoom = Vector2(4.65, 4.65)
+position_smoothing_speed = 50.0
 
 [node name="BackgroundParticles" parent="." instance=ExtResource("3_0t0sp")]
 visible = false
@@ -245,6 +306,7 @@ visible = false
 position = Vector2(-275, 183)
 
 [node name="EnterCode" type="Node2D" parent="."]
+visible = false
 position = Vector2(576, 324)
 
 [node name="PopUp" parent="EnterCode" instance=ExtResource("9_qktb6")]
@@ -259,8 +321,9 @@ placeholder_text = "Ton pseudo :"
 alignment = 1
 max_length = 50
 
-[node name="UI" type="Node2D" parent="."]
+[node name="UI" type="CanvasLayer" parent="."]
 visible = false
+follow_viewport_enabled = true
 
 [node name="Round" type="Label" parent="UI"]
 offset_left = 12.0
@@ -282,18 +345,22 @@ offset_left = 10.0
 offset_top = 511.0
 offset_right = 153.0
 offset_bottom = 568.0
+pivot_offset = Vector2(71.5, 28.5)
 theme = ExtResource("10_p7uy6")
 disabled = true
 text = "Se coucher"
+script = ExtResource("15_0rgw7")
 
 [node name="Surencherir" type="Button" parent="UI"]
 offset_left = 10.0
 offset_top = 577.0
 offset_right = 153.0
 offset_bottom = 634.0
+pivot_offset = Vector2(71.5, 28.5)
 theme = ExtResource("10_p7uy6")
 disabled = true
 text = "surenchérir"
+script = ExtResource("15_0rgw7")
 
 [node name="HowMuch" type="SpinBox" parent="UI/Surencherir"]
 layout_mode = 0
@@ -308,9 +375,11 @@ offset_left = 9.0
 offset_top = 451.0
 offset_right = 154.0
 offset_bottom = 501.0
+pivot_offset = Vector2(71.5, 28.5)
 theme = ExtResource("10_p7uy6")
 disabled = true
 text = "Suivre"
+script = ExtResource("15_0rgw7")
 
 [node name="Rejouer" type="Button" parent="UI"]
 visible = false
@@ -318,8 +387,10 @@ offset_left = 516.0
 offset_top = 380.0
 offset_right = 634.0
 offset_bottom = 431.0
+pivot_offset = Vector2(59, 25.5)
 theme = ExtResource("10_p7uy6")
 text = "Rejouer"
+script = ExtResource("15_0rgw7")
 
 [node name="Rejoindre" type="Button" parent="UI"]
 visible = false
@@ -327,20 +398,45 @@ offset_left = 516.0
 offset_top = 380.0
 offset_right = 634.0
 offset_bottom = 431.0
+pivot_offset = Vector2(59, 25.5)
 theme = ExtResource("10_p7uy6")
 text = "Rejoindre"
+script = ExtResource("15_0rgw7")
 
 [node name="CDSpectate" type="Timer" parent="UI"]
 wait_time = 10.0
 one_shot = true
 
-[node name="ServerGo" type="Button" parent="."]
-offset_left = 17.0
+[node name="ServerGo" type="Button" parent="UI"]
+offset_left = 16.0
 offset_top = 381.0
-offset_right = 155.0
+offset_right = 154.0
 offset_bottom = 431.0
+pivot_offset = Vector2(69, 25)
 theme = ExtResource("10_p7uy6")
 text = "server go"
+script = ExtResource("15_0rgw7")
+
+[node name="Fader" type="ColorRect" parent="."]
+offset_left = 12.0
+offset_top = 1.0
+offset_right = 1159.0
+offset_bottom = 652.0
+color = Color(0, 0, 0, 0)
+
+[node name="FirstFade" type="Timer" parent="Fader"]
+wait_time = 0.5
+one_shot = true
+autostart = true
+
+[node name="SecondFade" type="Timer" parent="Fader"]
+wait_time = 1.4
+one_shot = true
+autostart = true
+
+[node name="FadeDuration" type="Timer" parent="Fader"]
+wait_time = 0.3
+one_shot = true
 
 [connection signal="request_completed" from="Requests/Register" to="." method="_on_register_completed"]
 [connection signal="request_completed" from="Requests/Cards" to="." method="_on_cards_completed"]
@@ -352,6 +448,7 @@ text = "server go"
 [connection signal="request_completed" from="Requests/CardToVFX" to="." method="_on_card_to_vfx_request_completed"]
 [connection signal="request_completed" from="Requests/Unspectate" to="." method="_on_unspectate_request_completed"]
 [connection signal="timeout" from="Requests/WaitBeforeUpdate" to="." method="_on_wait_before_update_timeout"]
+[connection signal="timeout" from="TitleScreen/StartZoomOut" to="TitleScreen" method="_on_start_zoom_out_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
 [connection signal="text_submitted" from="EnterCode/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
@@ -360,4 +457,7 @@ text = "server go"
 [connection signal="pressed" from="UI/Rejouer" to="." method="_on_rejouer_pressed"]
 [connection signal="pressed" from="UI/Rejoindre" to="." method="_on_rejoindre_pressed"]
 [connection signal="timeout" from="UI/CDSpectate" to="." method="_on_cd_spectate_timeout"]
-[connection signal="pressed" from="ServerGo" to="." method="_on_server_go_pressed"]
+[connection signal="pressed" from="UI/ServerGo" to="." method="_on_server_go_pressed"]
+[connection signal="timeout" from="Fader/FirstFade" to="TitleScreen" method="_on_first_fade_timeout"]
+[connection signal="timeout" from="Fader/SecondFade" to="TitleScreen" method="_on_second_fade_timeout"]
+[connection signal="timeout" from="Fader/FadeDuration" to="TitleScreen" method="_on_fade_duration_timeout"]

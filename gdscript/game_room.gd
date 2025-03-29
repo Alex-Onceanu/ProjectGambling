@@ -100,6 +100,7 @@ func update_rythm():
 	get_node("BackgroundParticles").set_phase($MusicPlayer.get_phase() + fposmod(Time.get_ticks_msec() / 1000, 1.0))
 
 func start_game(cards):
+	$TitleBackground.visible = false
 	if not $BackgroundParticles.visible:
 		update_rythm()
 	var other_players = []

@@ -120,7 +120,7 @@ class Game:
         
         all_winners = []
         if who_didnt_fold != []:
-            winner = max(who_didnt_fold, key=(lambda i : hand_per_player[i]))
+            winner = max(who_didnt_fold, key=(lambda i : (hand_per_player[i][0], list(map(lambda j : val_of_str(j[1]), hand_per_player[i][1])))))
             print(f" << winner : {winner}")
 
             winner_values = [val_of_str(h[1]) for h in hand_per_player[winner][1]]
@@ -296,10 +296,8 @@ class Game:
         if nb_cards_to_add_to_board == 0:
             print(f" << {self.id_to_name[self.ids[(self.dealer + 1) % self.nb_players]]} mise la petite blinde de {SMALL_BLIND}")
             self.bet(self.ids[(self.dealer + 1) % self.nb_players], SMALL_BLIND)
-            time.sleep(4.0)
             print(f" << {self.id_to_name[self.ids[(self.dealer + 2) % self.nb_players]]} mise la grosse blinde de {BIG_BLIND}")
             self.bet(self.ids[(self.dealer + 2) % self.nb_players], BIG_BLIND)
-            time.sleep(0.5)
     
         self.stable_since = 0
         self.round_transition = False
