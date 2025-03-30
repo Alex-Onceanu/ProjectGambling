@@ -5,6 +5,7 @@ const CYCLE_DURATION = 100
 @onready var disappearing = [false, false, false, false, false, false, false, false]
 @onready var is_particle_visible = [false, false, false, false, false, false, false, false]
 @onready var morph_targets = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+@onready var should_dance = true
 
 func set_frequency(f : float) -> void:
 	for i in range(1, 9):
@@ -68,10 +69,18 @@ func set_colors(l) -> void:
 						set_particle_color(j + 1, c)
 						appear(j + 1)
 			break
-		
+
+func pause_particles(toggled_on : bool) -> void:
+	should_dance = toggled_on
+
+func _ready() -> void:
+	for i in range(1, 9):
+		get_node("Path" + str(i) + "/PathFollow2D/Particle").material.set_shader_parameter("fade", 0.0)
+		get_node("Path" + str(i) + "/PathFollow2D/Particle").material.set_shader_parameter("my_time", 0.0)
+
 func _process(delta):
 	for i in range(1, 9):
-		var new_time = delta + get_node("Path" + str(i) + "/PathFollow2D/Particle").material.get("shader_parameter/my_time")
+		var new_time = int(should_dance) * delta + get_node("Path" + str(i) + "/PathFollow2D/Particle").material.get("shader_parameter/my_time")
 		get_node("Path" + str(i) + "/PathFollow2D/Particle").material.set_shader_parameter("my_time", new_time)
 		
 		get_node("Path" + str(i) + "/PathFollow2D").progress_ratio += (0.0005 * i + delta) / CYCLE_DURATION

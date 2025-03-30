@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=36 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -22,11 +22,12 @@
 [ext_resource type="Texture2D" uid="uid://beyowmfcbm5ib" path="res://assets/title.png" id="17_jn4qs"]
 [ext_resource type="Texture2D" uid="uid://cpgnpl5fde15t" path="res://assets/play.png" id="21_1l3ux"]
 [ext_resource type="Shader" uid="uid://cljigfvhvi7ob" path="res://scenes/blur.gdshader" id="21_8h750"]
+[ext_resource type="Texture2D" uid="uid://bd8pyoy6b7d2j" path="res://assets/pause_menu.png" id="21_dg5y3"]
 [ext_resource type="Texture2D" uid="uid://768weetsvgme" path="res://assets/next_music.png" id="22_jbb35"]
 [ext_resource type="Texture2D" uid="uid://c1sp0bnr2ctyg" path="res://assets/prev_music.png" id="23_8h750"]
 [ext_resource type="Texture2D" uid="uid://83q41x32aosp" path="res://assets/volume-.png" id="24_dg5y3"]
 [ext_resource type="Texture2D" uid="uid://cpe0br5qkhm6y" path="res://assets/volume+.png" id="25_bq6qf"]
-[ext_resource type="Texture2D" uid="uid://cak86jp2iv2cl" path="res://assets/pause.png" id="26_jbb35"]
+[ext_resource type="Texture2D" uid="uid://cctwbl3iaw5hk" path="res://assets/pause_text.png" id="27_8h750"]
 
 [sub_resource type="Curve" id="Curve_5eqtb"]
 _data = [Vector2(0, 0.494444), 0.0, 0.0, 0, 0, Vector2(1, 0.4), 0.0, 0.0, 0, 0]
@@ -119,6 +120,7 @@ texture = ExtResource("2_ctk2m")
 script = ExtResource("4_0emb5")
 
 [node name="TitleMusic" type="AudioStreamPlayer2D" parent="TitleScreen"]
+position = Vector2(573, 323)
 stream = ExtResource("5_rx1b2")
 volume_db = -10.0
 
@@ -504,6 +506,18 @@ script = ExtResource("15_0rgw7")
 wait_time = 10.0
 one_shot = true
 
+[node name="Pause" type="Button" parent="UI"]
+offset_left = 1080.0
+offset_top = 12.0
+offset_right = 1130.0
+offset_bottom = 62.0
+pivot_offset = Vector2(25, 25)
+theme = ExtResource("10_p7uy6")
+theme_override_font_sizes/font_size = 51
+icon = ExtResource("21_dg5y3")
+icon_alignment = 1
+script = ExtResource("15_0rgw7")
+
 [node name="PauseMenu" type="Node2D" parent="."]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="PauseMenu"]
@@ -555,6 +569,8 @@ offset_bottom = 296.0
 pivot_offset = Vector2(35, 0)
 theme = ExtResource("10_p7uy6")
 disabled = true
+toggle_mode = true
+button_pressed = true
 icon = ExtResource("21_1l3ux")
 icon_alignment = 1
 script = ExtResource("15_0rgw7")
@@ -611,7 +627,7 @@ script = ExtResource("15_0rgw7")
 
 [node name="Pause" type="Sprite2D" parent="PauseMenu/CanvasLayer/Menu"]
 position = Vector2(294, 66)
-texture = ExtResource("26_jbb35")
+texture = ExtResource("27_8h750")
 
 [node name="TutorialButton" type="Button" parent="PauseMenu/CanvasLayer/Menu"]
 layout_mode = 0
@@ -649,6 +665,7 @@ Voici les règles du poker pour ceux qui ne savent pas jouer :
 bla bla bla bla bla blab la blablablablabla blabla bla bla blabla bla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla bla"
 
 [node name="CloseTutorial" type="Button" parent="PauseMenu/CanvasLayer/Tutorial"]
+layout_mode = 0
 offset_left = 355.0
 offset_top = 511.0
 offset_right = 445.0
@@ -708,7 +725,6 @@ script = ExtResource("15_0rgw7")
 [connection signal="timeout" from="TitleScreen/Title/StartDancing" to="TitleScreen" method="_on_start_dancing_timeout"]
 [connection signal="toggled" from="TitleScreen/CanvasLayer/Play" to="TitleScreen" method="_on_play_toggled"]
 [connection signal="pressed" from="TitleScreen/CanvasLayer/Options" to="." method="pause"]
-[connection signal="toggled" from="TitleScreen/CanvasLayer/Options" to="TitleScreen" method="_on_play_toggled"]
 [connection signal="timeout" from="TitleScreen/StartZoomOut" to="TitleScreen" method="_on_start_zoom_out_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
 [connection signal="text_submitted" from="EnterCode/CanvasLayer/Name" to="." method="_on_name_text_submitted"]
@@ -718,7 +734,12 @@ script = ExtResource("15_0rgw7")
 [connection signal="pressed" from="UI/Rejouer" to="." method="_on_rejouer_pressed"]
 [connection signal="pressed" from="UI/Rejoindre" to="." method="_on_rejoindre_pressed"]
 [connection signal="timeout" from="UI/CDSpectate" to="." method="_on_cd_spectate_timeout"]
+[connection signal="pressed" from="UI/Pause" to="." method="pause"]
+[connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/BackToTitle" to="." method="_on_back_to_title_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/CloseMenu" to="." method="_on_close_menu_pressed"]
+[connection signal="toggled" from="PauseMenu/CanvasLayer/Menu/PauseMusic" to="." method="_on_pause_music_toggled"]
+[connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/NextMusic" to="." method="_on_next_music_pressed"]
+[connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/PrevMusic" to="." method="_on_prev_music_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/Volume-" to="." method="_on_volume_down_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/Volume+" to="." method="_on_volume_up_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/TutorialButton" to="." method="_on_tutorial_pressed"]

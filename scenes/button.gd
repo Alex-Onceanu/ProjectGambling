@@ -12,13 +12,13 @@ func _on_mouse_entered() -> void:
 		return
 	reset_tween()
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	tween.tween_property(self, "scale", Vector2(1.07, 1.07), 0.5)
+	tween.tween_property(self, "scale", Vector2(1.07, 1.07), 0.4)
 	
 
 func _on_mouse_exited() -> void:
 	reset_tween()
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.5)
+	tween.tween_property(self, "scale", Vector2.ONE, 0.4)
 	
 func reset_tween() -> void:
 	if tween:

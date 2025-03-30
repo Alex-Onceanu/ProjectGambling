@@ -96,7 +96,7 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 		$TitleScreen/CanvasLayer.layer = 1
 		$TitleScreen.fade_in()
-		$TitleScreen/TitleMusic.stop()
+		$TitleScreen/TitleMusic.stream_paused = true
 		
 
 func update_rythm():
@@ -112,6 +112,11 @@ func start_game(cards):
 	var other_players = []
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
+	
+	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
+	$PauseMenu/CanvasLayer/Menu/NextMusic.disabled = false
+	$PauseMenu/CanvasLayer/Menu/PrevMusic.disabled = false
+	$PauseMenu/CanvasLayer/Menu/PauseMusic.disabled = false
 	
 	$EnterCode/CanvasLayer.visible = false
 	$UI.visible = true
@@ -432,23 +437,52 @@ func _on_unspectate_request_completed(result: int, response_code: int, headers: 
 func _on_wait_before_update_timeout() -> void:
 	$Requests/UpdateTimer.start()
 
-
 func pause() -> void:
 	$PauseMenu/CanvasLayer.visible = true
 	$TitleScreen/TitleMusic.volume_db -= 8.0
+	$MusicPlayer/StreamPlayer.volume_db -= 8.0
 
 func _on_close_menu_pressed() -> void:
 	$PauseMenu/CanvasLayer.visible = false
 	$TitleScreen/TitleMusic.volume_db += 8.0
-
+	$MusicPlayer/StreamPlayer.volume_db += 8.0
+	
 func _on_volume_down_pressed() -> void:
 	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
 
 func _on_volume_up_pressed() -> void:
 	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 
 func _on_close_tutorial_pressed() -> void:
 	$PauseMenu/CanvasLayer/Tutorial.visible = false
 
 func _on_tutorial_pressed() -> void:
 	$PauseMenu/CanvasLayer/Tutorial.visible = true
+
+func _on_pause_music_toggled(toggled_on: bool) -> void:
+	$MusicPlayer/StreamPlayer.stream_paused = not toggled_on
+	$BackgroundParticles.pause_particles(toggled_on)
+
+func _on_next_music_pressed() -> void:
+	$MusicPlayer.next_track()
+	$MusicPlayer/StreamPlayer.play()
+
+func _on_prev_music_pressed() -> void:
+	$MusicPlayer.previous_track()
+	$MusicPlayer/StreamPlayer.play()
+
+func _on_back_to_title_pressed() -> void:
+	#$TitleScreen.fade_in()
+	#_on_close_menu_pressed()
+	#$TitleScreen._on_play_toggled(false)
+	#$TitleScreen.visible = true
+	#$TitleScreen/CanvasLayer.visible = true
+	#$MusicPlayer/StreamPlayer.stop()
+	#$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
+	#$PauseMenu/CanvasLayer/Menu/NextMusic.disabled = false
+	#$PauseMenu/CanvasLayer/Menu/PrevMusic.disabled = false
+	#$PauseMenu/CanvasLayer/Menu/PauseMusic.disabled = false
+	#$TitleScreen/TitleMusic.stream_paused = false
+	get_tree().change_scene_to_file("res://scenes/game_room.tscn")

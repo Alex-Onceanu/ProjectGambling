@@ -13,14 +13,24 @@ func get_phase() -> float:
 	return current_phase
 
 func next_track() -> void:
+	current_track_i += 1
+	if current_track_i >= len(tracks):
+		var current_ost = tracks[-1]
+		tracks.shuffle()
+		while current_ost == tracks[0]:
+			tracks.shuffle()
+		current_track_i = 0
+	
 	$StreamPlayer.stream = tracks[current_track_i][0]
 	current_bps = tracks[current_track_i][1]
 	current_phase = tracks[current_track_i][2]
+
+func previous_track() -> void:
+	current_track_i = posmod(current_track_i - 1, len(tracks))
 	
-	current_track_i += 1
-	if current_track_i >= len(tracks):
-		tracks.shuffle()
-		current_track_i = 0
+	$StreamPlayer.stream = tracks[current_track_i][0]
+	current_bps = tracks[current_track_i][1]
+	current_phase = tracks[current_track_i][2]
 
 func _ready() -> void:
 	const paths  = ["boring20s", "lonedigger", "busteretcharlie"]
@@ -32,9 +42,10 @@ func _ready() -> void:
 		tracks.append([tr, BPS[i], phases[i]])
 	
 	tracks.shuffle()
-	next_track()
 	
-
+	$StreamPlayer.stream = tracks[0][0]
+	current_bps = tracks[0][1]
+	current_phase = tracks[0][2]
 
 func _on_stream_player_finished() -> void:
 	$WaitBeforeNext.start()
