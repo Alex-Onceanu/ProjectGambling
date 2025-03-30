@@ -16,6 +16,8 @@ var every_name
 var old_dealer
 
 const CD = 0.15
+const VOLUME_MIN = -30.0
+const VOLUME_MAX = 6.0
 
 @onready var user_did_timeout = false
 @onready var is_spectator = false
@@ -184,6 +186,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 	else:
 		$TitleScreen.visible = false
 		$TitleScreen/CanvasLayer/Play.visible = false
+		$TitleScreen/CanvasLayer/Options.visible = false
 		start_game(cards)
 
 func _on_try_again_timeout() -> void:
@@ -428,3 +431,24 @@ func _on_unspectate_request_completed(result: int, response_code: int, headers: 
 
 func _on_wait_before_update_timeout() -> void:
 	$Requests/UpdateTimer.start()
+
+
+func pause() -> void:
+	$PauseMenu/CanvasLayer.visible = true
+	$TitleScreen/TitleMusic.volume_db -= 8.0
+
+func _on_close_menu_pressed() -> void:
+	$PauseMenu/CanvasLayer.visible = false
+	$TitleScreen/TitleMusic.volume_db += 8.0
+
+func _on_volume_down_pressed() -> void:
+	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+
+func _on_volume_up_pressed() -> void:
+	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+
+func _on_close_tutorial_pressed() -> void:
+	$PauseMenu/CanvasLayer/Tutorial.visible = false
+
+func _on_tutorial_pressed() -> void:
+	$PauseMenu/CanvasLayer/Tutorial.visible = true

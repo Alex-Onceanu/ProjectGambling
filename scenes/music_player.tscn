@@ -7,6 +7,7 @@ script = ExtResource("1_ql6qh")
 
 [node name="StreamPlayer" type="AudioStreamPlayer2D" parent="."]
 position = Vector2(689, 372)
+volume_db = -10.0
 
 [node name="WaitBeforeNext" type="Timer" parent="."]
 one_shot = true
