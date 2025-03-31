@@ -59,7 +59,7 @@ class Client:
                 # on attend que le serveur soit joignable et qu'il nous donne un id
                 # print(requests.get(self.serverURL + f"/register/user?name={self.userName}", allow_redirects=True).text)
                 print(" << Go ans !")
-                ans = requests.get(self.serverURL + f"/register/user?name={self.userName}&skin=2", allow_redirects=True).text
+                ans = requests.get(self.serverURL + f"/register/user?name={self.userName}&skin=2&money=100", allow_redirects=True).text
                 print(" << ans : ", ans)
                 self.client_id = int(ans)
                 break

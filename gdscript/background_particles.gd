@@ -62,12 +62,12 @@ func set_colors(l) -> void:
 		if len(color_to_list[c]) >= 5:
 			# Il y a couleur
 			for j in range(8):
-				if color_to_list[c].find(j + 1) == -1:
-					if is_particle_visible[j]:
-						become_particle_color(j + 1, c)
-					else:
-						set_particle_color(j + 1, c)
-						appear(j + 1)
+				#if color_to_list[c].find(j + 1) == -1:
+				if is_particle_visible[j]:
+					become_particle_color(j + 1, color_to_which[c])
+				else:
+					set_particle_color(j + 1, color_to_which[c])
+					appear(j + 1)
 			break
 
 func pause_particles(toggled_on : bool) -> void:

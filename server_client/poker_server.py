@@ -59,6 +59,7 @@ class Game:
         self.nb_skippable = 0
         self.dealer = 0
         self.id_to_skin = {}
+        self.spectator_to_money = {}
 
         print(" << Classe Game initialisée.")
 
@@ -327,7 +328,7 @@ class Game:
         self.round += 1
 
     # ajoute un joueur à la partie (à partir de son nom), cette fonction sera appelée par Server
-    def add_player(self, player : str, skin="1") -> int:
+    def add_player(self, player : str, skin="1", money=100) -> int:
         # comme 2 joueurs peuvent avoir le même nom, on attribue à chaque joueur un identifiant unique
         # on prend un entier de [1, 100], et s'il y est déja (parmi les id des joueurs) on reroll
         player_id = randint(1000, 9999)
@@ -342,9 +343,10 @@ class Game:
             print(f"\n << Ajouté {player} d'id {player_id} aux spectateurs.\n >> ", end="")
             self.id_to_update[player_id] = [(0, 0)]
             self.id_to_bet[player_id] = 0
+            self.spectator_to_money[player_id] = money
         else:
             self.ids.append(player_id)
-            self.money_left.append(100)
+            self.money_left.append(money)
             self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
             print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
             self.nb_players += 1
@@ -374,7 +376,8 @@ class Game:
             return
         self.spectators.remove(who)
         self.ids.append(who)
-        self.money_left.append(100)
+        self.money_left.append(self.spectator_to_money[who])
+        self.spectator_to_money.pop(who)
         print(f"\n << Ajouté {self.id_to_name[who]} d'id {who} aux joueurs.\n >> ", end="")
         self.nb_players += 1
 
@@ -412,7 +415,8 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 parsed_url = urlparse(self.path)
                 name = parse_qs(parsed_url.query)["name"][0]    # ici on récupère le str "HAMOUDE" dans la variable name
                 skin = parse_qs(parsed_url.query)["skin"][0]
-                player_id = self.gameInstance.add_player(name, skin)  # on appelle la fonction add_player de game avec le nom reçu 
+                money = parse_qs(parsed_url.query)["money"][0]
+                player_id = self.gameInstance.add_player(name, skin, int(money))  # on appelle la fonction add_player de game avec le nom reçu 
                 
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')

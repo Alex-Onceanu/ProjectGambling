@@ -21,7 +21,9 @@ var cards_back
 const CD = 0.15
 const VOLUME_MIN = -30.0
 const VOLUME_MAX = 6.0
+const SAVEFILE_PATH = "user://sauvegarde.givs"
 
+@onready var current_money = 300
 @onready var current_skin = "3"
 @onready var user_did_timeout = false
 @onready var is_spectator = false
@@ -62,7 +64,7 @@ func _on_register_completed(result, response_code, headers, body):
 		$EnterCode/CanvasLayer/Name.text = ""
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
 		tryagain_node = $Requests/Register
-		tryagain_url = str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin
+		tryagain_url = str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money)
 		$Requests/TryAgain.start()
 		return
 		
@@ -215,7 +217,7 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/CanvasLayer.layer = 1
 	
 	url = "http://gambling2.share.zrok.io"
-	$Requests/Register.request(str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin)
+	$Requests/Register.request(str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money))
 	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 
 func _on_update_timer_timeout() -> void:
@@ -281,6 +283,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 			$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 
 	money_left = data["money_left"]
+	#current_money = int(money_left[my_player_offset])
 	
 	if round != 4:
 		for i in range(nb_players):
@@ -301,7 +304,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		$UI/Suivre.text = "Suivre (" + str(current_blind - your_bet) + "€)"
 		var old_val = $UI/Surencherir/HowMuch.value
 		$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 1
-		$UI/Surencherir/HowMuch.max_value = int(money_left[my_player_offset])
+		$UI/Surencherir/HowMuch.max_value = current_money
 		$UI/Surencherir/HowMuch.value = old_val
 	
 	animate_bets(data["update"])
@@ -336,11 +339,12 @@ func _on_suivre_pressed() -> void:
 	else:
 		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet))
 	end_turn()
+	
 
 func _on_showdown_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var data = JSON.parse_string(body.get_string_from_utf8())
 	if data == null:
-		print("Erreur au moment de parser la réponse de /update/ !!")
+		print("Erreur au moment de parser la réponse de /showdown/ !!")
 		return
 		
 	$UI/WhoIsPlaying.text = ""
@@ -372,7 +376,8 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		get_node("Players/Player" + str(true_i) + "/combo").visible = true
 	$Requests/UpdateTimer.stop()
 	
-	if int($Players/Player1/money_left.text) <= 0 and not str(my_player_offset * 1.0) in data["winners"]:
+	current_money = int($Players/Player1/money_left.text)
+	if current_money <= 0 and not str(my_player_offset * 1.0) in data["winners"]:
 		is_spectator = true
 		$Players/Player1/Card_1/vfx.visible = false
 		$Players/Player1/Card_2/vfx.visible = false
@@ -383,6 +388,8 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		$UI/Rejoindre.visible = true
 	else:
 		$UI/Rejouer.visible = true
+		
+	save()
 
 func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
@@ -498,6 +505,23 @@ func update_deck_skin() -> void:
 		
 	$"Board/5".change_skin(current_skin, front, back)
 
+func save_to_file(content):
+	var file = FileAccess.open(SAVEFILE_PATH, FileAccess.WRITE)
+	file.store_string(content)
+
+func load_from_file():
+	var file = FileAccess.open(SAVEFILE_PATH, FileAccess.READ)
+	var content = file.get_as_text()
+	return content
+	
+func save():
+	save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin}))
+
+func load_savefile():
+	var data = JSON.parse_string(load_from_file())
+	current_money = int(data["current_money"])
+	current_skin = data["current_skin"]
+
 func _ready() -> void:
 	const NB_FRONTS = 3
 	cards_back = []
@@ -510,6 +534,6 @@ func _ready() -> void:
 			cards_back.append([])
 			for c in range(10):
 				cards_back[1].append(load("res://assets/cards_back/" + str(i) + str(c) + ".png"))
-				
+	load_savefile()
 	update_deck_skin()
 	
