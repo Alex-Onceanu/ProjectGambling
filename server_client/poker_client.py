@@ -59,7 +59,7 @@ class Client:
                 # on attend que le serveur soit joignable et qu'il nous donne un id
                 # print(requests.get(self.serverURL + f"/register/user?name={self.userName}", allow_redirects=True).text)
                 print(" << Go ans !")
-                ans = requests.get(self.serverURL + f"/register/user?name={self.userName}", allow_redirects=True).text
+                ans = requests.get(self.serverURL + f"/register/user?name={self.userName}&skin=2", allow_redirects=True).text
                 print(" << ans : ", ans)
                 self.client_id = int(ans)
                 break
@@ -90,9 +90,10 @@ class Client:
                 # le serveur nous renvoie un string, qu'on récupère dans shouldStart. Ici on a juste à vérifier que ce string vaut bien "go!" pour lancer la game
                 shouldStart = requests.get(self.serverURL + "/ready?id=" + str(self.client_id),allow_redirects=True).text
 
-            self.players = list(filter(None, shouldStart[3:].split(",")))
+            data = json.loads(shouldStart[3:])
+            self.players = list(filter(None, data["names"]))
             print(f" << Partie lancée ! Joueurs : {self.players}")
-            self.user_index = self.players.index(self.userName)         # correspond à true_i en Godot
+            self.user_index = data["offset"]         # correspond à true_i en Godot
             print(f" << mon user index vaut {self.user_index}")
 
             self.card1, self.card2 = self.try_GET(parseCards, f"/cards?id={self.client_id}", "Erreur dans la distribution de cartes")

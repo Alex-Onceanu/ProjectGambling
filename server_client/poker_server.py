@@ -58,6 +58,7 @@ class Game:
         self.combo_per_player = {}      # { i : poker_hand(cards_per_player[i] + self.board) for i in self.ids }
         self.nb_skippable = 0
         self.dealer = 0
+        self.id_to_skin = {}
 
         print(" << Classe Game initialisée.")
 
@@ -326,12 +327,14 @@ class Game:
         self.round += 1
 
     # ajoute un joueur à la partie (à partir de son nom), cette fonction sera appelée par Server
-    def add_player(self, player : str) -> int:
+    def add_player(self, player : str, skin="1") -> int:
         # comme 2 joueurs peuvent avoir le même nom, on attribue à chaque joueur un identifiant unique
         # on prend un entier de [1, 100], et s'il y est déja (parmi les id des joueurs) on reroll
         player_id = randint(1000, 9999)
         while player_id in self.ids or player_id in self.spectators:
             player_id = randint(1000, 9999)
+
+        self.id_to_skin[player_id] = skin
 
         if self.inGame:
             self.spectators.append(player_id)
@@ -348,10 +351,23 @@ class Game:
         return player_id
     
     def get_all_names(self):
-        ans = ""
-        for p in self.ids:
-            ans += self.id_to_name[p] + ","
-        return ans
+        return [self.id_to_name[p] for p in self.ids]
+    
+    def get_all_skins(self):
+        return [self.id_to_skin[p] for p in self.ids]
+    
+    def get_offset(self, who):
+        if not who in self.ids:
+            return -1
+        return self.ids.index(who)
+    
+    def change_skin(self, who, skin):
+        if not i in self.ids:
+            return
+        self.id_to_skin[who] = skin
+        i = self.ids.find(who)
+        for idp in self.id_to_update.keys():
+            self.id_to_update[idp].append((i, -5, skin))
 
     def unspectate(self, who):
         if not who in self.spectators or self.inGame:
@@ -395,8 +411,9 @@ class Server(http.server.SimpleHTTPRequestHandler):
             if self.path.startswith('/register/user'):
                 parsed_url = urlparse(self.path)
                 name = parse_qs(parsed_url.query)["name"][0]    # ici on récupère le str "HAMOUDE" dans la variable name
-                player_id = self.gameInstance.add_player(name)  # on appelle la fonction add_player de game avec le nom reçu 
-
+                skin = parse_qs(parsed_url.query)["skin"][0]
+                player_id = self.gameInstance.add_player(name, skin)  # on appelle la fonction add_player de game avec le nom reçu 
+                
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')
                 self.send_my_headers()
@@ -410,7 +427,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 self.send_my_headers()
                 ans = "notready"
                 if self.gameInstance.shouldStart:
-                    ans = "go!" + self.gameInstance.get_all_names()
+                    data = {"names" : self.gameInstance.get_all_names(),
+                            "skins" : self.gameInstance.get_all_skins(),
+                            "offset": self.gameInstance.get_offset(their_id)}
+                    ans = "go!" + json.dumps(data)
                 
                 if their_id in self.gameInstance.spectators:
                     ans = "spectator" + ans
@@ -528,6 +548,15 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     self.send_response(200, 'OK')
                     self.send_my_headers()
                     self.wfile.write(("ok" if not self.gameInstance.inGame else "no").encode())
+
+                elif self.path.startswith('/changeskin'):
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    skin = parse_qs(parsed_url.query)["which"][0]
+                    self.gameInstance.change_skin(their_id, skin)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write("ok".encode())
 
                 elif self.path.startswith('/GO'):
                     self.gameInstance.shouldStart = len(self.gameInstance.ids) > 1

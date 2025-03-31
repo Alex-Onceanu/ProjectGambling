@@ -80,3 +80,7 @@ func _process(delta: float) -> void:
 func _on_bet_anim_timer_timeout() -> void:
 	$bet_anim.visible = false
 	$bet_anim.position = old_bet_pos
+
+func change_skin(skin : String, front, back) -> void:
+	$Card_1.change_skin(skin, front, back)
+	$Card_2.change_skin(skin, front, back)

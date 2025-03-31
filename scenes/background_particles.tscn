@@ -1,11 +1,11 @@
 [gd_scene load_steps=23 format=3 uid="uid://maipilee56om"]
 
-[ext_resource type="Script" uid="uid://dusm0e5ki1qbe" path="res://scenes/background_particles.gd" id="1_4s878"]
+[ext_resource type="Script" uid="uid://dusm0e5ki1qbe" path="res://gdscript/background_particles.gd" id="1_4s878"]
 [ext_resource type="Shader" uid="uid://080c3khqkang" path="res://shaders/background_particle.gdshader" id="1_s2r6w"]
-[ext_resource type="Texture2D" uid="uid://brf51bj2wgbnt" path="res://assets/clubs_dist.jpg" id="2_4s878"]
-[ext_resource type="Texture2D" uid="uid://2xp3iwm2jpm4" path="res://assets/diamonds_dist.jpg" id="3_l5vo1"]
-[ext_resource type="Texture2D" uid="uid://cj4h77d8sik5a" path="res://assets/hearts_dist.jpg" id="4_ch57y"]
-[ext_resource type="Texture2D" uid="uid://81006gsehfof" path="res://assets/spades_dist.jpg" id="5_7ej4g"]
+[ext_resource type="Texture2D" uid="uid://brf51bj2wgbnt" path="res://assets/background/clubs_dist.jpg" id="2_4s878"]
+[ext_resource type="Texture2D" uid="uid://2xp3iwm2jpm4" path="res://assets/background/diamonds_dist.jpg" id="3_l5vo1"]
+[ext_resource type="Texture2D" uid="uid://cj4h77d8sik5a" path="res://assets/background/hearts_dist.jpg" id="4_ch57y"]
+[ext_resource type="Texture2D" uid="uid://81006gsehfof" path="res://assets/background/spades_dist.jpg" id="5_7ej4g"]
 
 [sub_resource type="Curve2D" id="Curve2D_cl88g"]
 _data = {
@@ -40,7 +40,7 @@ shader_parameter/diamonds = ExtResource("3_l5vo1")
 shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 1.0
-shader_parameter/which_figure = 3.0
+shader_parameter/which_figure = 4.0
 shader_parameter/fade = 0.0
 shader_parameter/my_time = 0.0
 

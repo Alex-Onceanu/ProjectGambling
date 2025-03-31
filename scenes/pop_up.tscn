@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bsegyl8xcx68p" path="res://gdscript/pop_up.gd" id="1_01pyo"]
 [ext_resource type="Shader" uid="uid://cpgb3je2ihk84" path="res://shaders/popup.gdshader" id="1_ag3je"]
-[ext_resource type="Texture2D" uid="uid://cw3174wdyixfb" path="res://assets/givs_casino.png" id="3_3m73y"]
+[ext_resource type="Texture2D" uid="uid://cw3174wdyixfb" path="res://assets/UI/givs_casino.png" id="3_3m73y"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_67bnw"]
 shader = ExtResource("1_ag3je")

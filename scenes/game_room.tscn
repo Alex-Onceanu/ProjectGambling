@@ -2,35 +2,35 @@
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
-[ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/casino_blurred.png" id="2_ctk2m"]
+[ext_resource type="Texture2D" uid="uid://c5xh11fsn7rwc" path="res://assets/background/casino_blurred.png" id="2_ctk2m"]
 [ext_resource type="PackedScene" uid="uid://maipilee56om" path="res://scenes/background_particles.tscn" id="3_0t0sp"]
 [ext_resource type="Shader" uid="uid://dhtrfbqau0m46" path="res://shaders/table.gdshader" id="3_7c0aq"]
 [ext_resource type="PackedScene" uid="uid://b25ew1dv5tplj" path="res://scenes/card.tscn" id="3_r7l47"]
-[ext_resource type="Script" uid="uid://ds6frx281fnro" path="res://scenes/title_screen.gd" id="4_0emb5"]
+[ext_resource type="Script" uid="uid://ds6frx281fnro" path="res://gdscript/title_screen.gd" id="4_0emb5"]
 [ext_resource type="PackedScene" uid="uid://ccbm2fm8ej331" path="res://scenes/player.tscn" id="4_8otjw"]
-[ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/velvet.png" id="4_qfild"]
-[ext_resource type="Texture2D" uid="uid://cwefci3c0xreg" path="res://assets/title_background.png" id="4_w0exb"]
-[ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/wood.png" id="5_i1xx5"]
-[ext_resource type="AudioStream" uid="uid://di7vho5ylh664" path="res://assets/count_to3.mp3" id="5_rx1b2"]
-[ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/money_bag.png" id="6_gpvgl"]
-[ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://scenes/money.gd" id="6_ij5t4"]
-[ext_resource type="Texture2D" uid="uid://ck30m32aswpla" path="res://assets/poker-chip.png" id="7_5eqtb"]
+[ext_resource type="Texture2D" uid="uid://ct4ic0w4wce2q" path="res://assets/background/velvet.png" id="4_qfild"]
+[ext_resource type="Texture2D" uid="uid://cwefci3c0xreg" path="res://assets/background/title_background.png" id="4_w0exb"]
+[ext_resource type="Texture2D" uid="uid://dxoa4qlu4o1bj" path="res://assets/background/wood.png" id="5_i1xx5"]
+[ext_resource type="AudioStream" uid="uid://di7vho5ylh664" path="res://assets/music/count_to3.mp3" id="5_rx1b2"]
+[ext_resource type="Texture2D" uid="uid://biuaknrdsu3pt" path="res://assets/background/money_bag.png" id="6_gpvgl"]
+[ext_resource type="Script" uid="uid://b7xhf2myubfum" path="res://gdscript/money.gd" id="6_ij5t4"]
+[ext_resource type="Texture2D" uid="uid://ck30m32aswpla" path="res://assets/background/poker-chip.png" id="7_5eqtb"]
 [ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="9_qktb6"]
-[ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/ui.tres" id="10_p7uy6"]
+[ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/UI/ui.tres" id="10_p7uy6"]
 [ext_resource type="PackedScene" uid="uid://dtqyjjeakp1v" path="res://scenes/music_player.tscn" id="14_0rgw7"]
-[ext_resource type="Script" uid="uid://7glo8ebeohq6" path="res://scenes/button.gd" id="15_0rgw7"]
-[ext_resource type="Texture2D" uid="uid://beyowmfcbm5ib" path="res://assets/title.png" id="17_jn4qs"]
-[ext_resource type="Texture2D" uid="uid://cpgnpl5fde15t" path="res://assets/play.png" id="21_1l3ux"]
-[ext_resource type="Shader" uid="uid://cljigfvhvi7ob" path="res://scenes/blur.gdshader" id="21_8h750"]
-[ext_resource type="Texture2D" uid="uid://bd8pyoy6b7d2j" path="res://assets/pause_menu.png" id="21_dg5y3"]
-[ext_resource type="Texture2D" uid="uid://768weetsvgme" path="res://assets/next_music.png" id="22_jbb35"]
-[ext_resource type="Texture2D" uid="uid://c1sp0bnr2ctyg" path="res://assets/prev_music.png" id="23_8h750"]
-[ext_resource type="Texture2D" uid="uid://83q41x32aosp" path="res://assets/volume-.png" id="24_dg5y3"]
-[ext_resource type="Texture2D" uid="uid://cpe0br5qkhm6y" path="res://assets/volume+.png" id="25_bq6qf"]
-[ext_resource type="Texture2D" uid="uid://cctwbl3iaw5hk" path="res://assets/pause_text.png" id="27_8h750"]
+[ext_resource type="Script" uid="uid://7glo8ebeohq6" path="res://gdscript/button.gd" id="15_0rgw7"]
+[ext_resource type="Texture2D" uid="uid://beyowmfcbm5ib" path="res://assets/UI/title.png" id="17_jn4qs"]
+[ext_resource type="Texture2D" uid="uid://cpgnpl5fde15t" path="res://assets/UI/play.png" id="21_1l3ux"]
+[ext_resource type="Shader" uid="uid://cljigfvhvi7ob" path="res://shaders/blur.gdshader" id="21_8h750"]
+[ext_resource type="Texture2D" uid="uid://bd8pyoy6b7d2j" path="res://assets/UI/pause_menu.png" id="21_dg5y3"]
+[ext_resource type="Texture2D" uid="uid://768weetsvgme" path="res://assets/UI/next_music.png" id="22_jbb35"]
+[ext_resource type="Texture2D" uid="uid://c1sp0bnr2ctyg" path="res://assets/UI/prev_music.png" id="23_8h750"]
+[ext_resource type="Texture2D" uid="uid://83q41x32aosp" path="res://assets/UI/volume-.png" id="24_dg5y3"]
+[ext_resource type="Texture2D" uid="uid://cpe0br5qkhm6y" path="res://assets/UI/volume+.png" id="25_bq6qf"]
+[ext_resource type="Texture2D" uid="uid://cctwbl3iaw5hk" path="res://assets/UI/pause_text.png" id="27_8h750"]
 
 [sub_resource type="Curve" id="Curve_5eqtb"]
-_data = [Vector2(0, 0.494444), 0.0, 0.0, 0, 0, Vector2(1, 0.4), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 0.75), 0.0, 0.0, 0, 0, Vector2(1, 0.594444), 0.0, 0.0, 0, 0]
 point_count = 2
 
 [sub_resource type="CurveTexture" id="CurveTexture_eanov"]
@@ -154,12 +154,12 @@ scale = Vector2(1.675, 1.675)
 texture = ExtResource("17_jn4qs")
 
 [node name="BoingStart" type="Timer" parent="TitleScreen/Title"]
-wait_time = 3.3
+wait_time = 3.27
 one_shot = true
 autostart = true
 
 [node name="BoingEnd" type="Timer" parent="TitleScreen/Title"]
-wait_time = 3.55
+wait_time = 3.52
 one_shot = true
 autostart = true
 

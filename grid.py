@@ -4,12 +4,12 @@ from PIL import Image, ImageDraw, ImageFilter
 from math import sqrt
 
 UPSCALE = 2
-CARD_WIDTH = UPSCALE * 61
-CARD_HEIGHT = UPSCALE * 81
-offset_w = UPSCALE * 5
-offset_h = UPSCALE * 7
+CARD_WIDTH = UPSCALE * 64
+CARD_HEIGHT = UPSCALE * 85
+offset_w = 10
+offset_h = 15
 
-base = Image.new(mode="RGBA", size=(offset_w + (2 * offset_w + CARD_WIDTH) * 13, offset_h + (2 * offset_h + CARD_HEIGHT) * 4))
+base = Image.new(mode="RGBA", size=(offset_w + (offset_w + CARD_WIDTH) * 13, offset_h + (offset_h + CARD_HEIGHT) * 4))
 
 def get_val(x):
     if x <= 8:
@@ -36,13 +36,16 @@ for line in range(4):
         im = im.crop((6, 9, w - 6, h - 9))
         im2 = im.resize((CARD_WIDTH, CARD_HEIGHT))
         
-        base.paste(im2, (offset_w + col * (CARD_WIDTH + 2 * offset_w), offset_h + line * (CARD_HEIGHT + 2 * offset_h)))
+        base.paste(im2, (offset_w + col * (CARD_WIDTH + offset_w), offset_h + line * (CARD_HEIGHT + offset_h)))
 
 width, height = base.size
 pixdata = base.load()
 for y in range(height):
     for x in range(width):
-        if grey(pixdata[x, y]) <= 2 and dist(pixdata[x, y], (0, 0, 0, 255)) >= 250:
-            pixdata[x, y] = (0, 0, 0, 0)
+        (r, g, b, a) = pixdata[x, y]
+        if a < 50:
+            pixdata[x, y] = (255, 255, 255, 255)
+        # if grey(pixdata[x, y]) <= 2 and dist(pixdata[x, y], (0, 0, 0, 255)) >= 250:
+        #     pixdata[x, y] = (0, 0, 0, 0)
 
 base.save("output.png")

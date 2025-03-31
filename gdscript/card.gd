@@ -78,6 +78,7 @@ func _on_goto_wait_timeout() -> void:
 	$goto_anim.start()
 	pos_before_goto = global_position
 	should_move = true
+	$/root/GameRoom/MusicPlayer.card_sfx()
 
 func _on_reveal_wait_timeout() -> void:
 	$reveal_anim.start()
@@ -88,6 +89,7 @@ func _on_reveal_anim_timeout() -> void:
 	if is_anim_before_halfway:
 		if should_reveal_frontface:
 			flip_frontface()
+			$/root/GameRoom/MusicPlayer.card_sfx()
 		else:
 			flip_backface()
 		is_anim_before_halfway = false
@@ -99,3 +101,10 @@ func _on_flip_wait_timeout() -> void:
 	is_frontface = false
 	$rect.material.set_shader_parameter("is_frontface", 0.0);
 	$vfx.visible = false
+
+func change_skin(skin : String, front, back) -> void:
+	$rect.material.set_shader_parameter("front_tex", front)
+	$rect.material.set_shader_parameter("back_tex", back)
+	
+	$rect.material.set_shader_parameter("which_texture_type", float(int(skin == "1")));
+	$rect.material.set_shader_parameter("which_background", float(int(skin == "3")));

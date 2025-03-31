@@ -15,10 +15,14 @@ var other_players
 var every_name
 var old_dealer
 
+var cards_front
+var cards_back
+
 const CD = 0.15
 const VOLUME_MIN = -30.0
 const VOLUME_MAX = 6.0
 
+@onready var current_skin = "3"
 @onready var user_did_timeout = false
 @onready var is_spectator = false
 @onready var round = -1
@@ -41,10 +45,6 @@ func compute_player_pos(player_i):
 	return Vector2(1.4 * module * cos(theta), 0.9 * module * sin(theta)) + $Players.global_position
 
 func rearrange_players(names, anim = false):
-	nb_players = len(names)
-	my_player_offset = names.find(user_name)
-	# TODO : me trouver via mon id pas via mon nom
-	
 	var true_i
 	for i in range(nb_players):
 		true_i = true_i_of_i(i)
@@ -62,7 +62,7 @@ func _on_register_completed(result, response_code, headers, body):
 		$EnterCode/CanvasLayer/Name.text = ""
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
 		tryagain_node = $Requests/Register
-		tryagain_url = str(url) + "/register/user?name=" + user_name
+		tryagain_url = str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin
 		$Requests/TryAgain.start()
 		return
 		
@@ -90,8 +90,14 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 	elif ans.begins_with("go!"):
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
 		$Money/TotalBet.text = "Allez une game de +"
-		every_name = ans.substr(3).split(",", false)
+		var data = JSON.parse_string(ans.substr(3))
+		every_name = data["names"]
 		nb_players = len(every_name)
+		my_player_offset = int(data["offset"]) # vaudra -1 si on est spectateur !
+		
+		for i in range(nb_players):
+			change_skin_of(i, data["skins"][i])
+		
 		rearrange_players(every_name)
 		$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 		$TitleScreen/CanvasLayer.layer = 1
@@ -113,7 +119,6 @@ func start_game(cards):
 	for i in range(2, nb_players + 1):
 		other_players.append(get_node("Players/Player" + str(i)))
 	
-	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 	$PauseMenu/CanvasLayer/Menu/NextMusic.disabled = false
 	$PauseMenu/CanvasLayer/Menu/PrevMusic.disabled = false
 	$PauseMenu/CanvasLayer/Menu/PauseMusic.disabled = false
@@ -190,6 +195,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 			p1_has_cards = true
 	else:
 		$TitleScreen.visible = false
+		$TitleScreen/ChipRain.emitting = false
 		$TitleScreen/CanvasLayer/Play.visible = false
 		$TitleScreen/CanvasLayer/Options.visible = false
 		start_game(cards)
@@ -209,7 +215,8 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/CanvasLayer.layer = 1
 	
 	url = "http://gambling2.share.zrok.io"
-	$Requests/Register.request(str(url) + "/register/user?name=" + user_name)
+	$Requests/Register.request(str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin)
+	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 
 func _on_update_timer_timeout() -> void:
 	$Requests/Update.request(url + "/update?id=" + str(user_id))
@@ -219,11 +226,24 @@ func change_player_text_color(who : int, col : Color) -> void:
 	get_node("Players/Player" + str(who) + "/money_left").set("theme_override_colors/font_color", col)
 	get_node("Players/Player" + str(who) + "/combo").set("theme_override_colors/font_color", col)
 	
+func change_skin_of(who, skin):
+	var back
+	if skin == "2":
+		back = cards_back[1][randi_range(0, 9)]
+	else:
+		back = cards_back[int(skin) - 1]
+	get_node("Players/Player" + str(true_i_of_i(who))).change_skin(skin, cards_front[int(skin) - 1], back)
+	
 func animate_bets(bets):
 	for b in bets:
 		var who = b[0]
 		var what = int(b[1])
+		if what == -5:
+			# changement de skin
+			change_skin_of(who, b[2])
+			return
 		if what == -3:
+			# petite blinde
 			change_player_text_color(true_i_of_i(posmod(who - 1, nb_players)), Color(0.8, 0.4, 0.4))
 			if old_dealer != null:
 				change_player_text_color(old_dealer, Color(0.996, 0.8353, 0.451))
@@ -317,24 +337,12 @@ func _on_suivre_pressed() -> void:
 		$Requests/Bet.request(url + "/bet?id=" + str(user_id) + "&how_much=" + str(current_blind - your_bet))
 	end_turn()
 
-# "winners" : all_winners,
-# "money_left" : self.money_left,
-# "cards" : [self.cards_per_player[p] for p in self.ids],
-# "did_timeout" : self.did_timeout,
-# "hand_per_player" : hand_per_player
-
 func _on_showdown_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var data = JSON.parse_string(body.get_string_from_utf8())
 	if data == null:
 		print("Erreur au moment de parser la réponse de /update/ !!")
 		return
-
-	#print("Winners : ", data["winners"])
-	#print("Money left : ", data["money_left"])
-	#print("Cards : ", data["cards"])
-	#print("Hand per player : ", data["hand_per_player"])
-	#print("Did timeout : ", data["did_timeout"])
-	
+		
 	$UI/WhoIsPlaying.text = ""
 	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
 	
@@ -474,15 +482,34 @@ func _on_prev_music_pressed() -> void:
 	$MusicPlayer/StreamPlayer.play()
 
 func _on_back_to_title_pressed() -> void:
-	#$TitleScreen.fade_in()
-	#_on_close_menu_pressed()
-	#$TitleScreen._on_play_toggled(false)
-	#$TitleScreen.visible = true
-	#$TitleScreen/CanvasLayer.visible = true
-	#$MusicPlayer/StreamPlayer.stop()
-	#$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
-	#$PauseMenu/CanvasLayer/Menu/NextMusic.disabled = false
-	#$PauseMenu/CanvasLayer/Menu/PrevMusic.disabled = false
-	#$PauseMenu/CanvasLayer/Menu/PauseMusic.disabled = false
-	#$TitleScreen/TitleMusic.stream_paused = false
 	get_tree().change_scene_to_file("res://scenes/game_room.tscn")
+
+func update_deck_skin() -> void:
+	var front = cards_front[int(current_skin) - 1]
+	var back
+	if current_skin == "2":
+		back = cards_back[1][randi_range(0, 9)]
+	else:
+		back = cards_back[int(current_skin) - 1]
+
+	for i in range(1, 5):
+		get_node("Deck/" + str(i)).change_skin(current_skin, front, back)
+		get_node("Board/" + str(i)).change_skin(current_skin, front, back)
+		
+	$"Board/5".change_skin(current_skin, front, back)
+
+func _ready() -> void:
+	const NB_FRONTS = 3
+	cards_back = []
+	cards_front = []
+	for i in range(1, NB_FRONTS + 1):
+		cards_front.append(load("res://assets/cards_front/" + str(i) + ".png"))
+		if i != 2:
+			cards_back.append(load("res://assets/cards_back/" + str(i) + ".png"))
+		else:
+			cards_back.append([])
+			for c in range(10):
+				cards_back[1].append(load("res://assets/cards_back/" + str(i) + str(c) + ".png"))
+				
+	update_deck_skin()
+	
