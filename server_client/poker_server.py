@@ -171,6 +171,7 @@ class Game:
         self.who_is_playing = (1 + self.who_is_playing) % len(self.ids)
 
     def bet(self, who : int, how_much : int):
+        print(f" << {who} veut bait {how_much} c'est le tour de {self.who_is_playing}")
         if not who in self.ids:
             print(f" << Qui a invité {who} ? il est pas dans {self.ids}")
             return
@@ -392,7 +393,7 @@ class Game:
             return
         self.spectators.remove(who)
         self.ids.append(who)
-        if self.spectator_to_money[who] <= 0:
+        if not who in self.spectator_to_money.keys() or self.spectator_to_money[who] <= 0:
             self.spectator_to_money[who] = 100
         self.money_left.append(self.spectator_to_money[who])
         self.spectator_to_money.pop(who)

@@ -40,24 +40,31 @@ func animate_bet(how_much):
 	if how_much == 0:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.75, 0.75, 0.75))
 		$bet_anim.text = "check"
+		$/root/GameRoom/MusicPlayer.check_sfx()
 	elif how_much == -1:
 		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.1, 0.1))
 		$bet_anim.text = "fold"
+		$/root/GameRoom/MusicPlayer.fold_sfx()
 	elif how_much == -2:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.4, 0.4, 0.4))
 		$bet_anim.text = "fold par afk"
+		$/root/GameRoom/MusicPlayer.fold_sfx()
 	elif how_much == -3:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.44, 0.7))
 		$bet_anim.text = "petite blinde"
+		$/root/GameRoom/MusicPlayer.bet_sfx()
 	elif how_much == -4:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.44, 0.7))
 		$bet_anim.text = "grosse blinde"
+		$/root/GameRoom/MusicPlayer.bet_sfx()
 	elif int($money_left.text) <= 0:
 		$bet_anim.set("theme_override_colors/font_color", Color(1.0, 0.4, 0.3))
 		$bet_anim.text = "all-in"
+		$/root/GameRoom/MusicPlayer.allin_sfx()
 	else:
 		$bet_anim.set("theme_override_colors/font_color", Color(0.15, 0.74, 1.0))
 		$bet_anim.text = "-" + str(how_much) + "€"
+		$/root/GameRoom/MusicPlayer.bet_sfx()
 	$bet_anim.visible = true
 	old_bet_pos = $bet_anim.position
 	$bet_anim_timer.start()

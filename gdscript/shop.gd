@@ -6,7 +6,7 @@ var tween : Tween
 var fade_tween : Tween
 
 @onready var current_selected = null
-@onready var current_equiped = null
+@onready var current_equipped = null
 @onready var last_pull = []
 
 const names = ["Deck de base", "Balatro", "Luigi's casino", "Négatif", "Sepia", "Noir et blanc", "Girly uwu", "Abysses", "Spectre", "Joyeux Noël !", "Acheron", "Froid", "Chaleur", "Feuille", "Turquoise", "Magenta", "Terre à terre", "zeste de citron", "crabe ?!"]
@@ -30,12 +30,12 @@ func init_skin_list(l : Array, backs=null) -> void:
 			$"CanvasLayer/SkinList".add_item(names[i], backs_copy[i])
 
 func _on_close_shop_pressed() -> void:
-	get_node("../")._on_close_shop_pressed(current_equiped)
+	get_node("../")._on_close_shop_pressed(current_equipped)
 	$CanvasLayer/Equip.disabled = true
 	$CanvasLayer/SkinList.deselect_all()
 
 func _on_equip_pressed() -> void:
-	current_equiped = current_selected
+	current_equipped = current_selected
 
 func _on_skin_list_item_selected(index: int) -> void:
 	current_selected = index
@@ -81,11 +81,11 @@ func reset_fade_tween() -> void:
 	fade_tween = create_tween()
 
 func _on_invoc_pressed() -> void:
-	if get_node("../").current_money < 150:
+	if get_node("../").current_money < 140:
 		return
-	get_node("../").current_money -= 50
+	get_node("../").current_money -= 40
 	const proba_per_rarity = [5, 20, 100]
-	const skins_per_rarity = [["3", "2"], ["4", "5", "7", "8", "9", "11"], ["1", "6", "10", "12", "13", "14", "15", "16", "17", "18", "19"]]
+	const skins_per_rarity = [["3", "2"], ["4", "5", "7", "8", "9", "11"], ["6", "10", "12", "13", "14", "15", "16", "17", "18", "19"]]
 
 	var dice = randi_range(1, 100)
 	for i in range(len(proba_per_rarity)):
@@ -98,7 +98,7 @@ func _on_invoc_pressed() -> void:
 			$CanvasLayer/PullName.text = names[int(new_skin) - 1] + " (" + rarity_text + ")"
 			
 			if new_skin in get_node("../").purchased_skins:
-				get_node("../").current_money += 25
+				get_node("../").current_money += 20
 				last_pull = []
 			else:
 				get_node("../").purchased_skins.push_back(new_skin)

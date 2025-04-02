@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://duvnm3asxykhb"]
+[gd_scene load_steps=39 format=3 uid="uid://duvnm3asxykhb"]
 
 [ext_resource type="Script" uid="uid://jnip2umdhcrk" path="res://gdscript/game_room.gd" id="1_2qplw"]
 [ext_resource type="Script" uid="uid://54m2qtpcrd44" path="res://gdscript/deck.gd" id="2_6g2tb"]
@@ -30,6 +30,7 @@
 [ext_resource type="Texture2D" uid="uid://cpe0br5qkhm6y" path="res://assets/UI/volume+.png" id="25_bq6qf"]
 [ext_resource type="Texture2D" uid="uid://cctwbl3iaw5hk" path="res://assets/UI/pause_text.png" id="27_8h750"]
 [ext_resource type="PackedScene" uid="uid://8svnqmyr2gr4" path="res://scenes/shop.tscn" id="30_2tqi4"]
+[ext_resource type="Texture2D" uid="uid://bdkdfrixhcofx" path="res://assets/UI/croix.png" id="30_rdblb"]
 
 [sub_resource type="Curve" id="Curve_5eqtb"]
 _data = [Vector2(0, 0.75), 0.0, 0.0, 0, 0, Vector2(1, 0.594444), 0.0, 0.0, 0, 0]
@@ -85,12 +86,13 @@ script = ExtResource("1_2qplw")
 [node name="Cards" type="HTTPRequest" parent="Requests"]
 
 [node name="TryAgain" type="Timer" parent="Requests"]
+wait_time = 2.0
 one_shot = true
 
 [node name="Ready" type="HTTPRequest" parent="Requests"]
 
 [node name="UpdateTimer" type="Timer" parent="Requests"]
-wait_time = 0.8
+wait_time = 2.0
 
 [node name="Update" type="HTTPRequest" parent="Requests"]
 
@@ -179,6 +181,18 @@ autostart = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="TitleScreen"]
 follow_viewport_enabled = true
+
+[node name="Submit" type="Button" parent="TitleScreen/CanvasLayer"]
+visible = false
+offset_left = 489.0
+offset_top = 449.0
+offset_right = 661.0
+offset_bottom = 534.0
+pivot_offset = Vector2(86, 42.5)
+theme = ExtResource("10_p7uy6")
+theme_override_font_sizes/font_size = 51
+text = "lancer"
+script = ExtResource("15_0rgw7")
 
 [node name="Play" type="Button" parent="TitleScreen/CanvasLayer"]
 offset_left = 489.0
@@ -576,9 +590,9 @@ script = ExtResource("15_0rgw7")
 [node name="CloseMenu" type="Button" parent="PauseMenu/CanvasLayer/Menu"]
 layout_mode = 0
 offset_left = 171.0
-offset_top = 351.0
+offset_top = 128.0
 offset_right = 419.0
-offset_bottom = 411.0
+offset_bottom = 188.0
 pivot_offset = Vector2(124, 30)
 theme = ExtResource("10_p7uy6")
 text = "Retour au jeu"
@@ -663,9 +677,9 @@ script = ExtResource("15_0rgw7")
 [node name="Shop" type="Button" parent="PauseMenu/CanvasLayer/Menu"]
 layout_mode = 0
 offset_left = 171.0
-offset_top = 128.0
+offset_top = 351.0
 offset_right = 419.0
-offset_bottom = 188.0
+offset_bottom = 411.0
 pivot_offset = Vector2(124, 30)
 theme = ExtResource("10_p7uy6")
 text = "boutique"
@@ -674,6 +688,17 @@ script = ExtResource("15_0rgw7")
 [node name="Pause" type="Sprite2D" parent="PauseMenu/CanvasLayer/Menu"]
 position = Vector2(294, 66)
 texture = ExtResource("27_8h750")
+
+[node name="X" type="Button" parent="PauseMenu/CanvasLayer/Menu"]
+layout_mode = 0
+offset_left = 504.12
+offset_top = 14.14
+offset_right = 568.12
+offset_bottom = 78.14
+pivot_offset = Vector2(32, 32)
+theme = ExtResource("10_p7uy6")
+icon = ExtResource("30_rdblb")
+script = ExtResource("15_0rgw7")
 
 [node name="Tutorial" type="ColorRect" parent="PauseMenu/CanvasLayer"]
 visible = false
@@ -693,11 +718,35 @@ theme = ExtResource("10_p7uy6")
 text = "									Bienvenue dans Project Gambling !
 
 
-Oyez Oyez habitants du givs, la poker night approche ! 
-
+Chers gamblers du GIVS, la poker night approche ! 
 Voici les règles du poker pour ceux qui ne savent pas jouer :
 
-bla bla bla bla bla blab la blablablablabla blabla bla bla blabla bla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla blabla bla bla"
+1. Chaque joueur reçoit 2 cartes privées.
+
+2. Cinq cartes communes sont révélées progressivement (flop, turn, river).
+
+3. Les joueurs forment la meilleure main possible avec 5 cartes.
+
+4. Les tours d’enchères permettent de miser, suivre, relancer ou se coucher.
+
+5. Le joueur avec la meilleure main à l’abattage gagne le pot.
+
+6. Une main peut aussi être gagnée si tous les autres joueurs se couchent.
+
+7. Les combinaisons suivent un ordre de force : paire, brelan, quinte, couleur, full, carré, quinte flush, quinte flush royale.
+
+8. L’objectif est de maximiser ses gains et minimiser ses pertes grâce aux mises et au bluff.
+
+Une fois que vous êtes riches, rendez-vous dans la boutique pour tenter une session invocations ! (chaque tirage coûte 40€, mais vous ne pouvez pas dépenser d'argent en dessous de 100€).
+
+Pour changer de skin, c'est dans la partie droite de la boutique, sélectionnez votre skin favori et cliquez sur \"équiper ce skin\".
+
+Les probas de tirage sont :
+5% : légendaire
+15% : épique
+80% : rare
+
+nb : je ne détiens aucun droit sur les musiques ni les SFX utilisés."
 
 [node name="CloseTutorial" type="Button" parent="PauseMenu/CanvasLayer/Tutorial"]
 layout_mode = 0
@@ -761,11 +810,13 @@ script = ExtResource("15_0rgw7")
 [connection signal="timeout" from="TitleScreen/Title/BoingStart" to="TitleScreen" method="_on_boing_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/BoingEnd" to="TitleScreen" method="_on_boing_end_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/StartDancing" to="TitleScreen" method="_on_start_dancing_timeout"]
+[connection signal="pressed" from="TitleScreen/CanvasLayer/Submit" to="." method="_on_submit_pressed"]
 [connection signal="toggled" from="TitleScreen/CanvasLayer/Play" to="TitleScreen" method="_on_play_toggled"]
 [connection signal="pressed" from="TitleScreen/CanvasLayer/Options" to="." method="pause"]
 [connection signal="pressed" from="TitleScreen/CanvasLayer/Gacha" to="." method="_on_boutique_pressed"]
 [connection signal="timeout" from="TitleScreen/StartZoomOut" to="TitleScreen" method="_on_start_zoom_out_timeout"]
 [connection signal="timeout" from="Money/WinAnim" to="Money" method="_on_win_anim_timeout"]
+[connection signal="text_changed" from="EnterCode/CanvasLayer/Name" to="." method="_on_name_text_changed"]
 [connection signal="text_submitted" from="EnterCode/CanvasLayer/Name" to="." method="_on_name_text_submitted"]
 [connection signal="pressed" from="UI/SeCoucher" to="." method="_on_se_coucher_pressed"]
 [connection signal="pressed" from="UI/Surencherir" to="." method="_on_surencherir_pressed"]
@@ -783,6 +834,7 @@ script = ExtResource("15_0rgw7")
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/Volume+" to="." method="_on_volume_up_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/TutorialButton" to="." method="_on_tutorial_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/Shop" to="." method="_on_boutique_pressed"]
+[connection signal="pressed" from="PauseMenu/CanvasLayer/Menu/X" to="." method="_on_close_menu_pressed"]
 [connection signal="pressed" from="PauseMenu/CanvasLayer/Tutorial/CloseTutorial" to="." method="_on_close_tutorial_pressed"]
 [connection signal="timeout" from="FrontLayer/Fader/FirstFade" to="TitleScreen" method="_on_first_fade_timeout"]
 [connection signal="timeout" from="FrontLayer/Fader/SecondFade" to="TitleScreen" method="_on_second_fade_timeout"]

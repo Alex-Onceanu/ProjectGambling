@@ -114,7 +114,7 @@ offset_bottom = 521.63
 pivot_offset = Vector2(135, 42.5)
 theme = ExtResource("4_2fc2m")
 theme_override_font_sizes/font_size = 48
-text = "Invoc (-50€)"
+text = "Invoc (-40€)"
 script = ExtResource("6_8r1wq")
 
 [node name="MoneyLeft" type="Label" parent="CanvasLayer"]

@@ -24,7 +24,7 @@ const VOLUME_MAX = 6.0
 const SAVEFILE_PATH = "user://sauvegarde.givs"
 
 
-@onready var current_money = 100
+@onready var current_money = 5000
 @onready var old_money = current_money
 @onready var current_skin = "1"
 @onready var user_did_timeout = false
@@ -35,7 +35,7 @@ const SAVEFILE_PATH = "user://sauvegarde.givs"
 @onready var in_game = false
 @onready var user_name = "debug"
 @onready var p1_has_cards = false
-@onready var purchased_skins = ["1"]
+@onready var purchased_skins = ["1", "6"]
 
 func true_i_of_i(i: int) -> int:
 	return 1 + posmod(i - my_player_offset, nb_players)
@@ -54,7 +54,7 @@ func _input(event: InputEvent) -> void:
 		_on_suivre_pressed()
 	elif Input.is_action_just_pressed("pause"):
 		if $Shop/CanvasLayer.visible:
-			_on_close_shop_pressed(null)
+			_on_close_shop_pressed($Shop.current_equipped)
 		elif $PauseMenu/CanvasLayer.visible:
 			_on_close_menu_pressed()
 		else:
@@ -219,6 +219,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		$TitleScreen/CanvasLayer/Play.visible = false
 		$TitleScreen/CanvasLayer/Options.visible = false
 		$TitleScreen/CanvasLayer/Gacha.visible = false
+		$TitleScreen/CanvasLayer/Submit.visible = false
 		start_game(cards)
 
 func _on_try_again_timeout() -> void:
@@ -230,6 +231,7 @@ func _on_try_again_timeout() -> void:
 func _on_name_text_submitted(new_text: String) -> void:
 	user_name = new_text.replace(" ", "_")
 	
+	$TitleScreen/CanvasLayer/Submit.disabled = true
 	$EnterCode/CanvasLayer/Name.text = ""
 	$EnterCode/CanvasLayer/Name.placeholder_text = "En train de télécommuniquer..."
 	$EnterCode/CanvasLayer/Name.editable = false
@@ -488,10 +490,14 @@ func _on_close_menu_pressed() -> void:
 func _on_volume_down_pressed() -> void:
 	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/ShopMusic.volume_db = clampf($MusicPlayer/ShopMusic.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/ShopMusic2.volume_db = clampf($MusicPlayer/ShopMusic2.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
 
 func _on_volume_up_pressed() -> void:
 	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/ShopMusic.volume_db = clampf($MusicPlayer/ShopMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/ShopMusic2.volume_db = clampf($MusicPlayer/ShopMusic2.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 
 func _on_close_tutorial_pressed() -> void:
 	$PauseMenu/CanvasLayer/Tutorial.visible = false
@@ -550,9 +556,9 @@ func load_savefile():
 	if txt == null:
 		return
 	var data = JSON.parse_string(txt)
-	current_money = int(data["current_money"])
-	current_skin = data["current_skin"]
-	purchased_skins = data["purchased_skins"]
+	#current_money = int(data["current_money"])
+	#current_skin = data["current_skin"]
+	#purchased_skins = data["purchased_skins"]
 
 func _ready() -> void:
 	const NB_FRONTS = 19
@@ -581,6 +587,7 @@ func _on_close_shop_pressed(equipped) -> void:
 		$BackgroundParticles.pause_particles(true)
 		
 	$MusicPlayer/ShopMusic.stop()
+	$MusicPlayer/ShopMusic2.stop()
 	save()
 	
 	if equipped != null:
@@ -603,12 +610,28 @@ func _on_boutique_pressed() -> void:
 	$Shop/CanvasLayer/MoneyLeft.text = "Il te reste "+ str(current_money) + "€"
 	$Shop/CanvasLayer/Equip.disabled = true
 	$Shop/CanvasLayer/PulledCard.visible = false
+	$Shop/CanvasLayer/PullName.visible = false
 	
 	$Shop/CanvasLayer.visible = true
 	$TitleScreen/TitleMusic.stream_paused = true
 	$MusicPlayer/StreamPlayer.stream_paused = true
 	$BackgroundParticles.pause_particles(false)
-	$MusicPlayer/ShopMusic.play()
+	if randi_range(1, 12) == 9:
+		$MusicPlayer/ShopMusic2.play()
+	else:
+		$MusicPlayer/ShopMusic.play()
 
 func _on_title_music_finished() -> void:
 	$TitleScreen/TitleMusic.play()
+
+func _on_name_text_changed(new_text: String) -> void:
+	if new_text == "":
+		$TitleScreen/CanvasLayer/Submit.visible = false
+		$TitleScreen/CanvasLayer/Play.visible = true
+		return
+	if not $TitleScreen/CanvasLayer/Submit.visible:
+		$TitleScreen/CanvasLayer/Play.visible = false
+		$TitleScreen/CanvasLayer/Submit.visible = true
+
+func _on_submit_pressed() -> void:
+	_on_name_text_submitted($EnterCode/CanvasLayer/Name.text)
