@@ -555,7 +555,7 @@ func load_savefile():
 	purchased_skins = data["purchased_skins"]
 
 func _ready() -> void:
-	const NB_FRONTS = 3
+	const NB_FRONTS = 19
 	cards_back = []
 	cards_front = []
 	for i in range(1, NB_FRONTS + 1):
@@ -600,7 +600,7 @@ func _on_boutique_pressed() -> void:
 	else:
 		$Shop/CanvasLayer/Invoc.disabled = false
 	
-	$Shop/CanvasLayer/MoneyLeft.text = "Vous avez "+ str(current_money) + "€"
+	$Shop/CanvasLayer/MoneyLeft.text = "Il te reste "+ str(current_money) + "€"
 	$Shop/CanvasLayer/Equip.disabled = true
 	$Shop/CanvasLayer/PulledCard.visible = false
 	

@@ -20,6 +20,7 @@ shader_parameter/size = Vector2(0.077, 0.25)
 shader_parameter/which_texture_type = 1.0
 shader_parameter/which_background = 0.0
 shader_parameter/fade = 1.0
+shader_parameter/is_transparent = 1.0
 shader_parameter/strength = 0.5
 shader_parameter/speed = 0.5
 shader_parameter/angle = 46.452

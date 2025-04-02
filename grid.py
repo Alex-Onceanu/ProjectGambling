@@ -38,14 +38,33 @@ for line in range(4):
         
         base.paste(im2, (offset_w + col * (CARD_WIDTH + offset_w), offset_h + line * (CARD_HEIGHT + offset_h)))
 
+c1 = (180, 191, 215, 255)
+c2 = (117, 93, 72, 255)
+c1, c2 = c2, c1
+
 width, height = base.size
 pixdata = base.load()
 for y in range(height):
     for x in range(width):
         (r, g, b, a) = pixdata[x, y]
-        if a < 50:
+        if a < 50 or dist(pixdata[x, y], (255, 255, 255, 255)) < 250:
             pixdata[x, y] = (255, 255, 255, 255)
-        # if grey(pixdata[x, y]) <= 2 and dist(pixdata[x, y], (0, 0, 0, 255)) >= 250:
-        #     pixdata[x, y] = (0, 0, 0, 0)
+        else:
+            if y > height / 4 and y < height / 2 or y > 3 * height / 4:
+                pixdata[x, y] = c2
+            else:
+                pixdata[x, y] = c1
+
+back = Image.open("assets/cards_back/1.png")
+pixdata = back.load()
+width, height = back.size
+for y in range(height):
+    for x in range(width):
+        (r, g, b, a) = pixdata[x, y]
+        if a < 50 or dist(pixdata[x, y], (255, 255, 255, 255)) < 250:
+            pixdata[x, y] = (255, 255, 255, 255)
+        else:
+            pixdata[x, y] = c1
 
 base.save("output.png")
+back.save("back.png")

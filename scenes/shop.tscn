@@ -59,6 +59,15 @@ one_shot = true
 
 [node name="Levitate" type="Timer" parent="CanvasLayer/PulledCard"]
 
+[node name="PullName" type="Label" parent="CanvasLayer"]
+visible = false
+offset_left = 221.95
+offset_top = 378.88
+offset_right = 551.42
+offset_bottom = 436.46
+theme = ExtResource("4_2fc2m")
+horizontal_alignment = 1
+
 [node name="PopUp" parent="CanvasLayer" instance=ExtResource("2_xfvoa")]
 position = Vector2(900, 191)
 scale = Vector2(0.52, 0.52)
@@ -75,8 +84,7 @@ offset_right = 1052.0
 offset_bottom = 506.0
 theme = ExtResource("4_2fc2m")
 allow_search = false
-auto_width = true
-auto_height = true
+wraparound_items = false
 
 [node name="CloseShop" type="Button" parent="CanvasLayer"]
 offset_left = 111.0
@@ -100,9 +108,9 @@ script = ExtResource("6_8r1wq")
 
 [node name="Invoc" type="Button" parent="CanvasLayer"]
 offset_left = 250.0
-offset_top = 436.0
+offset_top = 436.63
 offset_right = 520.0
-offset_bottom = 521.0
+offset_bottom = 521.63
 pivot_offset = Vector2(135, 42.5)
 theme = ExtResource("4_2fc2m")
 theme_override_font_sizes/font_size = 48

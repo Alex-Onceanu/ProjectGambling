@@ -106,5 +106,6 @@ func change_skin(skin : String, front, back) -> void:
 	$rect.material.set_shader_parameter("front_tex", front)
 	$rect.material.set_shader_parameter("back_tex", back)
 	
-	$rect.material.set_shader_parameter("which_texture_type", float(int(skin == "1")));
+	$rect.material.set_shader_parameter("which_texture_type", float(int(skin != "2" and skin != "3")));
 	$rect.material.set_shader_parameter("which_background", float(int(skin == "3")));
+	$rect.material.set_shader_parameter("is_transparent", float(int(skin != "9")));

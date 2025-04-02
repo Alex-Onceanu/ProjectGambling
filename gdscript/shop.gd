@@ -2,13 +2,15 @@ extends Node2D
 
 var fronts_copy
 var backs_copy
+var tween : Tween
+var fade_tween : Tween
 
 @onready var current_selected = null
 @onready var current_equiped = null
 @onready var last_pull = []
 
-var tween : Tween
-var fade_tween : Tween
+const names = ["Deck de base", "Balatro", "Luigi's casino", "Négatif", "Sepia", "Noir et blanc", "Girly uwu", "Abysses", "Spectre", "Joyeux Noël !", "Acheron", "Froid", "Chaleur", "Feuille", "Turquoise", "Magenta", "Terre à terre", "zeste de citron", "crabe ?!"]
+
 
 func _ready() -> void:
 	$"CanvasLayer/SkinList".set_fixed_icon_size(Vector2(46., 52.))
@@ -17,7 +19,6 @@ func set_fronts_copy(f : Array) -> void:
 	fronts_copy = f
 
 func init_skin_list(l : Array, backs=null) -> void:
-	const names = ["Deck de base", "Balatro", "Luigi's casino"]
 	if backs_copy == null and backs != null:
 		backs_copy = backs
 	
@@ -84,7 +85,7 @@ func _on_invoc_pressed() -> void:
 		return
 	get_node("../").current_money -= 50
 	const proba_per_rarity = [5, 20, 100]
-	const skins_per_rarity = [["3"], ["2"], ["1"]]
+	const skins_per_rarity = [["3", "2"], ["4", "5", "7", "8", "9", "11"], ["1", "6", "10", "12", "13", "14", "15", "16", "17", "18", "19"]]
 
 	var dice = randi_range(1, 100)
 	for i in range(len(proba_per_rarity)):
@@ -92,6 +93,9 @@ func _on_invoc_pressed() -> void:
 			var new_skin = skins_per_rarity[i][randi_range(0, len(skins_per_rarity[i]) - 1)]
 			
 			start_anim(i, new_skin)
+			var rarity_text = ["Légendaire", "Épique", "Rare"][i]
+			$CanvasLayer/PullName.visible = false
+			$CanvasLayer/PullName.text = names[int(new_skin) - 1] + " (" + rarity_text + ")"
 			
 			if new_skin in get_node("../").purchased_skins:
 				get_node("../").current_money += 25
@@ -128,7 +132,9 @@ func _process(delta: float) -> void:
 
 func _on_explosion_timeout() -> void:
 	$CanvasLayer/PulledCard/Card.reveal()
-	$"CanvasLayer/MoneyLeft".text = "Vous avez "+ str(get_node("../").current_money) + "€"
+	$CanvasLayer/PullName.visible = true
+	
+	$"CanvasLayer/MoneyLeft".text = "Il te reste "+ str(get_node("../").current_money) + "€"
 	$"CanvasLayer/MoneyLeft".visible = true
 	init_skin_list(last_pull)
 	if get_node("../").current_money >= 150:

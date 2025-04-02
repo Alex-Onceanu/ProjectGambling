@@ -8,6 +8,7 @@ uniform vec2 size;
 uniform float which_texture_type : hint_range(0.0, 1.0) = 1.0;
 uniform float which_background : hint_range(0.0, 1.0) = 1.0;
 uniform float fade : hint_range(0.0, 1.0) = 1.0;
+uniform float is_transparent = 1.0;
 
 uniform float strength: hint_range(0., 1.) = 0.5;
 uniform float speed: hint_range(0., 10.) = 0.5;
@@ -53,10 +54,10 @@ void fragment() {
 	float card_alpha = 1.0 - smoothstep(0.96, 0.98, border);
 	
 	vec3 rainbow_background = rainbow(UV).xyz * rainbow(UV).xyz * rainbow(UV).xyz;
-	vec3 background = mix(vec3(0.7), rainbow_background, which_background);
+	vec3 background = mix(vec3(0.8), rainbow_background, which_background);
 	
-	vec3 front_clr = mix(background, front.rgb * card_alpha, front.a);
+	vec3 front_clr = mix(background.rgb, front.rgb * card_alpha, front.a);
 	
-	float alpha = mix(card_alpha * back.a, card_alpha, is_frontface);
-	COLOR = vec4(mix(back.rgb, front_clr, is_frontface), fade * alpha);
+	float alpha = mix(card_alpha * back.a, card_alpha * mix(front.a, 1.0, is_transparent), is_frontface);
+	COLOR = vec4(mix(back.rgb, front_clr, is_frontface), alpha);
 }
