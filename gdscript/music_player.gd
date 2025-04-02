@@ -33,10 +33,11 @@ func previous_track() -> void:
 	current_bps = tracks[current_track_i][1]
 	current_phase = tracks[current_track_i][2]
 
+
 func _ready() -> void:
-	const paths  = ["boring20s", "lonedigger", "busteretcharlie"]
-	const BPS    = [2.0333, 2.0666, 2.15]
-	const phases = [0.6, 0.7, 0.8]
+	const paths  = ["boring20s", "lonedigger", "busteretcharlie", "bowser3d"]
+	const BPS    = [2.0333, 2.0666, 2.15, 1.76533]
+	const phases = [0.6, 0.7, 0.8, 0.8]
 	
 	for i in range(len(BPS)):
 		var tr = AudioStreamMP3.load_from_file("assets/music/" + paths[i] + ".mp3")
@@ -49,6 +50,7 @@ func _ready() -> void:
 	current_phase = tracks[0][2]
 
 func _on_stream_player_finished() -> void:
+	print("finished !")
 	$WaitBeforeNext.start()
 
 func _on_wait_before_next_timeout() -> void:

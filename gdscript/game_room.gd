@@ -23,8 +23,10 @@ const VOLUME_MIN = -30.0
 const VOLUME_MAX = 6.0
 const SAVEFILE_PATH = "user://sauvegarde.givs"
 
+
 @onready var current_money = 300
-@onready var current_skin = "3"
+@onready var old_money = current_money
+@onready var current_skin = "2"
 @onready var user_did_timeout = false
 @onready var is_spectator = false
 @onready var round = -1
@@ -33,6 +35,7 @@ const SAVEFILE_PATH = "user://sauvegarde.givs"
 @onready var in_game = false
 @onready var user_name = "debug"
 @onready var p1_has_cards = false
+@onready var purchased_skins = []
 
 func true_i_of_i(i: int) -> int:
 	return 1 + posmod(i - my_player_offset, nb_players)
@@ -45,6 +48,17 @@ func compute_player_pos(player_i):
 	theta += pi / 2		# pour que le joueur 0 soit en bas
 	const module = 240.0
 	return Vector2(1.4 * module * cos(theta), 0.9 * module * sin(theta)) + $Players.global_position
+
+func _input(event: InputEvent) -> void:
+	if Input.is_action_just_pressed("check") and in_game and not $UI/Suivre.disabled:
+		_on_suivre_pressed()
+	elif Input.is_action_just_pressed("pause"):
+		if $Shop/CanvasLayer.visible:
+			_on_close_shop_pressed(null)
+		elif $PauseMenu/CanvasLayer.visible:
+			_on_close_menu_pressed()
+		else:
+			pause()
 
 func rearrange_players(names, anim = false):
 	var true_i
@@ -64,18 +78,19 @@ func _on_register_completed(result, response_code, headers, body):
 		$EnterCode/CanvasLayer/Name.text = ""
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
 		tryagain_node = $Requests/Register
-		tryagain_url = str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money)
+		tryagain_url = url + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money)
 		$Requests/TryAgain.start()
 		return
 		
 	user_id = int(ans)
 	print("ID : ", ans)
 	$EnterCode/CanvasLayer/Name.placeholder_text = "Partie trouvée !"
-	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
+	$Requests/Ready.request(url + "/ready?id=" + str(user_id))
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	$UI/Rejouer.visible = false
+		
 	if ans.begins_with("spectator"):
 		ans = ans.substr(9)
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
@@ -86,10 +101,12 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		$EnterCode/CanvasLayer/Name.placeholder_text = "On attend que la partie se lance..."
 		$Money/TotalBet.text = "On attend que la partie se lance..."
 		tryagain_node = $Requests/Ready
-		tryagain_url = str(url) + "/ready?id=" + str(user_id)
+		tryagain_url = url + "/ready?id=" + str(user_id)
 		$Requests/TryAgain.start()
 	
 	elif ans.begins_with("go!"):
+		if not is_spectator:
+			$Shop/CanvasLayer/Invoc.disabled = true
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
 		$Money/TotalBet.text = "Allez une game de +"
 		var data = JSON.parse_string(ans.substr(3))
@@ -108,14 +125,15 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		
 
 func update_rythm():
-	$MusicPlayer/StreamPlayer.play()
 	$BackgroundParticles.visible = true
 	get_node("BackgroundParticles").set_frequency($MusicPlayer.get_bps())
 	get_node("BackgroundParticles").set_phase($MusicPlayer.get_phase() + fposmod(Time.get_ticks_msec() / 1000, 1.0))
+	$MusicPlayer/StreamPlayer.play()
 
 func start_game(cards):
 	$TitleScreen.fade_out()
 	if not $BackgroundParticles.visible:
+		$BackgroundParticles.pause_particles(true)
 		update_rythm()
 	var other_players = []
 	for i in range(2, nb_players + 1):
@@ -160,7 +178,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		$EnterCode/CanvasLayer/Name.text = ""
 		print("Error : ", ans)
 		tryagain_node = $Requests/Cards
-		tryagain_url = str(url) + "/cards?id=" + str(user_id)
+		tryagain_url = url + "/cards?id=" + str(user_id)
 		$Requests/TryAgain.start()
 		return
 		
@@ -200,6 +218,7 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		$TitleScreen/ChipRain.emitting = false
 		$TitleScreen/CanvasLayer/Play.visible = false
 		$TitleScreen/CanvasLayer/Options.visible = false
+		$TitleScreen/CanvasLayer/Gacha.visible = false
 		start_game(cards)
 
 func _on_try_again_timeout() -> void:
@@ -209,7 +228,7 @@ func _on_try_again_timeout() -> void:
 		tryagain_node = null
 
 func _on_name_text_submitted(new_text: String) -> void:
-	user_name = new_text
+	user_name = new_text.replace(" ", "_")
 	
 	$EnterCode/CanvasLayer/Name.text = ""
 	$EnterCode/CanvasLayer/Name.placeholder_text = "En train de télécommuniquer..."
@@ -217,7 +236,7 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/CanvasLayer.layer = 1
 	
 	url = "http://gambling2.share.zrok.io"
-	$Requests/Register.request(str(url) + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money))
+	$Requests/Register.request(url + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money))
 	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 
 func _on_update_timer_timeout() -> void:
@@ -283,7 +302,6 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 			$Requests/Cards.request(url + "/cards?id=" + str(user_id))
 
 	money_left = data["money_left"]
-	#current_money = int(money_left[my_player_offset])
 	
 	if round != 4:
 		for i in range(nb_players):
@@ -297,6 +315,9 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		$Money/TotalBet.text = "Mise : " + str(total_bet) + "€"
 		for m in range(20, total_bet, 20):
 			get_node("Money/MoneyBag" + str(min(m / 20, 10))).visible = true
+	
+	if not is_spectator:
+		current_money = int($Players/Player1/money_left.text.substr(0, len($Players/Player1/money_left.text) - 1))
 	
 	if round != 4:
 		current_blind = int(data["current_blind"])
@@ -428,16 +449,17 @@ func _on_rejouer_pressed() -> void:
 	p1_has_cards = false
 	in_game = false
 	user_did_timeout = false
-	$Requests/Ready.request(str(url) + "/ready?id=" + str(user_id))
+	$Requests/Ready.request(url + "/ready?id=" + str(user_id))
 
 func _on_server_go_pressed() -> void:
-	$Requests/ServerGo.request(str(url) + "/GO")
+	if url != null:
+		$Requests/ServerGo.request(url + "/GO")
 
 func _on_cd_spectate_timeout() -> void:
 	_on_rejouer_pressed()
 
 func _on_rejoindre_pressed() -> void:
-	$Requests/Unspectate.request(str(url) + "/unspectate?id=" + str(user_id))
+	$Requests/Unspectate.request(url + "/unspectate?id=" + str(user_id))
 	$UI/Rejoindre.disabled = true
 	
 func _on_unspectate_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -482,11 +504,11 @@ func _on_pause_music_toggled(toggled_on: bool) -> void:
 
 func _on_next_music_pressed() -> void:
 	$MusicPlayer.next_track()
-	$MusicPlayer/StreamPlayer.play()
+	update_rythm()
 
 func _on_prev_music_pressed() -> void:
 	$MusicPlayer.previous_track()
-	$MusicPlayer/StreamPlayer.play()
+	update_rythm()
 
 func _on_back_to_title_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/game_room.tscn")
@@ -504,6 +526,9 @@ func update_deck_skin() -> void:
 		get_node("Board/" + str(i)).change_skin(current_skin, front, back)
 		
 	$"Board/5".change_skin(current_skin, front, back)
+	
+	if not is_spectator:
+		$Players/Player1.change_skin(current_skin, front, back)
 
 func save_to_file(content):
 	var file = FileAccess.open(SAVEFILE_PATH, FileAccess.WRITE)
@@ -511,16 +536,22 @@ func save_to_file(content):
 
 func load_from_file():
 	var file = FileAccess.open(SAVEFILE_PATH, FileAccess.READ)
+	if file == null:
+		return null
 	var content = file.get_as_text()
 	return content
 	
 func save():
-	save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin}))
+	save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin, "purchased_skins" : purchased_skins}))
 
 func load_savefile():
-	var data = JSON.parse_string(load_from_file())
+	var txt = load_from_file()
+	if txt == null:
+		return
+	var data = JSON.parse_string(txt)
 	current_money = int(data["current_money"])
 	current_skin = data["current_skin"]
+	purchased_skins = data["purchased_skins"]
 
 func _ready() -> void:
 	const NB_FRONTS = 3
@@ -536,4 +567,41 @@ func _ready() -> void:
 				cards_back[1].append(load("res://assets/cards_back/" + str(i) + str(c) + ".png"))
 	load_savefile()
 	update_deck_skin()
+	$Shop.init_skin_list(purchased_skins, cards_back)
+
+func _on_close_shop_pressed(equipped) -> void:
+	$"Shop/CanvasLayer".visible = false
 	
+	if not $UI.visible:
+		$TitleScreen/TitleMusic.stream_paused = false
+	elif $PauseMenu/CanvasLayer/Menu/PauseMusic.button_pressed:
+		$MusicPlayer/StreamPlayer.stream_paused = false
+		$BackgroundParticles.pause_particles(true)
+		
+	$MusicPlayer/ShopMusic.stop()
+	save()
+	
+	if equipped != null:
+		if current_skin != purchased_skins[equipped] and user_id != null:
+			$"Requests/ChangeSkin".request(url + "/changeskin?id=" + str(user_id) + "&which=" + purchased_skins[equipped])
+		current_skin = purchased_skins[equipped]
+		update_deck_skin()
+	
+	if user_id != null and old_money != current_money:
+		print("go request !")
+		$"Requests/ChangeMoney".request(url + "/changemoney?id=" + str(user_id) + "&howmuch=" + str(current_money))
+
+func _on_boutique_pressed() -> void:
+	old_money = current_money
+	if (current_money < 150 or in_game) and not is_spectator:
+		$"Shop/CanvasLayer/Invoc".disabled = true
+	else:
+		$"Shop/CanvasLayer/Invoc".disabled = false
+	
+	$"Shop/CanvasLayer/MoneyLeft".text = "Vous avez "+ str(current_money) + "€"
+	
+	$"Shop/CanvasLayer".visible = true
+	$TitleScreen/TitleMusic.stream_paused = true
+	$MusicPlayer/StreamPlayer.stream_paused = true
+	$BackgroundParticles.pause_particles(false)
+	$MusicPlayer/ShopMusic.play()

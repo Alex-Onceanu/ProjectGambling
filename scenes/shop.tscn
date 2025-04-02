@@ -1,0 +1,95 @@
+[gd_scene load_steps=8 format=3 uid="uid://8svnqmyr2gr4"]
+
+[ext_resource type="Script" uid="uid://d0o85papwpnqw" path="res://gdscript/shop.gd" id="1_2fc2m"]
+[ext_resource type="Shader" uid="uid://cljigfvhvi7ob" path="res://shaders/blur.gdshader" id="1_xfvoa"]
+[ext_resource type="PackedScene" uid="uid://dq5d1iw451jay" path="res://scenes/pop_up.tscn" id="2_xfvoa"]
+[ext_resource type="Texture2D" uid="uid://dl4qcdrde4fwp" path="res://assets/UI/boutique.png" id="3_032fp"]
+[ext_resource type="Theme" uid="uid://cdvctlg72he3p" path="res://assets/UI/ui.tres" id="4_2fc2m"]
+[ext_resource type="Script" uid="uid://7glo8ebeohq6" path="res://gdscript/button.gd" id="6_8r1wq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1l46r"]
+shader = ExtResource("1_xfvoa")
+
+[node name="Shop" type="Node2D"]
+script = ExtResource("1_2fc2m")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 3
+visible = false
+follow_viewport_enabled = true
+
+[node name="Background" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_1l46r")
+offset_left = -1.0
+offset_right = 1148.0
+offset_bottom = 649.0
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+offset_left = 98.0
+offset_top = 56.0
+offset_right = 1069.0
+offset_bottom = 585.0
+color = Color(0.211181, 0.401554, 0.30635, 1)
+
+[node name="PopUp" parent="CanvasLayer" instance=ExtResource("2_xfvoa")]
+position = Vector2(900, 191)
+scale = Vector2(0.52, 0.52)
+
+[node name="Sprite2D" type="Sprite2D" parent="CanvasLayer/PopUp"]
+position = Vector2(5.76922, -100)
+scale = Vector2(1.90457, 1.75581)
+texture = ExtResource("3_032fp")
+
+[node name="SkinList" type="ItemList" parent="CanvasLayer"]
+offset_left = 751.0
+offset_top = 222.0
+offset_right = 1052.0
+offset_bottom = 506.0
+theme = ExtResource("4_2fc2m")
+allow_search = false
+auto_width = true
+auto_height = true
+
+[node name="CloseShop" type="Button" parent="CanvasLayer"]
+offset_left = 111.0
+offset_top = 68.0
+offset_right = 207.0
+offset_bottom = 112.0
+pivot_offset = Vector2(48, 22)
+theme = ExtResource("4_2fc2m")
+text = "retour"
+script = ExtResource("6_8r1wq")
+
+[node name="Equip" type="Button" parent="CanvasLayer"]
+offset_left = 807.0
+offset_top = 524.0
+offset_right = 1006.0
+offset_bottom = 568.0
+pivot_offset = Vector2(48, 22)
+theme = ExtResource("4_2fc2m")
+text = "équiper ce skin"
+script = ExtResource("6_8r1wq")
+
+[node name="Invoc" type="Button" parent="CanvasLayer"]
+offset_left = 250.0
+offset_top = 436.0
+offset_right = 520.0
+offset_bottom = 521.0
+pivot_offset = Vector2(135, 42.5)
+theme = ExtResource("4_2fc2m")
+theme_override_font_sizes/font_size = 48
+text = "Invoc (-50€)"
+script = ExtResource("6_8r1wq")
+
+[node name="MoneyLeft" type="Label" parent="CanvasLayer"]
+offset_left = 109.0
+offset_top = 546.0
+offset_right = 306.0
+offset_bottom = 579.0
+theme = ExtResource("4_2fc2m")
+theme_override_font_sizes/font_size = 24
+
+[connection signal="item_selected" from="CanvasLayer/SkinList" to="." method="_on_skin_list_item_selected"]
+[connection signal="pressed" from="CanvasLayer/CloseShop" to="." method="_on_close_shop_pressed"]
+[connection signal="pressed" from="CanvasLayer/Equip" to="." method="_on_equip_pressed"]
+[connection signal="pressed" from="CanvasLayer/Invoc" to="." method="_on_invoc_pressed"]

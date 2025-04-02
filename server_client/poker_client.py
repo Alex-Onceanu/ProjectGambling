@@ -102,7 +102,8 @@ class Client:
             while True:
                 self.round, update, self.money_left, self.total_bet, self.current_blind, self.who_is_playing, self.user_bet = self.try_GET(parseUpdate, f"/update?id={self.client_id}", "J'ai pas de nouvelles :(")
                 for action in update:
-                    who, what = action
+                    who = action[0]
+                    what = action[1]
                     print(f" << Insérer super animation pour montrer que {self.players[who]} a misé {what} !")
                 if self.round >= 4:
                     break

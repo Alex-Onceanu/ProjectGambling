@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://dtqyjjeakp1v"]
+[gd_scene load_steps=5 format=3 uid="uid://dtqyjjeakp1v"]
 
 [ext_resource type="Script" uid="uid://c30fpuorquk2k" path="res://gdscript/music_player.gd" id="1_ql6qh"]
 [ext_resource type="AudioStream" uid="uid://dt6lus2e3u01p" path="res://assets/SFX/card.wav" id="2_ql6qh"]
+[ext_resource type="AudioStream" uid="uid://bhch2ly8e6s63" path="res://assets/music/shop.mp3" id="2_yalyj"]
 [ext_resource type="AudioStream" uid="uid://b0ch07ysbc0c1" path="res://assets/SFX/button.wav" id="3_l7xiw"]
 
 [node name="MusicPlayer" type="Node2D"]
@@ -13,6 +14,10 @@ volume_db = -10.0
 
 [node name="WaitBeforeNext" type="Timer" parent="."]
 one_shot = true
+
+[node name="ShopMusic" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("2_yalyj")
+volume_db = -10.0
 
 [node name="ButtonSFX" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_l7xiw")

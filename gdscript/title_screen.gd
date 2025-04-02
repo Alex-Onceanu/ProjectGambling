@@ -70,6 +70,7 @@ func _on_second_fade_timeout() -> void:
 	$CanvasLayer.layer = 2
 	$CanvasLayer/Play.disabled = false
 	$CanvasLayer/Options.disabled = false
+	$CanvasLayer/Gacha.disabled = false
 
 func _on_fade_duration_timeout() -> void:
 	progression = [0.37, 0.69][current_fade_nb] * INTRO_DURATION

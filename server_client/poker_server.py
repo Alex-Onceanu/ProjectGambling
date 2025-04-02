@@ -84,7 +84,6 @@ class Game:
                 # self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
                 time.sleep(0.5)
         
-            # faire une fonction reset_round() pour quand ça recommence
             self.round = 0
             self.id_to_bet = {}
             self.who_is_playing = self.dealer
@@ -101,15 +100,13 @@ class Game:
             self.inGame = True
             print(" << Les cartes ont été distribuées")
 
-            self.play_round(0)
-            print(" << Preflop fini")
-            self.play_round(3)
-            print(" << Flop fini")
-            self.play_round(1)
-            print(" << Turn fini")
-            self.play_round(1)
-            print(" << River fini, FIN")
+            for nbca in [0, 3, 1, 1]:
+                self.play_round(nbca)
+                if len(self.folded_ones) + 1 >= self.nb_players:
+                    break
+
             self.round_transition = True
+            self.round = 4
 
             self.showdown()
             self.round_transition = False
@@ -343,10 +340,10 @@ class Game:
             print(f"\n << Ajouté {player} d'id {player_id} aux spectateurs.\n >> ", end="")
             self.id_to_update[player_id] = [(0, 0)]
             self.id_to_bet[player_id] = 0
-            self.spectator_to_money[player_id] = money
+            self.spectator_to_money[player_id] = int(money)
         else:
             self.ids.append(player_id)
-            self.money_left.append(money)
+            self.money_left.append(int(money))
             self.id_to_name[player_id] = player    # on associe à cet id qu'on vient de générer le nom du joueur
             print(f"\n << Ajouté {player} d'id {player_id} aux joueurs.\n >> ", end="")
             self.nb_players += 1
@@ -364,18 +361,39 @@ class Game:
         return self.ids.index(who)
     
     def change_skin(self, who, skin):
-        if not i in self.ids:
+        if not who in self.ids:
             return
         self.id_to_skin[who] = skin
-        i = self.ids.find(who)
+        i = self.ids.index(who)
         for idp in self.id_to_update.keys():
-            self.id_to_update[idp].append((i, -5, skin))
+            if idp != who:
+                self.id_to_update[idp].append((i, -5, skin))
+
+    def update_money(self, who, how_much : int):
+        if not who in self.ids:
+            print(f" >> Qui est {who} ? ")
+            return
+        print(f"who = {who}, how much = {how_much}")
+        i = self.ids.index(who)
+        if who in self.ids and (self.inGame or self.money_left[i] <= how_much):
+            print(f"Nah je suis en self.ingame={self.inGame} et self.money_left[i] = {self.money_left}")
+            return
+        if who in self.spectators:
+            print(" << T'es spectateur frero")
+            if self.spectator_to_money[who] > how_much:
+                self.spectator_to_money[who] = how_much
+            return
+        
+        print(f"Ok {who} tu as desormais {how_much}")
+        self.money_left[i] = how_much
 
     def unspectate(self, who):
         if not who in self.spectators or self.inGame:
             return
         self.spectators.remove(who)
         self.ids.append(who)
+        if self.spectator_to_money[who] <= 0:
+            self.spectator_to_money[who] = 100
         self.money_left.append(self.spectator_to_money[who])
         self.spectator_to_money.pop(who)
         print(f"\n << Ajouté {self.id_to_name[who]} d'id {who} aux joueurs.\n >> ", end="")
@@ -558,6 +576,16 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     skin = parse_qs(parsed_url.query)["which"][0]
                     self.gameInstance.change_skin(their_id, skin)
+                    self.send_response(200, 'OK')
+                    self.send_my_headers()
+                    self.wfile.write("ok".encode())
+
+                elif self.path.startswith('/changemoney'):
+                    print(" << CHANGE MONEY !!")
+                    parsed_url = urlparse(self.path)
+                    their_id = int(parse_qs(parsed_url.query)["id"][0])
+                    value = int(parse_qs(parsed_url.query)["howmuch"][0])
+                    self.gameInstance.update_money(their_id, value)
                     self.send_response(200, 'OK')
                     self.send_my_headers()
                     self.wfile.write("ok".encode())

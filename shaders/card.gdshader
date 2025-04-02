@@ -52,7 +52,7 @@ void fragment() {
 	float card_alpha = 1.0 - smoothstep(0.96, 0.98, border);
 	
 	vec3 rainbow_background = rainbow(UV).xyz * rainbow(UV).xyz * rainbow(UV).xyz;
-	vec3 background = mix(vec3(1.0), rainbow_background, which_background);
+	vec3 background = mix(vec3(0.7), rainbow_background, which_background);
 	
 	vec3 front_clr = mix(background, front.rgb * card_alpha, front.a);
 	
