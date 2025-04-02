@@ -64,3 +64,7 @@ func card_sfx() -> void:
 
 func button_sfx() -> void:
 	$ButtonSFX.play()
+
+
+func _on_shop_music_finished() -> void:
+	$ShopMusic.play()

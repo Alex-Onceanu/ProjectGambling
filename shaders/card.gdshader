@@ -7,6 +7,7 @@ uniform vec2 which_card;
 uniform vec2 size;
 uniform float which_texture_type : hint_range(0.0, 1.0) = 1.0;
 uniform float which_background : hint_range(0.0, 1.0) = 1.0;
+uniform float fade : hint_range(0.0, 1.0) = 1.0;
 
 uniform float strength: hint_range(0., 1.) = 0.5;
 uniform float speed: hint_range(0., 10.) = 0.5;
@@ -57,5 +58,5 @@ void fragment() {
 	vec3 front_clr = mix(background, front.rgb * card_alpha, front.a);
 	
 	float alpha = mix(card_alpha * back.a, card_alpha, is_frontface);
-	COLOR = vec4(mix(back.rgb, front_clr, is_frontface), alpha);
+	COLOR = vec4(mix(back.rgb, front_clr, is_frontface), fade * alpha);
 }

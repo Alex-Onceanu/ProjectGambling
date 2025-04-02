@@ -24,9 +24,9 @@ const VOLUME_MAX = 6.0
 const SAVEFILE_PATH = "user://sauvegarde.givs"
 
 
-@onready var current_money = 300
+@onready var current_money = 100
 @onready var old_money = current_money
-@onready var current_skin = "2"
+@onready var current_skin = "1"
 @onready var user_did_timeout = false
 @onready var is_spectator = false
 @onready var round = -1
@@ -35,7 +35,7 @@ const SAVEFILE_PATH = "user://sauvegarde.givs"
 @onready var in_game = false
 @onready var user_name = "debug"
 @onready var p1_has_cards = false
-@onready var purchased_skins = []
+@onready var purchased_skins = ["1"]
 
 func true_i_of_i(i: int) -> int:
 	return 1 + posmod(i - my_player_offset, nb_players)
@@ -370,6 +370,7 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		
 	$UI/WhoIsPlaying.text = ""
 	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
+	who_is_playing = null
 	
 	if len(data["winners"]) > 1:
 		$UI/Round.text = "Vainqueurs : "
@@ -567,6 +568,7 @@ func _ready() -> void:
 				cards_back[1].append(load("res://assets/cards_back/" + str(i) + str(c) + ".png"))
 	load_savefile()
 	update_deck_skin()
+	$Shop.set_fronts_copy(cards_front)
 	$Shop.init_skin_list(purchased_skins, cards_back)
 
 func _on_close_shop_pressed(equipped) -> void:
@@ -594,14 +596,19 @@ func _on_close_shop_pressed(equipped) -> void:
 func _on_boutique_pressed() -> void:
 	old_money = current_money
 	if (current_money < 150 or in_game) and not is_spectator:
-		$"Shop/CanvasLayer/Invoc".disabled = true
+		$Shop/CanvasLayer/Invoc.disabled = true
 	else:
-		$"Shop/CanvasLayer/Invoc".disabled = false
+		$Shop/CanvasLayer/Invoc.disabled = false
 	
-	$"Shop/CanvasLayer/MoneyLeft".text = "Vous avez "+ str(current_money) + "€"
+	$Shop/CanvasLayer/MoneyLeft.text = "Vous avez "+ str(current_money) + "€"
+	$Shop/CanvasLayer/Equip.disabled = true
+	$Shop/CanvasLayer/PulledCard.visible = false
 	
-	$"Shop/CanvasLayer".visible = true
+	$Shop/CanvasLayer.visible = true
 	$TitleScreen/TitleMusic.stream_paused = true
 	$MusicPlayer/StreamPlayer.stream_paused = true
 	$BackgroundParticles.pause_particles(false)
 	$MusicPlayer/ShopMusic.play()
+
+func _on_title_music_finished() -> void:
+	$TitleScreen/TitleMusic.play()

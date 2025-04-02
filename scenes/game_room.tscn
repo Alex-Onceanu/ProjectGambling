@@ -757,6 +757,7 @@ script = ExtResource("15_0rgw7")
 [connection signal="request_completed" from="Requests/CardToVFX" to="." method="_on_card_to_vfx_request_completed"]
 [connection signal="request_completed" from="Requests/Unspectate" to="." method="_on_unspectate_request_completed"]
 [connection signal="timeout" from="Requests/WaitBeforeUpdate" to="." method="_on_wait_before_update_timeout"]
+[connection signal="finished" from="TitleScreen/TitleMusic" to="." method="_on_title_music_finished"]
 [connection signal="timeout" from="TitleScreen/Title/BoingStart" to="TitleScreen" method="_on_boing_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/BoingEnd" to="TitleScreen" method="_on_boing_end_timeout"]
 [connection signal="timeout" from="TitleScreen/Title/StartDancing" to="TitleScreen" method="_on_start_dancing_timeout"]

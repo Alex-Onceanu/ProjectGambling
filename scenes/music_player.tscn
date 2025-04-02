@@ -51,3 +51,4 @@ stream = ExtResource("2_ql6qh")
 
 [connection signal="finished" from="StreamPlayer" to="." method="_on_stream_player_finished"]
 [connection signal="timeout" from="WaitBeforeNext" to="." method="_on_wait_before_next_timeout"]
+[connection signal="finished" from="ShopMusic" to="." method="_on_shop_music_finished"]
