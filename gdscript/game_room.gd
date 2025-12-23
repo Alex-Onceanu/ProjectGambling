@@ -1,6 +1,8 @@
 extends Node2D
 
+var game_code
 var user_id
+var url0 = "http://localhost:8080/"
 var url
 var tryagain_node
 var tryagain_url
@@ -71,9 +73,18 @@ func rearrange_players(names, anim = false):
 
 # se lance dès que le serveur nous a répondu (la réponse est en argument)
 func _on_register_completed(result, response_code, headers, body):
+	#print("Body : ", body)
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
-	
-	if len(ans) > 4 or len(ans) <= 0:
+	if ans == "wronglobby":
+		$TitleScreen/CanvasLayer/Play.disabled = false
+		$TitleScreen/CanvasLayer/Play.visible = true
+		$TitleScreen/CanvasLayer/Submit.disabled = false
+		$TitleScreen/CanvasLayer/Submit.visible = false
+		$EnterCode/CanvasLayer/Name.text = ""
+		$EnterCode/CanvasLayer/GameCode.text = ""
+		$EnterCode/CanvasLayer/Name.placeholder_text = "Ton code est faux frr"
+		return
+	elif len(ans) > 4 or len(ans) <= 0:
 		print("error : " + ans)
 		$EnterCode/CanvasLayer/Name.text = ""
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Le serveur est inacessible mdr cheh"
@@ -83,7 +94,7 @@ func _on_register_completed(result, response_code, headers, body):
 		return
 		
 	user_id = int(ans)
-	print("ID : ", ans)
+	#print("ID : ", ans)
 	$EnterCode/CanvasLayer/Name.placeholder_text = "Partie trouvée !"
 	$Requests/Ready.request(url + "/ready?id=" + str(user_id))
 
@@ -229,6 +240,7 @@ func _on_try_again_timeout() -> void:
 		tryagain_node = null
 
 func _on_name_text_submitted(new_text: String) -> void:
+	if len(new_text) == 0: return
 	user_name = new_text.replace(" ", "_")
 	
 	$TitleScreen/CanvasLayer/Submit.disabled = true
@@ -237,7 +249,8 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/CanvasLayer/Name.editable = false
 	$EnterCode/CanvasLayer.layer = 1
 	
-	url = "http://gambling2.share.zrok.io"
+	url = url0 + game_code
+	$Lobby/StartGame.disabled = false
 	$Requests/Register.request(url + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money))
 	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 
@@ -326,7 +339,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		your_bet = int(data["your_bet"])
 		$UI/Suivre.text = "Suivre (" + str(current_blind - your_bet) + "€)"
 		var old_val = $UI/Surencherir/HowMuch.value
-		$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 1
+		$UI/Surencherir/HowMuch.min_value = current_blind - your_bet + 10
 		$UI/Surencherir/HowMuch.max_value = current_money
 		$UI/Surencherir/HowMuch.value = old_val
 	
@@ -457,6 +470,8 @@ func _on_rejouer_pressed() -> void:
 func _on_server_go_pressed() -> void:
 	if url != null:
 		$Requests/ServerGo.request(url + "/GO")
+		$PauseMenu/CanvasLayer/Menu/Lobby.visible = true
+		$Lobby/Back.disabled = false
 
 func _on_cd_spectate_timeout() -> void:
 	_on_rejouer_pressed()
@@ -549,13 +564,15 @@ func load_from_file():
 	return content
 	
 func save():
-	save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin, "purchased_skins" : purchased_skins}))
+	pass
+	#save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin, "purchased_skins" : purchased_skins}))
 
 func load_savefile():
-	var txt = load_from_file()
-	if txt == null:
-		return
-	var data = JSON.parse_string(txt)
+	pass
+	#var txt = load_from_file()
+	#if txt == null:
+		#return
+	#var data = JSON.parse_string(txt)
 	#current_money = int(data["current_money"])
 	#current_skin = data["current_skin"]
 	#purchased_skins = data["purchased_skins"]
@@ -597,7 +614,7 @@ func _on_close_shop_pressed(equipped) -> void:
 		update_deck_skin()
 	
 	if user_id != null and old_money != current_money:
-		print("go request !")
+		#print("go request !")
 		$"Requests/ChangeMoney".request(url + "/changemoney?id=" + str(user_id) + "&howmuch=" + str(current_money))
 
 func _on_boutique_pressed() -> void:
@@ -634,4 +651,74 @@ func _on_name_text_changed(new_text: String) -> void:
 		$TitleScreen/CanvasLayer/Submit.visible = true
 
 func _on_submit_pressed() -> void:
-	_on_name_text_submitted($EnterCode/CanvasLayer/Name.text)
+	if $EnterCode/CanvasLayer/Name.visible:
+		_on_name_text_submitted($EnterCode/CanvasLayer/Name.text)
+	elif $EnterCode/CanvasLayer/GameCode.visible:
+		_on_game_code_text_submitted($EnterCode/CanvasLayer/GameCode.text)
+
+func _on_game_code_text_submitted(new_text: String) -> void:
+	if len(new_text) != 4: return
+	game_code = new_text
+	$EnterCode/CanvasLayer/GameCode.visible = false
+	$EnterCode/CanvasLayer/Name.visible = true
+	$TitleScreen/CanvasLayer/Submit.visible = false
+	$TitleScreen/CanvasLayer/Play.visible = true
+	$EnterCode/CanvasLayer/Name.editable = true
+	$EnterCode/CanvasLayer/Name.text = ""
+	$EnterCode/CanvasLayer/Name.placeholder_text = "Ton pseudo :"
+
+func _on_game_code_text_changed(new_text: String) -> void:
+	_on_name_text_changed(new_text)
+
+func _on_create_pressed() -> void:
+	$Requests/Create.request(url0 + "/$$$$/newlobby")
+	$Lobby.visible = true
+	$TitleScreen/CanvasLayer/Create.disabled = true
+	#print("create !")
+
+func _on_create_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	var ans = body.get_string_from_utf8()
+	if len(ans) == 4:
+		$Lobby/Code.text = "Code de la partie : " + ans
+		game_code = "/" + ans
+		$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
+	else:
+		$Lobby.visible = false
+		$TitleScreen/CanvasLayer/Create.disabled = false
+
+
+func _on_lobby_update_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	var ans = body.get_string_from_utf8()
+	if ans == "wronglobby":
+		$TitleScreen/CanvasLayer/Play.disabled = false
+		$EnterCode/CanvasLayer/Name.text = ""
+		$EnterCode/CanvasLayer/GameCode.text = ""
+		$EnterCode/CanvasLayer/Name.placeholder_text = "Ton code est faux frr"
+		return
+	var data = JSON.parse_string(ans)
+	
+	$Lobby/ItemList.clear()
+	for i in range(len(data["names"])):
+		if data["skins"][i] == "2":
+			$Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i][0]) - 1])
+		else:
+			$Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i]) - 1])
+	
+	$Requests/LobbyUpdateTimer.start()
+
+func _on_lobby_update_timer_timeout() -> void:
+	if $Lobby.visible:
+		$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
+
+func _on_delete_player_pressed() -> void:
+	if len($Lobby/ItemList.get_selected_items()) == 0:
+		return
+	var toKick = $Lobby/ItemList.get_item_text($Lobby/ItemList.get_selected_items()[0])
+	$Requests/KickPlayer.request(url0 + game_code + "/kick?who=" + toKick)
+
+func _on_lobby_pressed() -> void:
+	$Lobby.visible = true
+	$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
+
+func _on_back_pressed() -> void:
+	$Lobby.visible = false

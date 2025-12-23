@@ -71,6 +71,7 @@ func _on_second_fade_timeout() -> void:
 	$CanvasLayer/Play.disabled = false
 	$CanvasLayer/Options.disabled = false
 	$CanvasLayer/Gacha.disabled = false
+	$CanvasLayer/Create.disabled = false
 
 func _on_fade_duration_timeout() -> void:
 	progression = [0.37, 0.69][current_fade_nb] * INTRO_DURATION
@@ -99,6 +100,9 @@ func _on_start_dancing_timeout() -> void:
 	$ChipRain.emitting = true
 
 func _on_play_toggled(toggled_on: bool) -> void:
+	get_node("../EnterCode/CanvasLayer/Name").visible = false
+	get_node("../EnterCode/CanvasLayer/GameCode").text = ""
+	get_node("../EnterCode/CanvasLayer/GameCode").visible = true
 	var popup_target = Vector2(0.0, 700.0)
 	var title_target = Vector2(578.0, 241.0)
 	

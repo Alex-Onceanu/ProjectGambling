@@ -43,7 +43,7 @@ class Game:
         self.who_is_playing = 0         # à qui est le tour ? 
         # (!! c'est un index de self.ids : pour accéder au nom, faire self.id_to_name[self.ids[self.who_is_playing]])
         self.round = 0                  # pré-flop, flop, turn, river
-        self.stable_since = 0           # quand stable vaut len(self.ids), le tour de table s'arrête eft on passe à l'étape suivante
+        self.stable_since = 0           # quand stable vaut len(self.ids), le tour de table s'arrête et on passe à l'étape suivante
         self.id_to_update = {}          # un update est de la forme [(1, 80), (2, CHECK), (3, 90), (4, FOLD)]
         self.money_left = []            # argent de chaque joueur dans le bon ordre
         self.total_bet = 0              # argent au centre de la table
@@ -111,6 +111,12 @@ class Game:
             self.showdown()
             self.round_transition = False
             self.dealer = (1 + self.dealer) % len(self.ids)
+
+    def kickPlayer(self, name : str):
+        for idp in self.id_to_name.keys():
+            if name == self.id_to_name[idp]:
+                self.ids.remove(idp)
+                self.nb_players -= 1
 
     def showdown(self):
         hand_per_player = [poker_hand([self.cards_per_player[p][:2], self.cards_per_player[p][2:4]] + self.board) for p in self.ids]
@@ -190,9 +196,9 @@ class Game:
             how_much = self.money_left[self.who_is_playing]
             self.did_timeout.append(self.who_is_playing)
             self.nb_skippable += 1
-            
-        elif how_much + self.id_to_bet[who] < self.current_blind:
-            print(f" << Non {self.id_to_name[who]}, tu peux pas miser car la blinde actuelle c'est {self.current_blind} gros naze")
+        
+        elif (how_much + self.id_to_bet[who] < self.current_blind) or (how_much + self.id_to_bet[who] > self.current_blind and how_much < BIG_BLIND):
+            print(f" << Non {self.id_to_name[who]}, tu peux pas miser car la blinde actuelle c'est {self.current_blind} et t'as mis {how_much} gros naze")
             return
 
         for idp in self.id_to_update.keys():
@@ -403,13 +409,10 @@ class Game:
 
 print(" << Bienvenue sur le serveur du prototype du projet GAMBLING!")
 
-game = Game()                                   # on crée une instance globale de Game
-gameThread = threading.Thread(target=game.run)  # sa méthode run s'exécutera * en parallèle * de la suite
-gameThread.start()
-
 # Cette classe va gérer les requêtes reçues sur notre URL, en disant à "game" quoi faire par exemple
 class Server(http.server.SimpleHTTPRequestHandler):
-    gameInstance = game # en vrai comme "game" est globale on aurait pu se passer de self.gameInstance
+    gameInstances = {}
+    gameThreads = {}
     msgs = []           # liste de tous les messages envoyés jusqu'à présent (pour la partie messagerie après distribution des cartes)
 
     # tkt on s'en blc (je crois qu'on peut l'enlever sans que tout casse)
@@ -419,14 +422,38 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
     # askip parfois le serveur refuse certaines connexions, ici on dit de tout accepter
     # fonction un peu osef
-    def send_my_headers(self):
+    def send_my_headers(self, length : int):
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-Length", str(length))
         # self.send_header("skip_zrok_interstitial", "*")
         self.end_headers()
+
+    def new_game(self, code : str) -> int:
+        if len(code) != 4 or code in self.gameInstances.keys(): return -1
+        self.gameInstances[code] = Game()
+        self.gameThreads[code] = threading.Thread(target=self.gameInstances[code].run)
+        self.gameThreads[code].start()
+        return 0
+    
+    def randomLobbyName(self) -> str:
+        return chr(ord('A') + randint(0, 25))\
+             + chr(ord('A') + randint(0, 25))\
+             + chr(ord('A') + randint(0, 25))\
+             + chr(ord('A') + randint(0, 25))
 
     # Cette méthode sera automatiquement appelée lorsque le serveur reçoit une requête GET
     # l'url reçu sera automatiquement stocké dans self.path
     def do_GET(self):
+        currCode = self.path[1:5]
+        if currCode != "$$$$":
+            if not currCode in self.gameInstances.keys():
+                print(" << Unknown lobby " + currCode)
+                self.send_response(200, 'OK')
+                self.send_my_headers(len("wronglobby"))
+                self.wfile.write("wronglobby".encode())
+                return
+            currGame = self.gameInstances[currCode]
+        self.path = self.path[5:]
         # print(" << GET Coucou j'ai reçu ", self.path)
         # si on reçoit un "http://urlchelou/register/user?name=HAMOUDE" par exemple
         try:
@@ -435,53 +462,82 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 name = parse_qs(parsed_url.query)["name"][0]    # ici on récupère le str "HAMOUDE" dans la variable name
                 skin = parse_qs(parsed_url.query)["skin"][0]
                 money = parse_qs(parsed_url.query)["money"][0]
-                player_id = self.gameInstance.add_player(name, skin, int(money))  # on appelle la fonction add_player de game avec le nom reçu 
-                
+                player_id = currGame.add_player(name, skin, int(money))  # on appelle la fonction add_player de game avec le nom reçu 
+                # print(" << player id : ", player_id)
                 # ces 3 lignes reviendront souvent, elles servent à "répondre" au programme qui fait la requête GET
                 self.send_response(200, 'OK')
-                self.send_my_headers()
+                self.send_my_headers(4)
                 self.wfile.write((str(player_id)).encode())     # ici on répond str(player_id), autrement dit on renvoie l'identifiant unique du joueur qui vient de s'ajouter à la partie
 
             # si on reçoit un "http://urlchelou/ready", donc si quelqu'un veut nous demander si la partie a démarré
             elif self.path.startswith('/ready'):
                 parsed_url = urlparse(self.path)
                 their_id = int(parse_qs(parsed_url.query)["id"][0])
-                self.send_response(200, 'OK')
-                self.send_my_headers()
                 ans = "notready"
-                if self.gameInstance.shouldStart:
-                    data = {"names" : self.gameInstance.get_all_names(),
-                            "skins" : self.gameInstance.get_all_skins(),
-                            "offset": self.gameInstance.get_offset(their_id)}
+                if currGame.shouldStart:
+                    data = {"names" : currGame.get_all_names(),
+                            "skins" : currGame.get_all_skins(),
+                            "offset": currGame.get_offset(their_id)}
                     ans = "go!" + json.dumps(data)
                 
-                if their_id in self.gameInstance.spectators:
+                if their_id in currGame.spectators:
                     ans = "spectator" + ans
 
+                self.send_response(200, 'OK')
+                self.send_my_headers(len(ans))
                 self.wfile.write(ans.encode())
                 # on lui répond "go!j1,j2,j3" ssi la variable shouldStart de game vaut True (j1 j2 et j3 sont les noms des joueurs dans le bon ordre)
 
-            elif not self.gameInstance.round_transition:
+            elif self.path.startswith('/newlobby'):
+                lobbyName = self.randomLobbyName()
+                while lobbyName in self.gameInstances.keys():
+                    lobbyName = self.randomLobbyName()
+                self.gameInstances[lobbyName] = Game()
+                self.gameThreads[lobbyName] = threading.Thread(target=self.gameInstances[lobbyName].run)
+                self.gameThreads[lobbyName].start()
+                self.send_response(200, 'OK')
+                self.send_my_headers(4)
+                self.wfile.write(lobbyName.encode())
+
+            elif self.path.startswith('/lobbyupdate'):
+                data = {"names" : currGame.get_all_names(),
+                        "skins" : currGame.get_all_skins()}
+                ans = json.dumps(data)
+
+                self.send_response(200, 'OK')
+                self.send_my_headers(len(ans))
+                self.wfile.write(ans.encode())
+
+            elif self.path.startswith('/kick'):
+                parsed_url = urlparse(self.path)
+                their_name = parse_qs(parsed_url.query)["who"][0]
+                currGame.kickPlayer(their_name)
+
+                self.send_response(200, 'OK')
+                self.send_my_headers(2)
+                self.wfile.write("ok".encode())
+
+            elif not currGame.round_transition:
                 # si qlq nous demande quelles sont ses cartes
                 if self.path.startswith('/cards'):
                     ans = "notready"
 
-                    if self.gameInstance.inGame:
+                    if currGame.inGame:
                         parsed_url = urlparse(self.path)
 
                         if "id" in parse_qs(parsed_url.query).keys():
                             their_id = int(parse_qs(parsed_url.query)["id"][0])
-                            if not their_id in self.gameInstance.spectators:
-                                their_cards = self.gameInstance.cards_per_player[their_id]
+                            if not their_id in currGame.spectators:
+                                their_cards = currGame.cards_per_player[their_id]
 
                                 ans = f"{their_cards[0:2]},{their_cards[2:4]}"
-                                for board_card in self.gameInstance.board:
+                                for board_card in currGame.board:
                                     ans += "," + board_card
                             else:
                                 ans = ""
-                                if len(self.gameInstance.board) > 0:
-                                    ans = self.gameInstance.board[0]
-                                    for board_card in self.gameInstance.board[1:]:
+                                if len(currGame.board) > 0:
+                                    ans = currGame.board[0]
+                                    for board_card in currGame.board[1:]:
                                         ans += "," + board_card
 
                             self.send_response(200, 'OK')
@@ -491,94 +547,102 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     else:
                         self.send_response(200, 'OK')
 
-                    self.send_my_headers()
+                    self.send_my_headers(len(ans))
                     self.wfile.write(ans.encode()) # on lui renvoie ses cartes, stockées dans le dictionnaire cards_per_player dans game (pour chaque id) (ou "notready" si la partie n'est pas lancée)
                 
                 elif self.path.startswith('/update'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
 
-                    if not their_id in self.gameInstance.ids and not their_id in self.gameInstance.spectators:
+                    if not their_id in currGame.ids and not their_id in currGame.spectators:
                         print(" << c'est qui " + str(their_id) + " ?")
+                        self.send_response(200, 'OK')
+                        self.send_my_headers(6)
+                        self.wfile.write("GETOUT".encode())
                         return
-                        raise RuntimeError("C'est qui " + str(their_id) + " ?")
-                    if not their_id in self.gameInstance.id_to_update.keys():
-                        raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_update.keys()}")
-                    if not their_id in self.gameInstance.id_to_bet.keys():
-                        raise RuntimeError(f"id {their_id} pas dans self.gameInstance.id_to_update {self.gameInstance.id_to_bet.keys()}")
+                    if not their_id in currGame.id_to_update.keys():
+                        raise RuntimeError(f"id {their_id} pas dans currGame.id_to_update {currGame.id_to_update.keys()}")
+                    if not their_id in currGame.id_to_bet.keys():
+                        raise RuntimeError(f"id {their_id} pas dans currGame.id_to_update {currGame.id_to_bet.keys()}")
                     
                     ans = {
-                        "round" : self.gameInstance.round,
-                        "update" : self.gameInstance.id_to_update[their_id], 
-                        "money_left" : self.gameInstance.money_left, 
-                        "total_bet" : self.gameInstance.total_bet,
-                        "current_blind" : self.gameInstance.current_blind,
-                        "who_is_playing" : self.gameInstance.who_is_playing,
-                        "your_bet" : self.gameInstance.id_to_bet[their_id]
+                        "round" : currGame.round,
+                        "update" : currGame.id_to_update[their_id], 
+                        "money_left" : currGame.money_left, 
+                        "total_bet" : currGame.total_bet,
+                        "current_blind" : currGame.current_blind,
+                        "who_is_playing" : currGame.who_is_playing,
+                        "your_bet" : currGame.id_to_bet[their_id]
                     }
 
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(ans).encode())
+                    jj = json.dumps(ans)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
 
-                    self.gameInstance.id_to_update[their_id] = []
+                    currGame.id_to_update[their_id] = []
 
                 elif self.path.startswith('/showdown'):
                     parsed_url = urlparse(self.path)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(self.gameInstance.last_showdown).encode())
+                    jj = json.dumps(currGame.last_showdown)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
                 
                 elif self.path.startswith('/vfx'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     
-                    cl = self.gameInstance.cards_id_for_vfx(their_id)
+                    cl = currGame.cards_id_for_vfx(their_id)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(cl).encode())
+                    jj = json.dumps(cl)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
                 
                 ans = "ok"
                 if self.path.startswith('/bet'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     how_much = int(parse_qs(parsed_url.query)["how_much"][0])
-                    self.gameInstance.bet(their_id, how_much)
+                    currGame.bet(their_id, how_much)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(ans).encode())
+                    jj = json.dumps(ans)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
 
                 elif self.path.startswith('/fold'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
-                    self.gameInstance.folded(their_id)
+                    currGame.folded(their_id)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(ans).encode())
+                    jj = json.dumps(ans)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
 
                 elif self.path.startswith('/check'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
-                    self.gameInstance.checked(their_id)
+                    currGame.checked(their_id)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(json.dumps(ans).encode())
+                    jj = json.dumps(ans)
+                    self.send_my_headers(len(jj))
+                    self.wfile.write(jj.encode())
 
                 elif self.path.startswith('/unspectate'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
-                    self.gameInstance.unspectate(their_id)
+                    currGame.unspectate(their_id)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
-                    self.wfile.write(("ok" if not self.gameInstance.inGame else "no").encode())
+                    self.send_my_headers(2)
+                    self.wfile.write(("ok" if not currGame.inGame else "no").encode())
 
                 elif self.path.startswith('/changeskin'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     skin = parse_qs(parsed_url.query)["which"][0]
-                    self.gameInstance.change_skin(their_id, skin)
+                    currGame.change_skin(their_id, skin)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
+                    self.send_my_headers(2)
                     self.wfile.write("ok".encode())
 
                 elif self.path.startswith('/changemoney'):
@@ -586,49 +650,52 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     value = int(parse_qs(parsed_url.query)["howmuch"][0])
-                    self.gameInstance.update_money(their_id, value)
+                    currGame.update_money(their_id, value)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
+                    self.send_my_headers(2)
                     self.wfile.write("ok".encode())
 
                 elif self.path.startswith('/GO'):
-                    self.gameInstance.shouldStart = len(self.gameInstance.ids) > 1
+                    currGame.shouldStart = len(currGame.ids) > 1
                     parsed_url = urlparse(self.path)
                     self.send_response(200, 'OK')
-                    self.send_my_headers()
+                    self.send_my_headers(5)
                     self.wfile.write("okbro".encode())
             else:
                 print(f" << Je skip la requête {self.path} car Game est en pleine transition")
                 self.send_response(200, 'OK')
-                self.send_my_headers()
+                self.send_my_headers(len("transition"))
                 self.wfile.write("transition".encode())
 
         except Exception as e:
             print(f" << Erreur dans do_GET pour la requête reçue {self.path} : {e}")
             self.send_response(400, 'NOTOK')
-            self.send_my_headers()
+            self.send_my_headers(5)
             self.wfile.write("error".encode())
 
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
+        currCode = self.path[1:5]
+        currGame = self.gameInstances[currCode]
+        self.path = self.path[5:]
         # print(" << POST Coucou j'ai reçu ", self.path)
         try:
-            if not self.gameInstance.round_transition:
+            if not currGame.round_transition:
                 if self.path.startswith('/bet'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
                     how_much = int(parse_qs(parsed_url.query)["how_much"][0])
-                    self.gameInstance.bet(their_id, how_much)
+                    currGame.bet(their_id, how_much)
 
                 elif self.path.startswith('/fold'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
-                    self.gameInstance.folded(their_id)
+                    currGame.folded(their_id)
 
                 elif self.path.startswith('/check'):
                     parsed_url = urlparse(self.path)
                     their_id = int(parse_qs(parsed_url.query)["id"][0])
-                    self.gameInstance.checked(their_id)
+                    currGame.checked(their_id)
             else:
                 print(f" << Je skip la requête {self.path} car Game est en pleine transition")
         
