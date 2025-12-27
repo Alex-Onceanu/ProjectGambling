@@ -38,10 +38,10 @@ func previous_track() -> void:
 func _ready() -> void:
 	const paths  = ["boring20s", "lonedigger", "busteretcharlie", "bowser3d", "mariosportsmix", "hoops", "jaw", "omori", "hist"]
 	const BPS    = [2.0333, 2.0666, 2.15, 1.76533, 1.71667, 1.616667, 2.0, 1.866667, 1.9166667]
-	const phases = [0.6, 0.7, 0.8, 0.8, 0.6, 0.6, 0.6, 0.6, 0.6]
+	const phases = [0.6, 0.7, 0.8, 0.85, 0.6, 0.6, 0.9, 0.9, 0.73]
 	
 	for i in range(len(BPS)):
-		var tr = AudioStreamMP3.load_from_file("res://assets/music/" + paths[i] + ".mp3")
+		var tr = load("res://assets/music/" + paths[i] + ".mp3")
 		tracks.append([tr, BPS[i], phases[i]])
 	
 	tracks.shuffle()

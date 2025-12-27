@@ -106,6 +106,7 @@ func _on_invoc_pressed() -> void:
 			break
 	$"CanvasLayer/MoneyLeft".visible = false
 	$CanvasLayer/Invoc.disabled = true
+	
 
 func _process(delta: float) -> void:
 	if not $CanvasLayer/PulledCard/Explosion.is_stopped():

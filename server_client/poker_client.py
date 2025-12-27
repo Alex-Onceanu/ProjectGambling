@@ -145,7 +145,7 @@ print(" << Bienvenue dans le prototype du projet GAMBLING !")
 time.sleep(randint(500, 1500) / 1000)
 # name = input(" << Veuillez entrer votre pseudo :\n >> ").strip()    # strip enlève les espaces, tabs, saut à la ligne 
 name = "Bot_" + str(randint(1, 9999))
-url = "http://localhost:8080/" + input(" << Code a 4 lettres ?\n >> ")
+url = "http://[2a09:6847:fa10:1410::279]:8080/" + input(" << Code a 4 lettres ?\n >> ")
 
 cl = Client(url, name)
 cl.run()

@@ -24,9 +24,13 @@ func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0)
 	if nb_cards >= MAX_NB_CARDS:
 		# on peut pas avoir 3 cartes au poker
 		return
-		
+	if nb_cards < 0:
+		nb_cards = 0
 	nb_cards += 1
 	var new_card = get_node("Card_" + str(nb_cards))
+	if new_card == null:
+		print("New card is null !", colval, ", ", nb_cards)
+		return
 	new_card.global_position = from
 	
 	if colval != "":

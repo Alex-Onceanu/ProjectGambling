@@ -21,8 +21,8 @@ var cards_front
 var cards_back
 
 const CD = 0.15
-const VOLUME_MIN = -30.0
-const VOLUME_MAX = 6.0
+const VOLUME_MIN = -80.0
+const VOLUME_MAX = 40.0
 const SAVEFILE_PATH = "user://sauvegarde.givs"
 
 
@@ -37,7 +37,8 @@ const SAVEFILE_PATH = "user://sauvegarde.givs"
 @onready var in_game = false
 @onready var user_name = "debug"
 @onready var p1_has_cards = false
-@onready var purchased_skins = ["1", "6"]
+@onready var purchased_skins = ["1"]
+@onready var should_unspectate := true
 
 func true_i_of_i(i: int) -> int:
 	return 1 + posmod(i - my_player_offset, nb_players)
@@ -75,6 +76,11 @@ func rearrange_players(names, anim = false):
 func _on_register_completed(result, response_code, headers, body):
 	#print("Body : ", body)
 	var ans = body.get_string_from_utf8() # le serv répond juste un string
+	if ans == "GETOUT":
+		$PauseMenu/CanvasLayer/Menu.visible = false
+		$PauseMenu/CanvasLayer/GetOut.visible = true
+		pause()
+		return
 	if ans == "wronglobby":
 		$TitleScreen/CanvasLayer/Play.disabled = false
 		$TitleScreen/CanvasLayer/Play.visible = true
@@ -100,6 +106,7 @@ func _on_register_completed(result, response_code, headers, body):
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	print("ready completed : ans=" + ans)
 	if ans == "GETOUT":
 		$PauseMenu/CanvasLayer/Menu.visible = false
 		$PauseMenu/CanvasLayer/GetOut.visible = true
@@ -107,13 +114,14 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 		return
 
 	$Requests/LostConnection.start()
-	$UI/Rejouer.visible = false
 		
 	if ans.begins_with("spectator"):
 		ans = ans.substr(9)
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Tkt je te fais entrer en tant que spectateur"
 		$EnterCode/CanvasLayer/Name.text = ""
 		is_spectator = true
+	else:
+		$UI/Rejouer.visible = false
 	
 	if ans == "notready":
 		$EnterCode/CanvasLayer/Name.placeholder_text = "On attend que la partie se lance..."
@@ -125,12 +133,16 @@ func _on_ready_completed(result: int, response_code: int, headers: PackedStringA
 	elif ans.begins_with("go!"):
 		if not is_spectator:
 			$Shop/CanvasLayer/Invoc.disabled = true
+			$Shop/CanvasLayer/Interdit.visible = true
 		$EnterCode/CanvasLayer/Name.placeholder_text = "Go go go go !!" if not is_spectator else "Tu es sur le point de spectate une masterclass"
+		$UI/Rejouer.visible = false
+		$UI/Rejoindre.visible = false
 		$Money/TotalBet.text = "Allez une game de +"
 		var data = JSON.parse_string(ans.substr(3))
 		every_name = data["names"]
 		nb_players = len(every_name)
 		my_player_offset = int(data["offset"]) # vaudra -1 si on est spectateur !
+		print("My player offset : ", my_player_offset)
 		
 		for i in range(nb_players):
 			change_skin_of(i, data["skins"][i])
@@ -176,6 +188,7 @@ func start_game(cards):
 		var how_much_wait = $Deck.deal_cards(null, [], other_players)
 		$Requests/WaitBeforeUpdate.wait_time = max(0, how_much_wait - $Requests/UpdateTimer.wait_time)
 	else:
+		$Players/Player1.nb_cards = 0
 		var how_much_wait = $Deck.deal_cards($Players/Player1, [cards[0], cards[1]], other_players) - $Requests/UpdateTimer.wait_time
 		$Requests/WaitBeforeUpdate.wait_time = max(0, how_much_wait - $Requests/UpdateTimer.wait_time)
 
@@ -183,7 +196,13 @@ func start_game(cards):
 
 func _on_cards_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
-
+	print("Cards!" + ans)
+	if ans == "wronglobby" or ans == "GETOUT" or ans == "error":
+		$FrontLayer/Fader.visible = false
+		$PauseMenu/CanvasLayer/Menu.visible = false
+		$PauseMenu/CanvasLayer/GetOut.visible = true
+		pause()
+		return
 	if ans == "notready":
 		$EnterCode/CanvasLayer/Name.placeholder_text = "On attend que la partie se lance..."
 		$EnterCode/CanvasLayer/Name.text = ""
@@ -423,6 +442,8 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
+		get_node("Players/Player" + str(true_i)).set_time_left(0.)
+		get_node("Players/Player" + str(true_i) + "/timeout_timer").stop()
 		if true_i > 1 or is_spectator:
 			var their_cards = data["cards"][i].split(",")
 			get_node("Players/Player" + str(true_i) + "/Card_1").set_card_type(their_cards[0])
@@ -445,7 +466,9 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 		$UI/Rejoindre.visible = true
 	else:
 		$UI/Rejouer.visible = true
-		
+		$UI/Rejouer.disabled = false
+		$UI/CDSpectate.start()
+		is_spectator = true
 	save()
 
 func _on_card_to_vfx_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -465,8 +488,6 @@ func _on_card_to_vfx_request_completed(result: int, response_code: int, headers:
 		this_vfx.visible = true
 
 func _on_rejouer_pressed() -> void:
-	$UI/Rejouer.visible = false
-	
 	const anim_speed = 0.5
 	for i in range(nb_players):
 		var true_i = true_i_of_i(i)
@@ -485,7 +506,12 @@ func _on_rejouer_pressed() -> void:
 	p1_has_cards = false
 	in_game = false
 	user_did_timeout = false
-	$Requests/Ready.request(url + "/ready?id=" + str(user_id))
+	if should_unspectate:
+		$Requests/Unspectate.request(url + "/unspectate?id=" + str(user_id))
+		$UI/Rejouer.disabled = true
+	else:
+		should_unspectate = true
+		$Requests/Ready.request(url + "/ready?id=" + str(user_id))
 
 func _on_server_go_pressed() -> void:
 	if url != null:
@@ -494,18 +520,24 @@ func _on_server_go_pressed() -> void:
 		$FrontLayer/Lobby/Back.disabled = false
 
 func _on_cd_spectate_timeout() -> void:
+	should_unspectate = false
 	_on_rejouer_pressed()
 
 func _on_rejoindre_pressed() -> void:
 	$Requests/Unspectate.request(url + "/unspectate?id=" + str(user_id))
 	$UI/Rejoindre.disabled = true
-	
+
 func _on_unspectate_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	print("unspectate completed ! ans=" + ans)
+	if who_is_playing == null:
+		$Requests/Ready.request(url + "/ready?id=" + str(user_id))
 	if ans == "ok":
 		is_spectator = false
 		$Money/TotalBet.text = "Tu vas join la prochaine game"
 		$UI/Rejoindre.visible = false
+		$UI/Rejouer.visible = false
+		$UI/Rejouer.disabled = false
 	else:
 		$UI/Rejoindre.disabled = false
 
@@ -527,12 +559,35 @@ func _on_volume_down_pressed() -> void:
 	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/ShopMusic.volume_db = clampf($MusicPlayer/ShopMusic.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/ShopMusic2.volume_db = clampf($MusicPlayer/ShopMusic2.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	
+	$MusicPlayer/ButtonSFX.volume_db = clampf($MusicPlayer/ButtonSFX.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/FoldSFX.volume_db = clampf($MusicPlayer/FoldSFX.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/AllinSFX.volume_db = clampf($MusicPlayer/AllinSFX.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/AllinSFX2.volume_db = clampf($MusicPlayer/AllinSFX2.volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 9):
+		get_node("MusicPlayer/CardSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/CardSFX/" + str(i)).volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 4):
+		get_node("MusicPlayer/CheckSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/CheckSFX/" + str(i)).volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 7):
+		get_node("MusicPlayer/BetSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/BetSFX/" + str(i)).volume_db - 2.0, VOLUME_MIN, VOLUME_MAX)
+
 
 func _on_volume_up_pressed() -> void:
 	$TitleScreen/TitleMusic.volume_db = clampf($TitleScreen/TitleMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/StreamPlayer.volume_db = clampf($MusicPlayer/StreamPlayer.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/ShopMusic.volume_db = clampf($MusicPlayer/ShopMusic.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 	$MusicPlayer/ShopMusic2.volume_db = clampf($MusicPlayer/ShopMusic2.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	
+	$MusicPlayer/ButtonSFX.volume_db = clampf($MusicPlayer/ButtonSFX.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/FoldSFX.volume_db = clampf($MusicPlayer/FoldSFX.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/AllinSFX.volume_db = clampf($MusicPlayer/AllinSFX.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	$MusicPlayer/AllinSFX2.volume_db = clampf($MusicPlayer/AllinSFX2.volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 9):
+		get_node("MusicPlayer/CardSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/CardSFX/" + str(i)).volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 4):
+		get_node("MusicPlayer/CheckSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/CheckSFX/" + str(i)).volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
+	for i in range(1, 7):
+		get_node("MusicPlayer/BetSFX/" + str(i)).volume_db = clampf(get_node("MusicPlayer/BetSFX/" + str(i)).volume_db + 2.0, VOLUME_MIN, VOLUME_MAX)
 
 func _on_close_tutorial_pressed() -> void:
 	$PauseMenu/CanvasLayer/Tutorial.visible = false
@@ -637,10 +692,15 @@ func _on_close_shop_pressed(equipped) -> void:
 
 func _on_boutique_pressed() -> void:
 	old_money = current_money
-	if (current_money < 150 or in_game) and not is_spectator:
+	if in_game and not is_spectator:
+		$Shop/CanvasLayer/Invoc.disabled = true
+		$Shop/CanvasLayer/Interdit.visible = true
+	elif current_money < 140:
+		$Shop/CanvasLayer/Interdit.visible = false
 		$Shop/CanvasLayer/Invoc.disabled = true
 	else:
 		$Shop/CanvasLayer/Invoc.disabled = false
+		$Shop/CanvasLayer/Interdit.visible = false
 	
 	$Shop/CanvasLayer/MoneyLeft.text = "Il te reste "+ str(current_money) + "€"
 	$Shop/CanvasLayer/Equip.disabled = true
@@ -721,6 +781,12 @@ func _on_lobby_update_request_completed(result: int, response_code: int, headers
 			$FrontLayer/Lobby/ItemList.add_item(data["names"][i], cards_back[1][randi_range(0, 9)])
 		else:
 			$FrontLayer/Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i]) - 1])
+			
+	for i in range(len(data["spectators"])):
+		if data["spectator_skins"][i] == "2":
+			$FrontLayer/Lobby/ItemList.add_item(data["spectators"][i] + " (spectateur)", cards_back[1][randi_range(0, 9)])
+		else:
+			$FrontLayer/Lobby/ItemList.add_item(data["spectators"][i] + " (spectateur)", cards_back[int(data["spectator_skins"][i]) - 1])
 	
 	$Requests/LobbyUpdateTimer.start()
 
@@ -732,6 +798,7 @@ func _on_delete_player_pressed() -> void:
 	if len($FrontLayer/Lobby/ItemList.get_selected_items()) == 0:
 		return
 	var toKick = $FrontLayer/Lobby/ItemList.get_item_text($FrontLayer/Lobby/ItemList.get_selected_items()[0])
+	toKick = toKick.trim_suffix("(spectateur)")
 	$Requests/KickPlayer.request(url0 + game_code + "/kick?who=" + toKick)
 
 func _on_lobby_pressed() -> void:

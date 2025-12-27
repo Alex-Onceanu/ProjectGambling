@@ -69,6 +69,8 @@ func _process(delta: float) -> void:
 			t += 0.5
 			
 		scale.x = abs(2.0 * t - 1.0)
+	elif initial_scale_x:
+		scale.x = initial_scale_x
 
 func _on_goto_anim_timeout() -> void:
 	should_move = false

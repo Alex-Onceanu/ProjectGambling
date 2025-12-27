@@ -125,6 +125,17 @@ offset_bottom = 579.0
 theme = ExtResource("4_2fc2m")
 theme_override_font_sizes/font_size = 24
 
+[node name="Interdit" type="Label" parent="CanvasLayer"]
+offset_left = 116.0
+offset_top = 390.0
+offset_right = 706.0
+offset_bottom = 436.0
+theme = ExtResource("4_2fc2m")
+theme_override_colors/font_color = Color(0.74138474, 0.7413847, 0.74138457, 1)
+text = "Je vais pas te laisser dépenser ton argent en pleine game !"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [connection signal="timeout" from="CanvasLayer/PulledCard/Explosion" to="." method="_on_explosion_timeout"]
 [connection signal="item_selected" from="CanvasLayer/SkinList" to="." method="_on_skin_list_item_selected"]
 [connection signal="pressed" from="CanvasLayer/CloseShop" to="." method="_on_close_shop_pressed"]
