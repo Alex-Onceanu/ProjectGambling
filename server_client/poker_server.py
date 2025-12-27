@@ -5,6 +5,7 @@ from urllib.parse import parse_qs   # pour transformer "/name?first=hamoude&last
 import time
 from random import randint, shuffle
 import json
+import socket
 
 from combos import poker_hand, str_of_combo, val_of_str
 
@@ -724,6 +725,9 @@ def removeDeadGames():
             gameThreads.pop(k)
     time.sleep(60)
 
+class HTTPServerV6(http.server.HTTPServer):
+    address_family = socket.AF_INET6
+
 killerThread = threading.Thread(target=removeDeadGames)
 killerThread.start()
 
@@ -733,5 +737,5 @@ killerThread.start()
 handler_object = Server
 
 PORT = 8080
-httpd = http.server.HTTPServer(("localhost", PORT), handler_object)
+httpd = HTTPServerV6(("::", PORT), handler_object)
 httpd.serve_forever()
