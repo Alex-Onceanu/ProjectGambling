@@ -83,11 +83,12 @@ class Game:
             self.inGame = False
             print(" << En attente de joueurs...")
             self.shouldStart = False
-            while not self.shouldStart:
+            while not self.shouldStart or len(self.ids) < 2:
                 # La partie se lance lorsque l'utilisateur (celui qui a lancé le serveur) répond "OK"
                 # self.shouldStart = input(" << Tapez \"GO\" pour commencer la partie.\n >> ") == "GO"
                 time.sleep(0.5)
         
+            self.dealer = (1 + self.dealer) % len(self.ids)
             self.round = 0
             self.id_to_bet = {}
             self.who_is_playing = self.dealer
@@ -114,7 +115,6 @@ class Game:
 
             self.showdown()
             self.round_transition = False
-            self.dealer = (1 + self.dealer) % len(self.ids)
 
     def kickPlayer(self, name : str):
         for idp in self.id_to_name.keys():
@@ -163,12 +163,10 @@ class Game:
             "hand_per_player" : [str_of_combo(co[0]) for co in hand_per_player],
             "reward" : reward
         }
-    
-        which_id_did_timeout = [self.ids[i] for i in self.did_timeout]
-        for p in range(len(which_id_did_timeout)):
-            self.spectators.append(which_id_did_timeout[p])
-            self.ids.remove(which_id_did_timeout[p])
-            self.nb_players -= 1
+   
+        self.spectators += self.ids
+        self.ids = []
+        self.nb_players = 0
 
         self.did_timeout = []
         self.folded_ones = []
@@ -456,6 +454,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         currCode = self.path[1:5]
         if currCode != "$$$$":
+            currCode = currCode.upper()
             if not currCode in gameInstances.keys():
                 print(" << Unknown lobby " + currCode)
                 self.send_response(200, 'OK')
@@ -510,8 +509,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(lobbyName.encode())
 
             elif self.path.startswith('/lobbyupdate'):
-                data = {"names" : currGame.get_all_names() + currGame.get_all_spectators(),
-                        "skins" : currGame.get_all_skins() + currGame.get_all_spectators_skins()}
+                data = {"names" : currGame.get_all_names(),
+                        "spectators" : currGame.get_all_spectators(),
+                        "skins" : currGame.get_all_skins(),
+                        "spectator_skins" : currGame.get_all_spectators_skins()}
                 ans = json.dumps(data)
 
                 self.send_response(200, 'OK')
@@ -537,6 +538,14 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
                         if "id" in parse_qs(parsed_url.query).keys():
                             their_id = int(parse_qs(parsed_url.query)["id"][0])
+
+                            if not their_id in currGame.ids and not their_id in currGame.spectators:
+                                print(" << c'est qui " + str(their_id) + " ?")
+                                self.send_response(200, 'OK')
+                                self.send_my_headers(6)
+                                self.wfile.write("GETOUT".encode())
+                                return
+
                             if not their_id in currGame.spectators:
                                 their_cards = currGame.cards_per_player[their_id]
 
@@ -575,8 +584,12 @@ class Server(http.server.SimpleHTTPRequestHandler):
                     if not their_id in currGame.id_to_bet.keys():
                         raise RuntimeError(f"id {their_id} pas dans currGame.id_to_update {currGame.id_to_bet.keys()}")
                     
+                    trueRound = currGame.round
+#                    if len(currGame.folded_ones) >= len(currGame.ids) - 1:
+#                        trueRound = 4
+
                     ans = {
-                        "round" : currGame.round,
+                        "round" : trueRound,
                         "update" : currGame.id_to_update[their_id], 
                         "money_left" : currGame.money_left, 
                         "total_bet" : currGame.total_bet,
