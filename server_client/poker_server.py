@@ -60,6 +60,8 @@ class Game:
         self.dealer = 0
         self.id_to_skin = {}
         self.spectator_to_money = {}
+        self.shouldRun = True
+        self.latestUpdateTime = time.time()
 
         print(" << Classe Game initialisée.")
 
@@ -75,7 +77,8 @@ class Game:
     # puis crée un deck, et distribue 2 cartes à chaque joueur
     # cette fonction sera lancée en parallèle du serveur
     def run(self):
-        while True:
+        while self.shouldRun:
+            self.latestUpdateTime = time.time()
             self.inGame = False
             print(" << En attente de joueurs...")
             self.shouldStart = False
@@ -115,7 +118,10 @@ class Game:
     def kickPlayer(self, name : str):
         for idp in self.id_to_name.keys():
             if name == self.id_to_name[idp]:
-                self.ids.remove(idp)
+                if idp in self.ids:
+                    self.ids.remove(idp)
+                elif idp in self.spectators:
+                    self.spectators.remove(idp)
                 self.nb_players -= 1
 
     def showdown(self):
@@ -358,9 +364,15 @@ class Game:
     
     def get_all_names(self):
         return [self.id_to_name[p] for p in self.ids]
+
+    def get_all_spectators(self):
+        return [self.id_to_name[p] for p in self.spectators]
     
     def get_all_skins(self):
         return [self.id_to_skin[p] for p in self.ids]
+    
+    def get_all_spectators_skins(self):
+        return [self.id_to_skin[p] for p in self.spectators]
     
     def get_offset(self, who):
         if not who in self.ids:
@@ -409,19 +421,16 @@ class Game:
 
 print(" << Bienvenue sur le serveur du prototype du projet GAMBLING!")
 
+gameInstances = {}
+gameThreads = {}
+
 # Cette classe va gérer les requêtes reçues sur notre URL, en disant à "game" quoi faire par exemple
 class Server(http.server.SimpleHTTPRequestHandler):
-    gameInstances = {}
-    gameThreads = {}
-    msgs = []           # liste de tous les messages envoyés jusqu'à présent (pour la partie messagerie après distribution des cartes)
-
-    # tkt on s'en blc (je crois qu'on peut l'enlever sans que tout casse)
     def _set_headers(self, code):
         self.send_response(code)
         self.end_headers()
 
     # askip parfois le serveur refuse certaines connexions, ici on dit de tout accepter
-    # fonction un peu osef
     def send_my_headers(self, length : int):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(length))
@@ -429,10 +438,10 @@ class Server(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def new_game(self, code : str) -> int:
-        if len(code) != 4 or code in self.gameInstances.keys(): return -1
-        self.gameInstances[code] = Game()
-        self.gameThreads[code] = threading.Thread(target=self.gameInstances[code].run)
-        self.gameThreads[code].start()
+        if len(code) != 4 or code in gameInstances.keys(): return -1
+        gameInstances[code] = Game()
+        gameThreads[code] = threading.Thread(target=gameInstances[code].run)
+        gameThreads[code].start()
         return 0
     
     def randomLobbyName(self) -> str:
@@ -446,13 +455,13 @@ class Server(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         currCode = self.path[1:5]
         if currCode != "$$$$":
-            if not currCode in self.gameInstances.keys():
+            if not currCode in gameInstances.keys():
                 print(" << Unknown lobby " + currCode)
                 self.send_response(200, 'OK')
                 self.send_my_headers(len("wronglobby"))
                 self.wfile.write("wronglobby".encode())
                 return
-            currGame = self.gameInstances[currCode]
+            currGame = gameInstances[currCode]
         self.path = self.path[5:]
         # print(" << GET Coucou j'ai reçu ", self.path)
         # si on reçoit un "http://urlchelou/register/user?name=HAMOUDE" par exemple
@@ -490,18 +499,18 @@ class Server(http.server.SimpleHTTPRequestHandler):
 
             elif self.path.startswith('/newlobby'):
                 lobbyName = self.randomLobbyName()
-                while lobbyName in self.gameInstances.keys():
+                while lobbyName in gameInstances.keys():
                     lobbyName = self.randomLobbyName()
-                self.gameInstances[lobbyName] = Game()
-                self.gameThreads[lobbyName] = threading.Thread(target=self.gameInstances[lobbyName].run)
-                self.gameThreads[lobbyName].start()
+                gameInstances[lobbyName] = Game()
+                gameThreads[lobbyName] = threading.Thread(target=gameInstances[lobbyName].run)
+                gameThreads[lobbyName].start()
                 self.send_response(200, 'OK')
                 self.send_my_headers(4)
                 self.wfile.write(lobbyName.encode())
 
             elif self.path.startswith('/lobbyupdate'):
-                data = {"names" : currGame.get_all_names(),
-                        "skins" : currGame.get_all_skins()}
+                data = {"names" : currGame.get_all_names() + currGame.get_all_spectators(),
+                        "skins" : currGame.get_all_skins() + currGame.get_all_spectators_skins()}
                 ans = json.dumps(data)
 
                 self.send_response(200, 'OK')
@@ -676,7 +685,7 @@ class Server(http.server.SimpleHTTPRequestHandler):
     # Cette fonction sera appelée à chaque fois que le serveur recevra une requête POST
     def do_POST(self):
         currCode = self.path[1:5]
-        currGame = self.gameInstances[currCode]
+        currGame = gameInstances[currCode]
         self.path = self.path[5:]
         # print(" << POST Coucou j'ai reçu ", self.path)
         try:
@@ -705,6 +714,19 @@ class Server(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
+
+def removeDeadGames():
+    t = time.time()
+    for k in gameInstances.keys():
+        if t - gameInstances[k].latestUpdateTime > 20 * 60:
+            gameInstances.pop(k)
+            gameThreads[k].shouldRun = False
+            gameThreads.pop(k)
+    time.sleep(60)
+
+killerThread = threading.Thread(target=removeDeadGames)
+killerThread.start()
+
 # Pour dire à notre Server de s'éxécuter et de gérer les requêtes en continu, on l'envoie à la fonction magique
 # http.server.HTTPServer, qui va récupérer toutes les requêtes envoyées à localhost (mais qui auront été transférées depuis l'url sus) et les faire gérer par notre classe Server via do_GET et do_POST
 
@@ -713,4 +735,3 @@ handler_object = Server
 PORT = 8080
 httpd = http.server.HTTPServer(("localhost", PORT), handler_object)
 httpd.serve_forever()
-

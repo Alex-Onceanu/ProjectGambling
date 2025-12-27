@@ -58,7 +58,7 @@ shader_parameter/diamonds = ExtResource("3_l5vo1")
 shader_parameter/clubs = ExtResource("2_4s878")
 shader_parameter/frequency = 2.033
 shader_parameter/phase = 0.0
-shader_parameter/which_figure = 1.0
+shader_parameter/which_figure = 0.0
 shader_parameter/fade = 0.0
 shader_parameter/my_time = 0.0
 

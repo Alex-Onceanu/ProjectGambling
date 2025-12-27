@@ -8,10 +8,17 @@ const MAX_NB_CARDS = 2
 
 func begin_scale_anim():
 	$scale_anim_timer.start()
+	$timeout_timer.start()
 
 func end_scale_anim():
 	scale = Vector2(1.0, 1.0)
 	$scale_anim_timer.stop()
+	$timeout_timer.stop()
+	set_time_left(0.)
+	
+func set_time_left(t : float):
+	$Card_1/rect.material.set_shader_parameter("time_left", t)
+	$Card_2/rect.material.set_shader_parameter("time_left", t)
 
 func get_card_from(from : Vector2, colval : String, frontface = true, cd = -1.0):
 	if nb_cards >= MAX_NB_CARDS:
@@ -83,6 +90,9 @@ func _process(delta: float) -> void:
 		t **= 2
 		$bet_anim.modulate = Color(1.0, 1.0, 1.0, t)
 		$bet_anim.position = lerp(old_bet_pos, old_bet_pos + Vector2(0.0, +30.0), t)
+	if not $timeout_timer.is_stopped():
+		var t = $timeout_timer.time_left / $timeout_timer.wait_time
+		set_time_left(1. - t)
 
 func _on_bet_anim_timer_timeout() -> void:
 	$bet_anim.visible = false

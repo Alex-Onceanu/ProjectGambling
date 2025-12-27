@@ -23,5 +23,5 @@ void fragment() {
 
 	//COLOR = vec4(clamp(dot(velvet, vec3(0.0, 0.0, -1.0)), 0.0, 1.0));
 	vec4 bright_color = dot(wood_nm, 3.0 * light) + border * border.a + dark_table * dark_table.a + dot(velvet, light);
-	COLOR = vec4(0.4 * bright_color.xyz, border_alpha + dark_alpha);
+	COLOR = vec4(bright_color.xyz, border_alpha + dark_alpha);
 }

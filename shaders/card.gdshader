@@ -13,6 +13,7 @@ uniform float is_transparent = 1.0;
 uniform float strength: hint_range(0., 1.) = 0.5;
 uniform float speed: hint_range(0., 10.) = 0.5;
 uniform float angle: hint_range(0., 360.) = 0.;
+uniform float time_left = 0.;
 
 vec4 rainbow(vec2 uv) {
 	float hue = uv.x * cos(radians(angle)) - uv.y * sin(radians(angle));
@@ -44,9 +45,7 @@ void fragment() {
 	vec2 front_uv = mix(type_1, type_2, which_texture_type);
 
 	vec4 front = texture(front_tex, front_uv);
-	front = front * front;
 	vec4 back = texture(back_tex, UV);
-	back = back * back;
 
 	float n = 40.0;
 	float border = pow(pow(abs(uv.x), n) + pow(abs(uv.y), n), 1.0 / n);
@@ -59,5 +58,12 @@ void fragment() {
 	vec3 front_clr = mix(background.rgb, front.rgb * card_alpha, front.a);
 	
 	float alpha = mix(card_alpha * back.a, card_alpha * mix(front.a, 1.0, is_transparent), is_frontface);
-	COLOR = vec4(mix(back.rgb, front_clr, is_frontface), alpha);
+	vec3 clr = mix(back.rgb, front_clr, is_frontface);
+	
+	float timeLayer = smoothstep(time_left - 0.1, time_left, UV.y);
+	timeLayer = 1. - timeLayer;
+	clr = mix(clr.rgb, vec3(0.5 * length(clr.rgb)) * timeLayer, timeLayer);
+	
+	
+	COLOR = vec4(clr, alpha);
 }

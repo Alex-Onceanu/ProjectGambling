@@ -2,7 +2,7 @@ extends Node2D
 
 var game_code
 var user_id
-var url0 = "http://localhost:8080/"
+var url0 = "http://[2a09:6847:fa10:1410::279]:8080/"
 var url
 var tryagain_node
 var tryagain_url
@@ -26,7 +26,7 @@ const VOLUME_MAX = 6.0
 const SAVEFILE_PATH = "user://sauvegarde.givs"
 
 
-@onready var current_money = 5000
+@onready var current_money = 400
 @onready var old_money = current_money
 @onready var current_skin = "1"
 @onready var user_did_timeout = false
@@ -57,9 +57,9 @@ func _input(event: InputEvent) -> void:
 	elif Input.is_action_just_pressed("pause"):
 		if $Shop/CanvasLayer.visible:
 			_on_close_shop_pressed($Shop.current_equipped)
-		elif $PauseMenu/CanvasLayer.visible:
+		elif $PauseMenu/CanvasLayer.visible and $PauseMenu/CanvasLayer/Menu.visible:
 			_on_close_menu_pressed()
-		else:
+		elif not $PauseMenu/CanvasLayer/GetOut.visible:
 			pause()
 
 func rearrange_players(names, anim = false):
@@ -100,6 +100,13 @@ func _on_register_completed(result, response_code, headers, body):
 
 func _on_ready_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	if ans == "GETOUT":
+		$PauseMenu/CanvasLayer/Menu.visible = false
+		$PauseMenu/CanvasLayer/GetOut.visible = true
+		pause()
+		return
+
+	$Requests/LostConnection.start()
 	$UI/Rejouer.visible = false
 		
 	if ans.begins_with("spectator"):
@@ -143,6 +150,7 @@ func update_rythm():
 
 func start_game(cards):
 	$TitleScreen.fade_out()
+	$FrontLayer/Lobby/DeletePlayer.disabled = true
 	if not $BackgroundParticles.visible:
 		$BackgroundParticles.pause_particles(true)
 		update_rythm()
@@ -231,6 +239,8 @@ func _on_cards_completed(result: int, response_code: int, headers: PackedStringA
 		$TitleScreen/CanvasLayer/Options.visible = false
 		$TitleScreen/CanvasLayer/Gacha.visible = false
 		$TitleScreen/CanvasLayer/Submit.visible = false
+		$TitleScreen/CanvasLayer/Create.visible = false
+		$FrontLayer/Lobby.visible = false
 		start_game(cards)
 
 func _on_try_again_timeout() -> void:
@@ -250,7 +260,7 @@ func _on_name_text_submitted(new_text: String) -> void:
 	$EnterCode/CanvasLayer.layer = 1
 	
 	url = url0 + game_code
-	$Lobby/StartGame.disabled = false
+	$FrontLayer/Lobby/StartGame.disabled = false
 	$Requests/Register.request(url + "/register/user?name=" + user_name + "&skin=" + current_skin + "&money=" + str(current_money))
 	$PauseMenu/CanvasLayer/Menu/BackToTitle.disabled = false
 
@@ -302,6 +312,12 @@ func end_turn():
 
 func _on_update_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
+	$Requests/LostConnection.start()
+	if ans == "wronglobby" or ans == "GETOUT":
+		$PauseMenu/CanvasLayer/Menu.visible = false
+		$PauseMenu/CanvasLayer/GetOut.visible = true
+		pause()
+		return
 	var data = JSON.parse_string(ans)
 	if data == null:
 		print("Erreur au moment de parser la réponse de /update/ !! err : " + ans)
@@ -310,7 +326,9 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 	if round != data["round"]:
 		round = int(data["round"])
 		$UI/Round.text = ["Pre-flop", "Quoicouflop", "Turn", "River", "FIN"][round]
-		
+		$UI/Round.scale = Vector2(3., 3.)
+		create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BOUNCE).tween_property($UI/Round, "scale", Vector2(1., 1.), 1.)
+
 		if round == 4:
 			$Requests/Showdown.request(url + "/showdown")
 		else:
@@ -354,6 +372,7 @@ func _on_update_completed(result: int, response_code: int, headers: PackedString
 		if who_is_playing != null:
 			get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
 		who_is_playing = int(data["who_is_playing"])
+		
 		get_node("Players/Player" + str(true_i_of_i(who_is_playing))).begin_scale_anim()
 		$UI/WhoIsPlaying.text = "Au tour de " + every_name[who_is_playing]
 	if who_is_playing == my_player_offset:
@@ -382,7 +401,8 @@ func _on_showdown_completed(result: int, response_code: int, headers: PackedStri
 	if data == null:
 		print("Erreur au moment de parser la réponse de /showdown/ !!")
 		return
-		
+	$FrontLayer/Lobby/DeletePlayer.disabled = false
+	$Requests/LostConnection.paused = true
 	$UI/WhoIsPlaying.text = ""
 	get_node("Players/Player" + str(true_i_of_i(who_is_playing))).end_scale_anim()
 	who_is_playing = null
@@ -471,7 +491,7 @@ func _on_server_go_pressed() -> void:
 	if url != null:
 		$Requests/ServerGo.request(url + "/GO")
 		$PauseMenu/CanvasLayer/Menu/Lobby.visible = true
-		$Lobby/Back.disabled = false
+		$FrontLayer/Lobby/Back.disabled = false
 
 func _on_cd_spectate_timeout() -> void:
 	_on_rejouer_pressed()
@@ -564,18 +584,16 @@ func load_from_file():
 	return content
 	
 func save():
-	pass
-	#save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin, "purchased_skins" : purchased_skins}))
+	save_to_file(JSON.stringify({"current_money" : current_money, "current_skin" : current_skin, "purchased_skins" : purchased_skins}))
 
 func load_savefile():
-	pass
-	#var txt = load_from_file()
-	#if txt == null:
-		#return
-	#var data = JSON.parse_string(txt)
-	#current_money = int(data["current_money"])
-	#current_skin = data["current_skin"]
-	#purchased_skins = data["purchased_skins"]
+	var txt = load_from_file()
+	if txt == null:
+		return
+	var data = JSON.parse_string(txt)
+	current_money = max(100, int(data["current_money"]))
+	current_skin = data["current_skin"]
+	purchased_skins = data["purchased_skins"]
 
 func _ready() -> void:
 	const NB_FRONTS = 19
@@ -671,19 +689,19 @@ func _on_game_code_text_changed(new_text: String) -> void:
 	_on_name_text_changed(new_text)
 
 func _on_create_pressed() -> void:
-	$Requests/Create.request(url0 + "/$$$$/newlobby")
-	$Lobby.visible = true
+	$Requests/Create.request(url0 + "$$$$/newlobby")
+	$FrontLayer/Lobby.visible = true
 	$TitleScreen/CanvasLayer/Create.disabled = true
 	#print("create !")
 
 func _on_create_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	var ans = body.get_string_from_utf8()
 	if len(ans) == 4:
-		$Lobby/Code.text = "Code de la partie : " + ans
+		$FrontLayer/Lobby/Code.text = "Code de la partie : " + ans
 		game_code = "/" + ans
 		$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
 	else:
-		$Lobby.visible = false
+		$FrontLayer/Lobby.visible = false
 		$TitleScreen/CanvasLayer/Create.disabled = false
 
 
@@ -697,28 +715,34 @@ func _on_lobby_update_request_completed(result: int, response_code: int, headers
 		return
 	var data = JSON.parse_string(ans)
 	
-	$Lobby/ItemList.clear()
+	$FrontLayer/Lobby/ItemList.clear()
 	for i in range(len(data["names"])):
 		if data["skins"][i] == "2":
-			$Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i][0]) - 1])
+			$FrontLayer/Lobby/ItemList.add_item(data["names"][i], cards_back[1][randi_range(0, 9)])
 		else:
-			$Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i]) - 1])
+			$FrontLayer/Lobby/ItemList.add_item(data["names"][i], cards_back[int(data["skins"][i]) - 1])
 	
 	$Requests/LobbyUpdateTimer.start()
 
 func _on_lobby_update_timer_timeout() -> void:
-	if $Lobby.visible:
+	if $FrontLayer/Lobby.visible:
 		$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
 
 func _on_delete_player_pressed() -> void:
-	if len($Lobby/ItemList.get_selected_items()) == 0:
+	if len($FrontLayer/Lobby/ItemList.get_selected_items()) == 0:
 		return
-	var toKick = $Lobby/ItemList.get_item_text($Lobby/ItemList.get_selected_items()[0])
+	var toKick = $FrontLayer/Lobby/ItemList.get_item_text($FrontLayer/Lobby/ItemList.get_selected_items()[0])
 	$Requests/KickPlayer.request(url0 + game_code + "/kick?who=" + toKick)
 
 func _on_lobby_pressed() -> void:
-	$Lobby.visible = true
+	$FrontLayer/Lobby.visible = true
+	_on_close_menu_pressed()
 	$Requests/LobbyUpdate.request(url0 + game_code + "/lobbyupdate")
 
 func _on_back_pressed() -> void:
-	$Lobby.visible = false
+	$FrontLayer/Lobby.visible = false
+
+func _on_lost_connection_timeout() -> void:
+	$PauseMenu/CanvasLayer/Menu.visible = false
+	$PauseMenu/CanvasLayer/GetOut.visible = true
+	pause()

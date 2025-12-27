@@ -33,10 +33,10 @@ void fragment() {
 	float D_diamonds = texture(diamonds, UV).r;
 	float lD[] = { D_clubs,D_hearts,D_spades,D_diamonds };
 
-	vec3 col_clubs = 0.125 * vec3(0.196, 0.349, 0.322);
+	vec3 col_clubs = vec3(0.196, 0.349, 0.322);
 	vec3 col_hearts = vec3(0.9, 0.04, 0.04);
-	vec3 col_spades = 0.3 * vec3(0.0392, 0.0588, 0.09216);
-	vec3 col_diamonds = vec3(1.0, 0.15, 0.0);
+	vec3 col_spades = vec3(0.0392, 0.0588, 0.09216);
+	vec3 col_diamonds = vec3(1.0, 0.45, 0.);
 	vec3 lcol[] = { col_clubs,col_hearts,col_spades,col_diamonds };
 
 	float D1 = lD[int(which_figure) % 4];

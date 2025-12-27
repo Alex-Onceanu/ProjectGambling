@@ -64,4 +64,8 @@ one_shot = true
 
 [node name="scale_anim_timer" type="Timer" parent="."]
 
+[node name="timeout_timer" type="Timer" parent="."]
+wait_time = 43.0
+one_shot = true
+
 [connection signal="timeout" from="bet_anim_timer" to="." method="_on_bet_anim_timer_timeout"]
